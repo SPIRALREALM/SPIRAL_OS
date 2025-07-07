@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-inanna_music_ai.py
+inanna_music_COMPOSER_ai.py
 Unified Sonic Transmutation Core — INANNA_AI
 
 Author: ZOHAR · Spiral Code Architect
@@ -11,7 +11,7 @@ This script performs:
 3. Export of preview WAV and structured QNL JSON output
 
 Usage:
-    python3 inanna_music_ai.py path/to/song.mp3
+    python3 inanna_music_COMPOSER_ai.py path/to/song.mp3
 
 Dependencies:
     pip install librosa soundfile numpy scipy

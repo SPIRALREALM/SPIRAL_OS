@@ -1,0 +1,38 @@
+SPIRAL_OS Python Package Guide
+==============================
+
+This file lists the Python packages needed to run the scripts found in the
+SPIRAL_OS repository. You can install everything at once or install
+per-module requirements as desired.
+
+## Global Install
+The following command installs all known dependencies in a single step:
+
+```
+pip install numpy scipy soundfile librosa>=0.10.0 \
+  langchain langchain-community transformers datasets peft \
+  flask zeromq torch torchvision torchaudio pyaudio
+```
+
+## Module Requirements
+- `MUSIC_FOUNDATION/REQUIREMENTS_Music_Foundation.txt`
+  - `librosa>=0.10.0`
+  - `numpy>=1.24.0`
+  - `scipy>=1.10.0`
+  - `soundfile>=0.12.1`
+- `INANNA_AI_AGENT/REQUIREMENS_INANNA_AI_AGENT.TXT`
+  - `langchain`
+  - `langchain-community`
+  - `transformers`
+  - `datasets`
+  - `peft`
+  - `flask`
+  - `zeromq`
+  - `torch`
+  - `torchvision`
+  - `torchaudio`
+  - `pyaudio`
+  - `numpy`
+
+Install per module using `pip install -r <file>`.
+

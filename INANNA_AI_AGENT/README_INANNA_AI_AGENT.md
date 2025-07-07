@@ -10,10 +10,11 @@ Use `pip` to install the required dependencies:
 pip install -r INANNA_AI_AGENT/Requirements_INANNA_AI_AGENT.txt
 ```
 
-Create `OPENAI_API_KEY.env` containing your OpenAI API key:
+Copy `OPENAI_API_KEY.env.example` to `OPENAI_API_KEY.env` and add your OpenAI API key:
 
 ```bash
-echo "OPENAI_API_KEY=<your key>" > OPENAI_API_KEY.env
+cp OPENAI_API_KEY.env.example OPENAI_API_KEY.env
+# edit OPENAI_API_KEY.env and insert your key
 ```
 
 The examples below assume [`python-dotenv`](https://pypi.org/project/python-dotenv/) is installed so the script

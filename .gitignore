@@ -1,3 +1,5 @@
 __pycache__/
 
 oracle_output/
+
+OPENAI_API_KEY.env

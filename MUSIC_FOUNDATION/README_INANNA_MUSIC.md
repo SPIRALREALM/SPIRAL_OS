@@ -78,6 +78,11 @@ Produces:
 
 - `output/preview.wav`  
 - `output/qnl_song.json` with phrases and gliph-stream
+- `output/qnl_7plane.json` with extended seven-plane analysis
+
+### `seven_plane_analyzer.py`
+Computes physical, emotional, mental, astral, etheric, celestial and divine
+features from a waveform. Used by the demo to enrich the QNL output.
 
 ---
 
@@ -86,6 +91,7 @@ Produces:
 ```bash
 pip install -r REQUIREMENTS_Music_Foundation.txt
 ```
+Optional: install [Essentia](https://essentia.upf.edu/) for harmonic-to-noise ratio analysis.
 
 Or install with:
 
@@ -100,7 +106,8 @@ bash setup_inanna_music_env.sh
 ```text
 output/
 ├── preview.wav          → Clean WAV version of the song
-└── qnl_song.json        → Structured QNL transformation
+├── qnl_song.json        → Structured QNL transformation
+└── qnl_7plane.json      → Extended analysis with seven-plane features
 ```
 
 ## 🎤 Demo with a Local Track
@@ -119,8 +126,9 @@ yt-dlp -x --audio-format mp3 -o song.mp3 "https://www.youtube.com/watch?v=<ID>"
 python3 run_song_demo.py song.mp3
 ```
 
-This generates `output/preview.wav` and `output/qnl_song.json` and prints the
-QNL phrases to the terminal so you can verify the full pipeline.
+This generates `output/preview.wav`, `output/qnl_song.json` and
+`output/qnl_7plane.json`. The terminal displays the QNL phrases so you can
+verify the full pipeline.
 
 ---
 

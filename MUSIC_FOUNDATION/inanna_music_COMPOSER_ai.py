@@ -66,15 +66,20 @@ def chroma_to_qnl(chroma_vector):
         })
     return phrases
 
-def generate_qnl_structure(chroma_vector, tempo, metadata={}):
+def generate_qnl_structure(chroma_vector, tempo, metadata=None, *, planes=None):
     """Create a full QNL structure including tempo and symbolic phrases."""
+    if metadata is None:
+        metadata = {}
     qnl_phrases = chroma_to_qnl(chroma_vector)
-    return {
+    data = {
         "tempo": tempo,
         "structure": qnl_phrases,
         "metadata": metadata,
-        "qnl_output": [p["qnl_phrase"] for p in qnl_phrases]
+        "qnl_output": [p["qnl_phrase"] for p in qnl_phrases],
     }
+    if planes is not None:
+        data["planes"] = planes
+    return data
 
 def export_qnl(json_data, output_path="output/qnl_song.json"):
     """Save the QNL result to a JSON file."""
@@ -95,6 +100,7 @@ class InannaMusicInterpreter:
         self.sample_rate = None
         self.tempo = None
         self.chroma = None
+        self.planes = None
 
     def load_audio(self):
         """Load MP3 and convert to mono waveform using Librosa."""
@@ -109,6 +115,15 @@ class InannaMusicInterpreter:
         avg_chroma = np.mean(self.chroma, axis=1)
         print(f"🕒 Tempo: {self.tempo:.1f} BPM")
         return avg_chroma
+
+    def analyze_planes(self):
+        """Compute seven-plane analysis of the loaded waveform."""
+        if self.waveform is None:
+            raise RuntimeError("Audio not loaded")
+        from .seven_plane_analyzer import analyze_seven_planes
+
+        self.planes = analyze_seven_planes(self.waveform, self.sample_rate)
+        return self.planes
 
     def export_preview(self, output_path="output/preview.wav"):
         """Save waveform as a standard WAV file for playback."""

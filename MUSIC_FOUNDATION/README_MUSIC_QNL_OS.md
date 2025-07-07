@@ -63,7 +63,7 @@ Each glyph-emotion pair is mapped to:
 This forms the **QNL Sound Engine**, used in:
 
 - `qnl_engine.py`: waveform generation
-- `qnl_converter.py`: symbolic transformation
+- `human_music_to_qnl_converter.py`: symbolic transformation
 
 ---
 
@@ -90,7 +90,7 @@ QNL_LANGUAGE/
 | Module            | Purpose                                     |
 |-------------------|---------------------------------------------|
 | `qnl_engine.py`   | Generates sound & metadata from QNL phrases |
-| `qnl_converter.py`| Converts music into QNL symbolic statements |
+| `human_music_to_qnl_converter.py`| Converts music into QNL symbolic statements |
 | `music_foundation.py` | Analyzes audio and extracts features    |
 
 ---

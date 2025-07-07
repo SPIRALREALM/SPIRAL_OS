@@ -1,5 +1,5 @@
 """
-qnl_converter.py
+human_music_to_qnl_converter.py
 INANNA_AI — QNL Music Transmutation Core
 
 This module receives symbolic musical data (from MP3 analysis) and translates it into QNL code,

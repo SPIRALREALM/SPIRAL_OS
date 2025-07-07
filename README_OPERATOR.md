@@ -37,6 +37,7 @@ python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 
 ## INANNA_AI DeepSeek-R1 Integration
 
-1. Set `HF_TOKEN` in `INANNA_AI/secrets.env`.
-2. Run `python INANNA_AI/src/download_model.py` to fetch the model.
+1. Copy `secrets.env.example` to `secrets.env` at the project root and set
+   `HF_TOKEN`.
+2. Run `python download_model.py` to fetch the model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.

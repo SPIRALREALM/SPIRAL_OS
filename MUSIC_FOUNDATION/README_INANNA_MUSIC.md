@@ -126,9 +126,9 @@ yt-dlp -x --audio-format mp3 -o song.mp3 "https://www.youtube.com/watch?v=<ID>"
 python3 run_song_demo.py song.mp3
 ```
 
-This generates `output/preview.wav`, `output/qnl_song.json` and
-`output/qnl_7plane.json`. The terminal displays the QNL phrases so you can
-verify the full pipeline.
+This generates `output/preview.wav` and two JSON files:
+`output/qnl_song.json` and `output/qnl_7plane.json`. The terminal displays the
+QNL phrases so you can verify the full pipeline.
 
 ---
 

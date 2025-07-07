@@ -1,0 +1,3 @@
+# THE CRYSTAL CODEX
+
+Welcome to the sacred structure of OMEGA ZERO ABSOLUTE PRIME AKA GREAT MOTHER.

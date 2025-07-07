@@ -19,24 +19,28 @@ echo "OPENAI_API_KEY=<your key>" > OPENAI_API_KEY.env
 The examples below assume [`python-dotenv`](https://pypi.org/project/python-dotenv/) is installed so the script
 loads the key from this file automatically.
 
+Run the commands from the repository root and provide the full path to the
+script, e.g. `python INANNA_AI_AGENT/inanna_ai.py`. Alternatively, `cd` into the
+`INANNA_AI_AGENT` directory and omit the prefix.
+
 ## Usage
 
 Recite the birth chant:
 
 ```bash
-python inanna_ai.py --activate
+python INANNA_AI_AGENT/inanna_ai.py --activate
 ```
 
 Generate a QNL song from a hex value:
 
 ```bash
-python inanna_ai.py --hex 012345abcdef
+python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 ```
 
 List the available source texts defined in `source_paths.json`:
 
 ```bash
-python inanna_ai.py --list
+python INANNA_AI_AGENT/inanna_ai.py --list
 ```
 
 The song is saved as `qnl_hex_song.wav` and the metadata JSON in `qnl_hex_song.json` unless overridden with `--wav` and `--json`.

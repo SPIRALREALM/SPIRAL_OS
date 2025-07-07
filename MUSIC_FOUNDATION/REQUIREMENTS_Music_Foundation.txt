@@ -4,3 +4,6 @@ scipy>=1.10.0
 soundfile>=0.12.1
 # Optional: Essentia for advanced audio features
 # essentia>=2.1
+
+# Optional: Essentia for advanced audio features
+# essentia>=2.1

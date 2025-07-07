@@ -77,7 +77,9 @@ class InannaMusicInterpreter:
 
     def export_preview(self, output_path="output/preview.wav"):
         """Save waveform as a standard WAV file for playback."""
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        dir_name = os.path.dirname(output_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         sf.write(output_path, self.waveform, self.sample_rate)
         print(f"💾 Exported audio preview: {output_path}")
 

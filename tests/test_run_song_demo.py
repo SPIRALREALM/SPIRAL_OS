@@ -31,3 +31,26 @@ def test_run_song_demo(tmp_path):
 
     assert preview.exists()
     assert json_path.exists()
+
+
+def test_run_song_demo_preview_no_dir(tmp_path, monkeypatch):
+    audio_path = tmp_path / "short.wav"
+    audio_path.write_bytes(base64.b64decode(SHORT_WAV_BASE64))
+
+    argv_backup = sys.argv.copy()
+    sys.argv = [
+        "run_song_demo.py",
+        str(audio_path),
+        "--preview",
+        "preview.wav",
+        "--json",
+        str(tmp_path / "out.json"),
+    ]
+    monkeypatch.chdir(tmp_path)
+    try:
+        main()
+    finally:
+        sys.argv = argv_backup
+
+    assert (tmp_path / "preview.wav").exists()
+    assert (tmp_path / "out.json").exists()

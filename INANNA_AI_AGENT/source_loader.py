@@ -19,7 +19,10 @@ def load_config(config_file: Path = DEFAULT_CONFIG) -> List[Path]:
     paths = []
     for p in data.get("source_paths", []):
         try:
-            paths.append(Path(p))
+            path = Path(p)
+            if not path.is_absolute():
+                path = config_file.parent / path
+            paths.append(path)
         except Exception:
             continue
     return paths

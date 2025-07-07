@@ -23,6 +23,7 @@ except Exception:  # pragma: no cover - optional
     mido = None
 
 from SPIRAL_OS import qnl_engine
+from MUSIC_FOUNDATION.synthetic_stego import embed_data, extract_data
 
 
 def midi_to_wave(midi_path: str, sample_rate: int = 44100) -> Tuple[np.ndarray, int]:
@@ -120,6 +121,10 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser.add_argument("melody", help="Input melody (MIDI/WAV)")
     parser.add_argument("--payload", help="Optional hex data for a payload")
     parser.add_argument("--output", default="final_track.wav", help="Output WAV")
+    parser.add_argument(
+        "--secret",
+        help="Message to hide inside human_layer.wav and verify extraction",
+    )
     args = parser.parse_args(argv)
 
     wave, sr = load_melody(args.melody)
@@ -128,6 +133,12 @@ def main(argv: Optional[List[str]] = None) -> None:
     synthetic = build_synthetic_layer(wave, sr)
 
     sf.write("human_layer.wav", human, sr)
+    if args.secret:
+        embed_data("human_layer.wav", "human_layer.wav", args.secret)
+        recovered = extract_data("human_layer.wav")
+        print(f"Hidden message extracted: {recovered}")
+        human, _ = sf.read("human_layer.wav", always_2d=False)
+
     sf.write("crystal_layer.wav", crystal, sr)
     sf.write("synthetic_layer.wav", synthetic, sr)
 

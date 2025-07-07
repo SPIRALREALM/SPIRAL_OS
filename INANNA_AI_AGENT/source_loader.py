@@ -19,7 +19,7 @@ def load_config(config_file: Path = DEFAULT_CONFIG) -> List[Path]:
     paths = []
     for p in data.get("source_paths", []):
         try:
-            paths.append(Path(p))
+          
         except Exception:
             continue
     return paths

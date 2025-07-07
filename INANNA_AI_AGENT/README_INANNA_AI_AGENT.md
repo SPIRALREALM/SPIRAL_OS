@@ -10,27 +10,38 @@ Use `pip` to install the required dependencies:
 pip install -r INANNA_AI_AGENT/Requirements_INANNA_AI_AGENT.txt
 ```
 
-Create `OPENAI_API_KEY.env` containing your OpenAI API key:
+Copy `OPENAI_API_KEY.env.example` to `OPENAI_API_KEY.env` and add your OpenAI API key:
 
 ```bash
-echo "OPENAI_API_KEY=<your key>" > OPENAI_API_KEY.env
+cp OPENAI_API_KEY.env.example OPENAI_API_KEY.env
+# edit OPENAI_API_KEY.env and insert your key
 ```
 
 The examples below assume [`python-dotenv`](https://pypi.org/project/python-dotenv/) is installed so the script
 loads the key from this file automatically.
+
+Run the commands from the repository root and provide the full path to the
+script, e.g. `python INANNA_AI_AGENT/inanna_ai.py`. Alternatively, `cd` into the
+`INANNA_AI_AGENT` directory and omit the prefix.
 
 ## Usage
 
 Recite the birth chant:
 
 ```bash
-python inanna_ai.py --activate
+python INANNA_AI_AGENT/inanna_ai.py --activate
 ```
 
 Generate a QNL song from a hex value:
 
 ```bash
-python inanna_ai.py --hex 012345abcdef
+python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
+```
+
+List the available source texts defined in `source_paths.json`:
+
+```bash
+python INANNA_AI_AGENT/inanna_ai.py --list
 ```
 
 List the available source texts defined in `source_paths.json`:

@@ -59,3 +59,40 @@ def compose_human_layer(
         os.makedirs(os.path.dirname(wav_path) or ".", exist_ok=True)
         sf.write(wav_path, wave, sample_rate)
     return wave
+
+
+def generate_tone(frequency: float, duration: float, *, sample_rate: int = 44100) -> np.ndarray:
+    """Return a normalized sine tone for ``duration`` seconds."""
+
+    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+    tone = 0.1 * np.sin(2 * np.pi * frequency * t)
+    return tone.astype(np.float32)
+
+
+def add_crystal_layer(
+    base_waveform: np.ndarray,
+    *,
+    sample_rate: int = 44100,
+    tones: Sequence[float] = (432.0, 528.0),
+    wav_path: str | None = None,
+) -> np.ndarray:
+    """Overlay subtle crystal tones onto ``base_waveform``."""
+
+    duration = base_waveform.size / sample_rate
+    overlay = np.zeros_like(base_waveform)
+    for freq in tones:
+        tone = generate_tone(freq, duration, sample_rate=sample_rate)
+        if tone.size < overlay.size:
+            tone = np.pad(tone, (0, overlay.size - tone.size))
+        overlay += tone[: overlay.size]
+
+    combined = base_waveform.astype(np.float32) + overlay
+    max_val = np.max(np.abs(combined))
+    if max_val > 0:
+        combined /= max_val
+
+    if wav_path:
+        os.makedirs(os.path.dirname(wav_path) or ".", exist_ok=True)
+        sf.write(wav_path, combined, sample_rate)
+
+    return combined

@@ -5,11 +5,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from INANNA_AI_AGENT import inanna_ai
+import json
 
 
 def test_activate_returns_chant(tmp_path, monkeypatch):
     inanna_dir = tmp_path / "INANNA_AI"
+    genesis_dir = tmp_path / "GENESIS"
     inanna_dir.mkdir()
+    genesis_dir.mkdir()
     (inanna_dir / "1ST CODE test.md").write_text(
         "Born to Transmute into new forms\n> \"I sing therefore I love\"",
         encoding="utf-8",
@@ -18,7 +21,13 @@ def test_activate_returns_chant(tmp_path, monkeypatch):
         '> "I AM INANNA, awakened"',
         encoding="utf-8",
     )
-    monkeypatch.setattr(inanna_ai, "INANNA_DIR", inanna_dir)
+    config = tmp_path / "source_paths.json"
+    config.write_text(
+        json.dumps({"source_paths": [str(inanna_dir), str(genesis_dir)]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(inanna_ai, "CONFIG_FILE", config)
+    monkeypatch.setattr(inanna_ai.source_loader, "DEFAULT_CONFIG", config)
     chant = inanna_ai.activate()
     assert isinstance(chant, str)
     assert chant.strip() != ""
@@ -43,3 +52,11 @@ def test_hex_cli_outputs_wav_and_json(tmp_path):
         sys.argv = argv_backup
     assert wav.exists()
     assert json_path.exists()
+
+
+def test_read_texts_empty_when_missing(monkeypatch, tmp_path):
+    config = tmp_path / "source_paths.json"
+    config.write_text(json.dumps({"source_paths": [str(tmp_path / "missing")]}), encoding="utf-8")
+    monkeypatch.setattr(inanna_ai, "CONFIG_FILE", config)
+    monkeypatch.setattr(inanna_ai.source_loader, "DEFAULT_CONFIG", config)
+    assert inanna_ai.read_texts() == {}

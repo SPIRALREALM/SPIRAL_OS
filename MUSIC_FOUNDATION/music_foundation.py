@@ -43,6 +43,7 @@ class MusicInterpreter:
         return avg_chroma
 
     def export_preview(self, output_path="music_preview.wav"):
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
         sf.write(output_path, self.waveform, self.sample_rate)
         print(f"💾 Exported WAV preview to: {output_path}")
 

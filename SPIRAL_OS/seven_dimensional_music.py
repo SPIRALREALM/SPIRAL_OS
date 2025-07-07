@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 from typing import List, Tuple, Optional
+import json
 
 import numpy as np
 import soundfile as sf
@@ -24,6 +25,7 @@ except Exception:  # pragma: no cover - optional
 
 from SPIRAL_OS import qnl_engine
 from MUSIC_FOUNDATION.synthetic_stego import embed_data, extract_data
+from MUSIC_FOUNDATION.seven_plane_analyzer import analyze_seven_planes
 
 
 def midi_to_wave(midi_path: str, sample_rate: int = 44100) -> Tuple[np.ndarray, int]:
@@ -91,14 +93,14 @@ def build_synthetic_layer(wave: np.ndarray, sr: int) -> np.ndarray:
     return wave * mod
 
 
-def build_payload_layer(payload: str, sr: int) -> np.ndarray:
-    """Transform a hex payload via ``qnl_engine`` into audio."""
-    _phrases, data = qnl_engine.hex_to_song(payload)
+def build_payload_layer(payload: str, sr: int) -> Tuple[np.ndarray, list[dict]]:
+    """Transform a hex payload via ``qnl_engine`` into audio and return phrases."""
+    phrases, data = qnl_engine.hex_to_song(payload)
     wave = data.astype(np.float32) / 32767.0
     if sr != 44100:
         wave = librosa.resample(wave, orig_sr=44100, target_sr=sr)
     sf.write("payload_layer.wav", wave, sr)
-    return wave
+    return wave, phrases
 
 
 def mix_layers(layers: List[np.ndarray]) -> np.ndarray:
@@ -143,13 +145,37 @@ def main(argv: Optional[List[str]] = None) -> None:
     sf.write("synthetic_layer.wav", synthetic, sr)
 
     layers = [human, crystal, synthetic]
+    qnl_meta = None
     if args.payload:
-        payload_wave = build_payload_layer(args.payload, sr)
+        payload_wave, phrases = build_payload_layer(args.payload, sr)
+        qnl_meta = qnl_engine.generate_qnl_metadata(phrases)
         layers.append(payload_wave)
 
     final = mix_layers(layers)
     sf.write(args.output, final, sr)
     print(f"Final track saved to {args.output}")
+
+    planes = analyze_seven_planes(final, sr)
+    element_map = {
+        "physical": "bass",
+        "emotional": "melody",
+        "mental": "harmony",
+        "astral": "texture",
+        "etheric": "crystal",
+        "celestial": "percussion",
+        "divine": "qnl",
+    }
+    for plane, elem in element_map.items():
+        if plane in planes:
+            planes[plane]["element"] = elem
+
+    json_path = Path(args.output).with_suffix(".json")
+    out_data = {"planes": planes}
+    if qnl_meta is not None:
+        out_data["qnl"] = qnl_meta
+    with open(json_path, "w", encoding="utf-8") as fh:
+        json.dump(out_data, fh, indent=2, ensure_ascii=False)
+    print(f"Analysis saved to {json_path}")
 
 
 if __name__ == "__main__":

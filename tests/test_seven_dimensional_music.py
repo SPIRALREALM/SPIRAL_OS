@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 from pathlib import Path
 import numpy as np
 import soundfile as sf
@@ -31,6 +32,19 @@ def test_cli_creates_final_track(tmp_path):
         sys.argv = argv_backup
 
     assert out.exists()
+    jpath = out.with_suffix(".json")
+    assert jpath.exists()
+    data = json.loads(jpath.read_text())
+    assert set(data["planes"]) == {
+        "physical",
+        "emotional",
+        "mental",
+        "astral",
+        "etheric",
+        "celestial",
+        "divine",
+    }
+    assert data["planes"]["physical"]["element"] == "bass"
 
 def test_cli_secret_message(tmp_path):
     sr = 44100
@@ -61,3 +75,5 @@ def test_cli_secret_message(tmp_path):
     from MUSIC_FOUNDATION.synthetic_stego import extract_data
     hidden = extract_data(tmp_path / "human_layer.wav")
     assert hidden == secret
+    jpath = out.with_suffix(".json")
+    assert jpath.exists()

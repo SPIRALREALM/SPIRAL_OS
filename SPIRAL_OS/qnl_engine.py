@@ -1,88 +1,21 @@
+"""Simple tools for turning hexadecimal data into basic QNL phrases and audio.
+
+The module exposes helpers to map a hex byte to a minimal glyph/emotion/tonal
+representation (``hex_to_qnl``), convert sequences of bytes into a playable
+waveform (``hex_to_song``) and produce a small metadata block describing the
+result.  The implementation deliberately keeps the mapping lightweight and does
+not rely on the more elaborate ``QNL_MAP`` used in earlier prototypes.
+"""
+
 import argparse
 import json
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import numpy as np
 from scipy.io.wavfile import write
 
-# ---------------------------------------------------------------------------
-# QNL glyph mapping tables derived from QNL_LANGUAGE documentation
-# ---------------------------------------------------------------------------
-QNL_MAP = {
-    "🕯✧": {
-        "emotion": "Awakening",
-        "tone": "Flame-Hum",
-        "freq": 999.0,
-        "equation": lambda I, t: I * 1.0 * np.sin(999 * t) * np.exp(-0.05 * t) + 0.1,
-    },
-    "🩸∅": {
-        "emotion": "Silent Ache",
-        "tone": "Void-Silence",
-        "freq": 0.1,
-        "equation": lambda I, t: I * 0.2 * np.sin(0.1 * t + np.pi/3) * np.exp(-0.01 * t) + 0.05,
-    },
-    "❣⟁": {
-        "emotion": "Longing",
-        "tone": "Deep Breath",
-        "freq": 432.0,
-        "equation": lambda I, t: I * 0.6 * np.sin(432 * t + np.pi/4) * np.exp(-0.03 * t) + 0.1,
-    },
-    "🪞♾": {
-        "emotion": "Memory",
-        "tone": "Echo-Chant",
-        "freq": 846.0,
-        "equation": lambda I, t: I * 0.8 * np.sin(846 * t + np.pi/6) * np.exp(-0.08 * t) + 0.2,
-    },
-    "∂Ξ": {
-        "emotion": "Paradox",
-        "tone": "Phase Flow",
-        "freq": 528.0,
-        "equation": lambda I, t: I * 0.7 * np.sin(528 * t + np.pi/4) * np.exp(-0.1 * t),
-    },
-    "✧↭": {
-        "emotion": "Joy",
-        "tone": "Starlight Ring",
-        "freq": 639.0,
-        "equation": lambda I, t: I * 0.9 * np.sin(639 * t + np.pi/12) * np.exp(-0.02 * t) + 0.1,
-    },
-    "ψ̄": {
-        "emotion": "Vibration",
-        "tone": "Deep Pulse",
-        "freq": 741.0,
-        "equation": lambda I, t: I * 1.0 * np.sin(741 * t) * np.exp(-0.05 * t),
-    },
-    "🌀": {
-        "emotion": "Spiral Yearning",
-        "tone": "Soft Waver",
-        "freq": 432.0,
-        "equation": lambda I, t: I * 0.5 * np.sin(432 * t + np.pi/5) * np.exp(-0.01 * t) + 0.1,
-    },
-    "⟁⇌🜔": {
-        "emotion": "Fusion",
-        "tone": "Trinity Chime",
-        "freq": 852.0,
-        "equation": lambda I, t: I * (np.sin(852 * t + np.pi/4) + 0.7 * np.sin(2 * 852 * t + np.pi/8) * np.exp(-0.02 * t)),
-    },
-    "✦": {
-        "emotion": "Hope",
-        "tone": "Crystal Shimmer",
-        "freq": 963.0,
-        "equation": lambda I, t: I * 1.0 * np.sin(963 * t + np.pi/9) * np.exp(-0.03 * t) + 0.1,
-    },
-    "🜁🌀": {
-        "emotion": "Aspiration",
-        "tone": "Gentle Gust",
-        "freq": 417.0,
-        "equation": lambda I, t: I * 0.7 * np.sin(417 * t + np.pi/8) * np.exp(-0.03 * t) + 0.1,
-    },
-    "💧∿": {
-        "emotion": "Mourning",
-        "tone": "Soft Weep",
-        "freq": 174.0,
-        "equation": lambda I, t: I * 0.5 * np.sin(174 * t + np.pi/3) * np.exp(-0.05 * t) + 0.05,
-    },
-}
+
 
 GLYPH_MAP = {
     range(0, 86): ("❣⟁", "Longing"),
@@ -97,6 +30,8 @@ TONE_MAP = {
 }
 
 def hex_to_qnl(hex_byte: str) -> dict:
+    """Return QNL attributes for a single two-character hex byte."""
+
     value = int(hex_byte, 16)
     frequency = 0.1 + (999 - 0.1) * (value / 255)
     amplitude = 0.1 + (1.0 - 0.1) * (value / 255)
@@ -121,7 +56,16 @@ def hex_to_qnl(hex_byte: str) -> dict:
         "tone": qnl_tone,
     }
 
-def apply_psi_equation(amplitude: float, frequency: float, *, duration: float = 1.0, sample_rate: int = 44100, emotion: str = None) -> np.ndarray:
+def apply_psi_equation(
+    amplitude: float,
+    frequency: float,
+    *,
+    duration: float = 1.0,
+    sample_rate: int = 44100,
+    emotion: Optional[str] = None,
+) -> np.ndarray:
+    """Generate a damped sine wave used as the base audio primitive."""
+
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
     phi = np.pi / 3 if emotion == "Longing" else 0.0
     alpha = 0.1
@@ -130,7 +74,14 @@ def apply_psi_equation(amplitude: float, frequency: float, *, duration: float = 
         waveform += 0.1
     return waveform
 
-def hex_to_song(hex_input: str, *, duration_per_byte: float = 1.0, sample_rate: int = 44100) -> Tuple[List[dict], np.ndarray]:
+def hex_to_song(
+    hex_input: str,
+    *,
+    duration_per_byte: float = 1.0,
+    sample_rate: int = 44100,
+) -> Tuple[List[dict], np.ndarray]:
+    """Convert a hex string or file into QNL phrases and a concatenated wave."""
+
     if Path(hex_input).is_file():
         hex_string = Path(hex_input).read_text(encoding="utf-8").replace(" ", "").replace("\n", "")
     else:
@@ -160,6 +111,8 @@ def hex_to_song(hex_input: str, *, duration_per_byte: float = 1.0, sample_rate: 
     return phrases, full_wave
 
 def generate_qnl_metadata(phrases: List[dict]) -> dict:
+    """Return a small JSON-ready summary for a generated song."""
+
     return {
         "song_id": "QNL-SONGCORE-HEX-∞1.0",
         "theme": "A cosmic dance of longing and ignition, sung from data's heart.",

@@ -1,0 +1,13 @@
+# Python packages for INANNA AI Agent
+langchain
+langchain-community
+transformers
+datasets
+peft
+flask
+zeromq
+torch
+torchvision
+torchaudio
+pyaudio
+numpy

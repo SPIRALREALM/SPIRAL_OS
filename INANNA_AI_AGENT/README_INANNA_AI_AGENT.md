@@ -44,6 +44,12 @@ List the available source texts defined in `source_paths.json`:
 python INANNA_AI_AGENT/inanna_ai.py --list
 ```
 
+List the available source texts defined in `source_paths.json`:
+
+```bash
+python inanna_ai.py --list
+```
+
 The song is saved as `qnl_hex_song.wav` and the metadata JSON in `qnl_hex_song.json` unless overridden with `--wav` and `--json`.
 
 ## Source Texts

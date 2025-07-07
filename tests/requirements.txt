@@ -4,3 +4,4 @@ soundfile
 librosa
 pytest
 markdown
+sentence-transformers

@@ -11,3 +11,4 @@ torchvision
 torchaudio
 pyaudio
 numpy
+sentence-transformers

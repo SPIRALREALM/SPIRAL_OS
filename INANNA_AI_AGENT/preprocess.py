@@ -3,6 +3,9 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
 import markdown
 
 
@@ -76,10 +79,41 @@ def preprocess_texts(text_dict: Dict[str, str], cache_dir: Path | str = "cache")
     return processed
 
 
+def generate_embeddings(
+    tokens_dict: Dict[str, List[str]],
+    cache_dir: Path | str = "cache",
+    model_name: str = "all-MiniLM-L6-v2",
+) -> Dict[str, np.ndarray]:
+    """Generate and cache embeddings for preprocessed token lists."""
+
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    model = SentenceTransformer(model_name)
+    embeddings: Dict[str, np.ndarray] = {}
+
+    for name, tokens in tokens_dict.items():
+        cache_file = cache_dir / f"{name}.embed.npy"
+        if cache_file.exists():
+            try:
+                embeddings[name] = np.load(cache_file)
+                continue
+            except Exception:
+                pass
+
+        text = " ".join(tokens)
+        emb = model.encode(text)
+        embeddings[name] = np.asarray(emb)
+        np.save(cache_file, embeddings[name])
+
+    return embeddings
+
+
 __all__ = [
     "strip_markdown",
     "normalize_whitespace",
     "tokenize",
     "tokenize_texts",
     "preprocess_texts",
+    "generate_embeddings",
 ]

@@ -4,7 +4,7 @@ import numpy as np
 import soundfile as sf
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "SPIRAL_OS"))
+sys.path.insert(0, str(ROOT))
 
 from MUSIC_FOUNDATION.inanna_music_COMPOSER_ai import InannaMusicInterpreter
 

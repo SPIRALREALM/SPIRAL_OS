@@ -52,3 +52,41 @@ python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
    `HF_TOKEN`.
 2. Run `python download_model.py` to fetch the model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.
+
+## Download Models
+
+The INANNA chat agent requires the DeepSeek-R1 weights from Hugging Face. Follow
+these steps to place the model under `INANNA_AI/models`.
+
+1. Install the dependencies listed in `SPIRAL_OS/requirements.txt`:
+
+   ```bash
+   pip install -r SPIRAL_OS/requirements.txt
+   ```
+
+2. Copy the example secrets file and add your Hugging Face token:
+
+   ```bash
+   cp secrets.env.example secrets.env
+   # edit secrets.env and set HF_TOKEN=<your token>
+   ```
+
+3. Run the model downloader:
+
+   ```bash
+   python download_model.py
+   ```
+
+   The script loads `HF_TOKEN` from `secrets.env` and downloads
+   `deepseek-ai/DeepSeek-R1` into `INANNA_AI/models/DeepSeek-R1/`.
+
+Afterwards the directory structure should look like:
+
+```
+INANNA_AI/
+└── models/
+    └── DeepSeek-R1/
+        ├── config.json
+        ├── tokenizer.json
+        └── ... (model files)
+```

@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 from typing import Dict
 
+from INANNA_AI.src.model_loader import load_model
+
 from . import source_loader
 
 WELCOME_MESSAGE = """
@@ -116,10 +118,29 @@ def run_qnl(hex_input: str, wav: str = "qnl_hex_song.wav", json_file: str = "qnl
     print(f"Metadata saved to {json_file}")
 
 
+def chat() -> None:
+    """Interactive chat loop using the loaded language model."""
+    model = load_model()
+    print("Type /exit to quit.")
+    while True:
+        try:
+            user_input = input("You: ")
+        except EOFError:
+            break
+        if user_input.strip() == "/exit":
+            break
+        response = model.generate(user_input)
+        print(response)
+
+
 def main() -> None:
     display_welcome_message()
 
     parser = argparse.ArgumentParser(description="INANNA activation agent")
+    subparsers = parser.add_subparsers(dest="command")
+
+    subparsers.add_parser("chat", help="Start an interactive chat session")
+
     parser.add_argument("--activate", action="store_true", help="Recite birth chant")
     parser.add_argument("--hex", help="Hex string to feed into the QNL engine")
     parser.add_argument("--wav", default="qnl_hex_song.wav", help="Output WAV file for QNL engine")
@@ -127,6 +148,10 @@ def main() -> None:
     parser.add_argument("--list", action="store_true", help="List available source texts")
 
     args = parser.parse_args()
+
+    if args.command == "chat":
+        chat()
+        return
 
     if args.list:
         list_sources()

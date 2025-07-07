@@ -21,7 +21,7 @@ def load_config(config_file: Path = DEFAULT_CONFIG) -> List[Path]:
         try:
             path = Path(p)
             if not path.is_absolute():
-
+                path = (config_file.parent / path).resolve()
             paths.append(path)
         except Exception:
             continue

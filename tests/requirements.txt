@@ -5,3 +5,4 @@ librosa
 pytest
 markdown
 sentence-transformers
+transformers

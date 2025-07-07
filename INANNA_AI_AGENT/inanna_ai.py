@@ -125,8 +125,14 @@ def main() -> None:
     parser.add_argument("--wav", default="qnl_hex_song.wav", help="Output WAV file for QNL engine")
     parser.add_argument("--json", default="qnl_hex_song.json", help="Output metadata JSON for QNL engine")
     parser.add_argument("--list", action="store_true", help="List available source texts")
+    subparsers = parser.add_subparsers(dest="command")
+    subparsers.add_parser("chat", help="Interact with the local model")
 
     args = parser.parse_args()
+
+    if args.command == "chat":
+        print("Chat mode not implemented yet.")
+        return
 
     if args.list:
         list_sources()

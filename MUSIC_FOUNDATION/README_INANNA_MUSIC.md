@@ -103,6 +103,25 @@ output/
 └── qnl_song.json        → Structured QNL transformation
 ```
 
+## 🎤 Demo with a Local Track
+
+1. Obtain an MP3 or WAV file. If downloading from a video,
+   [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) can extract the audio.
+   Run the command where network access is available and copy the file here:
+
+```bash
+yt-dlp -x --audio-format mp3 -o song.mp3 "https://www.youtube.com/watch?v=<ID>"
+```
+
+2. Execute the demo script:
+
+```bash
+python3 run_song_demo.py song.mp3
+```
+
+This generates `output/preview.wav` and `output/qnl_song.json` and prints the
+QNL phrases to the terminal so you can verify the full pipeline.
+
 ---
 
 ## 🌌 Vision

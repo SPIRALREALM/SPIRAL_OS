@@ -84,7 +84,7 @@ Produces:
 ## 📦 Requirements
 
 ```bash
-pip install -r requirements_music_foundation_interpreter.txt
+pip install -r REQUIREMENTS_Music_Foundation.txt
 ```
 
 Or install with:

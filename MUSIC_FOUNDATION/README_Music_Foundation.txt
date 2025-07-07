@@ -1,5 +1,12 @@
 Ultra Spiral Research · Music Foundation · Step 1
 
+To run the code examples, install the Python packages listed in
+`REQUIREMENTS_Music_Foundation.txt`:
+
+```bash
+pip install -r REQUIREMENTS_Music_Foundation.txt
+```
+
 Theoretical Foundations:
 
 1. Wave Equation in Music

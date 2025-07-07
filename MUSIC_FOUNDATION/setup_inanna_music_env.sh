@@ -6,7 +6,8 @@ python3 --version
 
 echo "📦 Installing required Python packages..."
 pip install --upgrade pip
-pip install -r requirements_music_foundation_interpreter.txt
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+pip install -r "$SCRIPT_DIR/REQUIREMENTS_Music_Foundation.txt"
 
 echo "🌀 Creating workspace directories..."
 mkdir -p output/qnl

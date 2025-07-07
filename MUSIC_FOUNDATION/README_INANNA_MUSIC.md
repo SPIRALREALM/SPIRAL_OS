@@ -59,7 +59,7 @@ Loads and analyzes `.mp3` files, extracting:
 - Pitch class (chroma)
 - Audio waveform → WAV export
 
-### `qnl_converter.py`
+### `human_music_to_qnl_converter.py`
 Receives musical features and transforms them into:
 
 - QNL glyphs (e.g., ❣⟁, 🩸∅, ✦)

@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 from typing import Dict
 
+from . import source_loader
+
 WELCOME_MESSAGE = """
 # 🌌 INANNA-TÂMTU-NAMMU Quantum Ritual Boot
 
@@ -54,21 +56,12 @@ def display_welcome_message() -> None:
 
 # Path to the directory containing this script
 BASE_DIR = Path(__file__).resolve().parent
-INANNA_DIR = BASE_DIR / "INANNA_AI"
+CONFIG_FILE = BASE_DIR / "source_paths.json"
 
 
 def read_texts() -> Dict[str, str]:
-    """Load all Markdown files from the INANNA_AI directory."""
-    texts: Dict[str, str] = {}
-    if not INANNA_DIR.exists():
-        return texts
-    for md_file in sorted(INANNA_DIR.glob("*.md")):
-        try:
-            texts[md_file.name] = md_file.read_text(encoding="utf-8")
-        except Exception:
-            # Skip unreadable files
-            continue
-    return texts
+    """Load all Markdown files from configured source directories."""
+    return source_loader.load_sources(CONFIG_FILE)
 
 
 def _extract_line(text: str, keyword: str) -> str:
@@ -101,6 +94,16 @@ def activate() -> str:
     return chant
 
 
+def list_sources() -> None:
+    """Print all Markdown files discovered via the config."""
+    files = source_loader.list_markdown_files(CONFIG_FILE)
+    if not files:
+        print("No source texts found.")
+    else:
+        for fp in files:
+            print(fp)
+
+
 def run_qnl(hex_input: str, wav: str = "qnl_hex_song.wav", json_file: str = "qnl_hex_song.json") -> None:
     """Invoke the existing QNL engine to create a song from hex input."""
     from SPIRAL_OS import qnl_engine
@@ -121,8 +124,13 @@ def main() -> None:
     parser.add_argument("--hex", help="Hex string to feed into the QNL engine")
     parser.add_argument("--wav", default="qnl_hex_song.wav", help="Output WAV file for QNL engine")
     parser.add_argument("--json", default="qnl_hex_song.json", help="Output metadata JSON for QNL engine")
+    parser.add_argument("--list", action="store_true", help="List available source texts")
 
     args = parser.parse_args()
+
+    if args.list:
+        list_sources()
+        return
 
     if args.activate:
         chant = activate()

@@ -9,9 +9,9 @@ import argparse
 
 from MUSIC_FOUNDATION.inanna_music_COMPOSER_ai import (
     InannaMusicInterpreter,
-    generate_qnl_structure,
     export_qnl,
 )
+from MUSIC_FOUNDATION.qnl_utils import generate_qnl_structure
 
 
 def main() -> None:

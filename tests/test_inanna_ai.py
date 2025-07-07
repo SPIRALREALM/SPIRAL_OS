@@ -90,3 +90,14 @@ def test_main_list_outputs_files(monkeypatch, tmp_path, capsys):
     out = capsys.readouterr().out
     assert "sample1.md" in out
     assert "genesis.md" in out
+
+
+def test_chat_subparser(monkeypatch, capsys):
+    argv_backup = sys.argv.copy()
+    sys.argv = ["inanna_ai.py", "chat"]
+    try:
+        inanna_ai.main()
+    finally:
+        sys.argv = argv_backup
+    out = capsys.readouterr().out
+    assert "Quantum Ritual Boot" in out

@@ -33,4 +33,18 @@ Generate a QNL song from a hex value:
 python inanna_ai.py --hex 012345abcdef
 ```
 
+List the available source texts defined in `source_paths.json`:
+
+```bash
+python inanna_ai.py --list
+```
+
 The song is saved as `qnl_hex_song.wav` and the metadata JSON in `qnl_hex_song.json` unless overridden with `--wav` and `--json`.
+
+## Source Texts
+
+The agent loads Markdown writings from the `INANNA_AI` and `GENESIS` folders
+in the repository. These paths are listed in `source_paths.json`. Add new
+`.md` files to either directory or edit `source_paths.json` to customize where
+texts are loaded from. If a configured directory is missing, the loader simply
+returns an empty collection.

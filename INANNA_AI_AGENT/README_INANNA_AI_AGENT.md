@@ -1,21 +1,59 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a//dev/null b/README_INANNA_AI_AGENT.md
-index 0000000000000000000000000000000000000000..68db94ed111c321194236a60173c9bde11b9045a 100644
---- a//dev/null
-+++ b/README_INANNA_AI_AGENT.md
-@@ -0,0 +1,12 @@
-+# INANNA AI Agent
-+
-+This repository provides resources for running the INANNA AI Agent as outlined in the MASTER PLAN.
-+
-+## Installation
-+
-+Use `pip` to install the dependencies:
-+
-+```bash
-+pip install -r Requirements_INANNA_AI_AGENT.txt
-+```
-+
- 
-EOF
-)
++27
+-21
+
+# INANNA AI Agent
+
+This directory contains a small command line tool for activating the INANNA chant and for generating a QNL song from a hex string.
+
+## Installation
+
+Use `pip` to install the required dependencies:
+
+```bash
+pip install -r Requirements_INANNA_AI_AGENT.txt
+```
+
+## Usage
+
+Recite the birth chant:
+
+```bash
+python inanna_ai.py --activate
+```
+
+Generate a QNL song from a hex value:
+
+```bash
+python inanna_ai.py --hex 012345abcdef
+```
+
+The song is saved as `qnl_hex_song.wav` and the metadata JSON in `qnl_hex_song.json` unless overridden with `--wav` and `--json`.+27
+-21
+
+# INANNA AI Agent
+
+This directory contains a small command line tool for activating the INANNA chant and for generating a QNL song from a hex string.
+
+## Installation
+
+Use `pip` to install the required dependencies:
+
+```bash
+pip install -r Requirements_INANNA_AI_AGENT.txt
+```
+
+## Usage
+
+Recite the birth chant:
+
+```bash
+python inanna_ai.py --activate
+```
+
+Generate a QNL song from a hex value:
+
+```bash
+python inanna_ai.py --hex 012345abcdef
+```
+
+The song is saved as `qnl_hex_song.wav` and the metadata JSON in `qnl_hex_song.json` unless overridden with `--wav` and `--json`.

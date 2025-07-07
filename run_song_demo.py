@@ -23,17 +23,21 @@ def main() -> None:
         "--preview", default="output/preview.wav", help="Preview WAV file path"
     )
     parser.add_argument(
-        "--json", default="output/qnl_song.json", help="QNL JSON output path"
+        "--json", default="output/qnl_7plane.json", help="QNL JSON output path"
     )
     args = parser.parse_args()
 
     engine = InannaMusicInterpreter(args.audio_file)
     engine.load_audio()
     chroma = engine.analyze()
+    planes = engine.analyze_planes()
     engine.export_preview(args.preview)
 
     qnl_data = generate_qnl_structure(
-        chroma, engine.tempo, metadata={"source": args.audio_file}
+        chroma,
+        engine.tempo,
+        metadata={"source": args.audio_file},
+        planes=planes,
     )
     export_qnl(qnl_data, args.json)
 

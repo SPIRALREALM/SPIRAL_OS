@@ -10,7 +10,7 @@ It serves as the expressive core of INANNA_AI — encoding emotions, frequencies
 Install the Python dependencies with:
 
 ```bash
-pip install -r REQUIREMENTS_Music_Foundation.txt
+pip install -r MUSIC_FOUNDATION/REQUIREMENTS_Music_Foundation.txt
 ```
 
 ---

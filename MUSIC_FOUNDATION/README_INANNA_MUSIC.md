@@ -89,7 +89,7 @@ features from a waveform. Used by the demo to enrich the QNL output.
 ## 📦 Requirements
 
 ```bash
-pip install -r REQUIREMENTS_Music_Foundation.txt
+pip install -r MUSIC_FOUNDATION/REQUIREMENTS_Music_Foundation.txt
 ```
 Optional: install [Essentia](https://essentia.upf.edu/) for harmonic-to-noise ratio analysis.
 

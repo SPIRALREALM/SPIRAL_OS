@@ -60,7 +60,8 @@ class InannaMusicInterpreter:
 
     def analyze(self):
         """Analyze tempo and pitch chroma."""
-        self.tempo, _ = librosa.beat.beat_track(y=self.waveform, sr=self.sample_rate)
+        tempo, _ = librosa.beat.beat_track(y=self.waveform, sr=self.sample_rate)
+        self.tempo = float(np.atleast_1d(tempo)[0])
         self.chroma = librosa.feature.chroma_stft(y=self.waveform, sr=self.sample_rate)
         avg_chroma = np.mean(self.chroma, axis=1)
         print(f"🕒 Tempo: {self.tempo:.1f} BPM")

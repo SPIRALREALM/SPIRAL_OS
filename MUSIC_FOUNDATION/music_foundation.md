@@ -136,5 +136,5 @@ These analogies allow us to reinterpret musical structure through the lens of **
 This Markdown serves as documentation for:
 
 - `music_foundation.py`: Code module implementing these concepts
-- `inanna_music_ai.py`: Transformation engine from audio → QNL
+ - `inanna_music_COMPOSER_ai.py`: Transformation engine from audio → QNL
 - `README_QNL_OS.md`: Integration of QNL Language and Sonic Architecture

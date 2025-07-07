@@ -11,7 +11,7 @@ The following command installs all known dependencies in a single step:
 ```
 pip install numpy scipy soundfile librosa>=0.10.0 \
   langchain langchain-community transformers datasets peft \
-  flask zeromq torch torchvision torchaudio pyaudio
+  flask zeromq torch torchvision torchaudio pyaudio markdown
 ```
 
 ## Module Requirements
@@ -21,6 +21,7 @@ pip install numpy scipy soundfile librosa>=0.10.0 \
   - `scipy>=1.10.0`
   - `soundfile>=0.12.1`
 - `INANNA_AI_AGENT/Requirements_INANNA_AI_AGENT.txt`
+  - `markdown`
   - `langchain`
   - `langchain-community`
   - `transformers`

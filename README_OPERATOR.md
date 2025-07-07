@@ -2,6 +2,17 @@
 
 This repository contains several command line utilities for working with the INANNA music tools and Quantum Narrative Language (QNL). Below is a quick summary of the main scripts and example commands for common tasks.
 
+## Installation
+
+Install the Python packages listed in `SPIRAL_OS/requirements.txt`:
+
+```bash
+pip install -r SPIRAL_OS/requirements.txt
+```
+
+The requirements include common libraries like `numpy` and `scipy` as well as
+`huggingface-hub` for model management.
+
 ## Script overview
 
 - **`INANNA_AI_AGENT/inanna_ai.py`** – Activation agent that loads source texts and can recite the INANNA birth chant or feed hex data into the QNL engine. Use `--list` to show available texts.

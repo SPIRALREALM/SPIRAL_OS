@@ -125,6 +125,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser.add_argument("--output", default="final_track.wav", help="Output WAV")
     parser.add_argument(
         "--secret",
+        "--message",
+        dest="secret",
         help="Message to hide inside human_layer.wav and verify extraction",
     )
     args = parser.parse_args(argv)

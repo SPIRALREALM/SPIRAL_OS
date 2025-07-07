@@ -9,7 +9,7 @@ This module transforms HEX strings or files into symbolic soundscapes using the 
 Before using the engine, make sure to install the required dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -r SPIRAL_OS/requirements.txt
 ```
 
 ---

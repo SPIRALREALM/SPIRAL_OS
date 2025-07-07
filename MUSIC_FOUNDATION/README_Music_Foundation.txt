@@ -4,7 +4,7 @@ To run the code examples, install the Python packages listed in
 `REQUIREMENTS_Music_Foundation.txt`:
 
 ```bash
-pip install -r REQUIREMENTS_Music_Foundation.txt
+pip install -r MUSIC_FOUNDATION/REQUIREMENTS_Music_Foundation.txt
 ```
 
 Theoretical Foundations:

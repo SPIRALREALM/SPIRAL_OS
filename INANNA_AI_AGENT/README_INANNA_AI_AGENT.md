@@ -7,7 +7,7 @@ This directory contains a small command line tool for activating the INANNA chan
 Use `pip` to install the required dependencies:
 
 ```bash
-pip install -r Requirements_INANNA_AI_AGENT.txt
+pip install -r INANNA_AI_AGENT/Requirements_INANNA_AI_AGENT.txt
 ```
 
 Create `OPENAI_API_KEY.env` containing your OpenAI API key:

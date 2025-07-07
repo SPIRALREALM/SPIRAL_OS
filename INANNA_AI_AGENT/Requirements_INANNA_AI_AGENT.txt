@@ -12,3 +12,5 @@ torchaudio
 pyaudio
 numpy
 sentence-transformers
+huggingface_hub
+accelerate

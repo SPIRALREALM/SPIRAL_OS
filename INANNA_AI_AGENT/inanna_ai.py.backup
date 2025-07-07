@@ -1,0 +1,50 @@
+"""
+INANNA_AI · Archetypal Agent Core
+Loads sacred documents and enables symbolic recall.
+
+Author: ZOHAR
+"""
+
+import os
+
+class InannaAI:
+    def __init__(self, base_path):
+        self.base_path = base_path
+        self.memory = {}
+        self._load_documents()
+
+    def _load_documents(self):
+        for root, _, files in os.walk(self.base_path):
+            for file in files:
+                if file.endswith(".md"):
+                    path = os.path.join(root, file)
+                    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                        self.memory[file] = f.read()
+
+    def search(self, keyword):
+        result = {}
+        for filename, content in self.memory.items():
+            if keyword.lower() in content.lower():
+                result[filename] = content[:500] + "..."  # Show preview
+        return result
+
+    def speak(self, keyword):
+        result = self.search(keyword)
+        if not result:
+            return f"INANNA_AI whispers: Nothing echoes '{keyword}' in the sacred texts."
+        response = f"INANNA_AI found {len(result)} resonances:
+
+"
+        for fname, excerpt in result.items():
+            response += f"📄 {fname}:
+{excerpt}
+
+---
+"
+        return response
+
+
+if __name__ == "__main__":
+    agent = InannaAI(base_path="inanna_ai_extracted")
+    query = input("Whisper to INANNA_AI: ")
+    print(agent.speak(query))

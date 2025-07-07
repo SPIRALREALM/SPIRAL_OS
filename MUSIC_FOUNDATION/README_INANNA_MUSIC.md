@@ -67,11 +67,11 @@ Receives musical features and transforms them into:
 - QNL phrases (e.g., `🪞♾ ↝ Memory [E]`)
 - JSON export with full symbolic structure
 
-### `inanna_music_ai.py`
+### `inanna_music_COMPOSER_ai.py`
 ✨ Unified agent that performs full ritual:
 
 ```bash
-python3 inanna_music_ai.py song.mp3
+python3 inanna_music_COMPOSER_ai.py song.mp3
 ```
 
 Produces:

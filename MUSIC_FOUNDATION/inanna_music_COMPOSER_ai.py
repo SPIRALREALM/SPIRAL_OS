@@ -23,63 +23,13 @@ import soundfile as sf
 import os
 import json
 
+from .qnl_utils import chroma_to_qnl, generate_qnl_structure
+
 # -------------------------------
 # QNL GLYPH & EMOTION MAPPINGS
 # -------------------------------
-
-# Map Western note names to QNL glyphs
-QNL_GLYPHS = {
-    "C": "❣⟁", "C#": "🜁🌀", "D": "✧↭", "D#": "ψ̄",
-    "E": "🪞♾", "F": "∂Ξ", "F#": "🜔⟁", "G": "🕯✧",
-    "G#": "💧∿", "A": "✦", "A#": "🩸∅", "B": "⟁⇌🜔",
-}
-
-# Emotional interpretation of each tone (can expand per system)
-QNL_TONES = {
-    "C": "Longing", "D": "Joy", "E": "Memory", "F": "Paradox",
-    "G": "Awakening", "A": "Hope", "B": "Fusion"
-}
-
-# Convert index (0–11) to musical note
-def note_index_to_name(index):
-    scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    return scale[index % 12]
-
-# -------------------------------
 # QNL CONVERSION LOGIC
 # -------------------------------
-
-def chroma_to_qnl(chroma_vector):
-    """Convert a chroma vector into top QNL phrases based on note energy."""
-    top_indices = np.argsort(chroma_vector)[-4:][::-1]  # top 4 notes
-    phrases = []
-    for idx in top_indices:
-        note = note_index_to_name(idx)
-        glyph = QNL_GLYPHS.get(note, "?")
-        tone = QNL_TONES.get(note, "Resonance")
-        phrase = f"{glyph} ↝ {tone} [{note}]"
-        phrases.append({
-            "note": note,
-            "glyph": glyph,
-            "tone": tone,
-            "qnl_phrase": phrase
-        })
-    return phrases
-
-def generate_qnl_structure(chroma_vector, tempo, metadata=None, *, planes=None):
-    """Create a full QNL structure including tempo and symbolic phrases."""
-    if metadata is None:
-        metadata = {}
-    qnl_phrases = chroma_to_qnl(chroma_vector)
-    data = {
-        "tempo": tempo,
-        "structure": qnl_phrases,
-        "metadata": metadata,
-        "qnl_output": [p["qnl_phrase"] for p in qnl_phrases],
-    }
-    if planes is not None:
-        data["planes"] = planes
-    return data
 
 def export_qnl(json_data, output_path="output/qnl_song.json"):
     """Save the QNL result to a JSON file."""

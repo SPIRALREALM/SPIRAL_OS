@@ -98,7 +98,6 @@ TONE_MAP = {
 
 def hex_to_qnl(hex_byte: str) -> dict:
     value = int(hex_byte, 16)
-    frequency = 0.1 + (999 - 0.1) * (value / 255)
     amplitude = 0.1 + (1.0 - 0.1) * (value / 255)
 
     qnl_glyph = ""
@@ -107,11 +106,15 @@ def hex_to_qnl(hex_byte: str) -> dict:
         if value in r:
             qnl_glyph, qnl_emotion = glyph, emotion
             break
-    qnl_tone = ""
-    for r, tone in TONE_MAP.items():
-        if value in r:
-            qnl_tone = tone
-            break
+
+    qnl_data = QNL_MAP.get(qnl_glyph, {})
+    frequency = qnl_data.get("freq", 0.1 + (999 - 0.1) * (value / 255))
+    qnl_tone = qnl_data.get("tone", "")
+    if not qnl_tone:
+        for r, tone in TONE_MAP.items():
+            if value in r:
+                qnl_tone = tone
+                break
 
     return {
         "glyph": qnl_glyph,

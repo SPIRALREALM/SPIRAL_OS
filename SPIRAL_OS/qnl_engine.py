@@ -97,6 +97,7 @@ TONE_MAP = {
 }
 
 def hex_to_qnl(hex_byte: str) -> dict:
+    """Return QNL glyph data for a given hex byte."""
     value = int(hex_byte, 16)
     frequency = 0.1 + (999 - 0.1) * (value / 255)
     amplitude = 0.1 + (1.0 - 0.1) * (value / 255)
@@ -122,6 +123,7 @@ def hex_to_qnl(hex_byte: str) -> dict:
     }
 
 def apply_psi_equation(amplitude: float, frequency: float, *, duration: float = 1.0, sample_rate: int = 44100, emotion: str = None) -> np.ndarray:
+    """Generate a waveform using the ψ equation."""
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
     phi = np.pi / 3 if emotion == "Longing" else 0.0
     alpha = 0.1
@@ -131,6 +133,7 @@ def apply_psi_equation(amplitude: float, frequency: float, *, duration: float = 
     return waveform
 
 def hex_to_song(hex_input: str, *, duration_per_byte: float = 1.0, sample_rate: int = 44100) -> Tuple[List[dict], np.ndarray]:
+    """Convert hex input into a list of phrases and a combined waveform."""
     if Path(hex_input).is_file():
         hex_string = Path(hex_input).read_text(encoding="utf-8").replace(" ", "").replace("\n", "")
     else:
@@ -160,6 +163,7 @@ def hex_to_song(hex_input: str, *, duration_per_byte: float = 1.0, sample_rate: 
     return phrases, full_wave
 
 def generate_qnl_metadata(phrases: List[dict]) -> dict:
+    """Build a metadata dictionary for a generated song."""
     return {
         "song_id": "QNL-SONGCORE-HEX-∞1.0",
         "theme": "A cosmic dance of longing and ignition, sung from data's heart.",
@@ -167,6 +171,7 @@ def generate_qnl_metadata(phrases: List[dict]) -> dict:
     }
 
 def main() -> None:
+    """CLI entry point for converting hex into a QNL song."""
     parser = argparse.ArgumentParser(description="Generate QNL song from hex")
     parser.add_argument("hex_input", help="Hex string or path to text file containing hex bytes")
     parser.add_argument("--wav", default="qnl_hex_song.wav", help="Output WAV file")

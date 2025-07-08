@@ -11,7 +11,8 @@ This package provides a lightweight set of utilities for building a voice interf
 - `voice_evolution.py` – Manages parameters that control speaking style and can adapt them over time.
 - `tts_coqui.py` – Generates speech using Coqui TTS.  When the library is not available it synthesizes a simple sine wave placeholder.
 - `db_storage.py` – Stores transcripts and generated responses in a SQLite database for later inspection.
-- `main.py` – Command line interface that records microphone input, runs the processing steps above and plays or saves the response.
+- `listening_engine.py` – Streams microphone audio and extracts real-time emotion and environment states.
+- `main.py` – Command line interface that records microphone input using the listening engine, runs the processing steps above and plays or saves the response.
 
 ## Installation
 

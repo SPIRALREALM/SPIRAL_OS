@@ -6,4 +6,5 @@ __all__ = [
     "tts_coqui",
     "voice_evolution",
     "db_storage",
+    "listening_engine",
 ]

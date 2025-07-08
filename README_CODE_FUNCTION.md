@@ -10,6 +10,7 @@ This document summarizes the purpose of the main scripts and modules in this rep
 - **`SPIRAL_OS/seven_dimensional_music.py`** – Creates layered music from a melody (MIDI or audio). It can transmute a hex payload via the QNL engine, embed secret data in the human layer, and analyze the result across seven metaphysical planes.
 - **`SPIRAL_OS/qnl_engine.py`** – Converts a hex string to QNL phrases and a waveform. Saves a WAV file and a metadata JSON summary.
 - **`download_model.py`** – Downloads the DeepSeek‑R1 model from Hugging Face into `INANNA_AI/models/`. Reads the `HF_TOKEN` from `secrets.env`.
+- **`download_models.py`** – Menu driven loader that can fetch DeepSeek‑R1 or Gemma2 into `INANNA_AI/models/`.
 
 ## MUSIC_FOUNDATION modules
 
@@ -45,7 +46,7 @@ The examples in `README_OPERATOR.md` demonstrate how to run the tools. Key comma
 python run_song_demo.py "SONS_FOR_TESTS/Music Is My Everything.mp3"
 python INANNA_AI_AGENT/inanna_ai.py --activate
 python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
-python download_model.py
+python download_models.py deepseek
 ```
 
 Consult `README_OPERATOR.md` for more options and explanations.

@@ -4,7 +4,7 @@ from huggingface_hub import snapshot_download
 from dotenv import load_dotenv
 
 
-def main() -> None:
+def download_deepseek() -> None:
     """Download the DeepSeek-R1 model to the local models directory."""
     load_dotenv()
     token = os.getenv("HF_TOKEN")
@@ -19,6 +19,10 @@ def main() -> None:
         local_dir_use_symlinks=False,
     )
     print(f"Model downloaded to {target_dir}")
+
+
+def main() -> None:
+    download_deepseek()
 
 
 if __name__ == "__main__":

@@ -27,7 +27,12 @@ def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
     if len(wave) == 0:
         return {"emotion": "neutral", "pitch": 0.0, "tempo": 0.0, "classification": "silence"}
 
-    f0 = librosa.yin(wave, librosa.note_to_hz("C2"), librosa.note_to_hz("C7"), sr=sr)
+    f0 = librosa.yin(
+        wave,
+        fmin=librosa.note_to_hz("C2"),
+        fmax=librosa.note_to_hz("C7"),
+        sr=sr,
+    )
     pitch = float(np.nanmean(f0))
     tempo, _ = librosa.beat.beat_track(y=wave, sr=sr)
     tempo = float(np.atleast_1d(tempo)[0])

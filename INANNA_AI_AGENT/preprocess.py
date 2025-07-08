@@ -4,7 +4,10 @@ from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - optional dependency
+    SentenceTransformer = None  # type: ignore
 
 import markdown
 
@@ -89,6 +92,8 @@ def generate_embeddings(
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
+    if SentenceTransformer is None:  # pragma: no cover - optional dependency
+        raise RuntimeError("sentence-transformers library not installed")
     model = SentenceTransformer(model_name)
     embeddings: Dict[str, np.ndarray] = {}
 

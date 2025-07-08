@@ -6,6 +6,8 @@ For a map of each script's role and the libraries it calls upon, see
 [README_CODE_FUNCTION.md](README_CODE_FUNCTION.md).
 For a guide to the text corpus, see
 [docs/CORPUS_MEMORY.md](docs/CORPUS_MEMORY.md).
+For a comparison of LLM frameworks, see
+[docs/LLM_FRAMEWORKS.md](docs/LLM_FRAMEWORKS.md).
 
 ## Docker Usage
 

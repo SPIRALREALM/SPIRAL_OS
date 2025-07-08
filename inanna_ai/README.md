@@ -7,7 +7,7 @@ This package provides a lightweight set of utilities for building a voice interf
 - `config.py` – Holds configuration constants such as model paths and ritual text used across the toolkit.
 - `utils.py` – Basic helpers for loading and saving audio files and configuring logging.
 - `stt_whisper.py` – Thin wrapper around OpenAI Whisper that downloads and runs the speech‑to‑text model.
-- `emotion_analysis.py` – Estimates a rough emotional label (excited, calm or neutral) using Librosa pitch and tempo analysis.
+- `emotion_analysis.py` – Estimates a rough emotional label (joy, stress, fear and others) using Librosa pitch, tempo and energy analysis.
 - `voice_evolution.py` – Manages parameters that control speaking style and can adapt them over time.
 - `tts_coqui.py` – Generates speech using Coqui TTS.  When the library is not available it synthesizes a simple sine wave placeholder.
 - `db_storage.py` – Stores transcripts and generated responses in a SQLite database for later inspection.

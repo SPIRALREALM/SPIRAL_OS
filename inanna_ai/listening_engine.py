@@ -27,7 +27,12 @@ def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
     if len(wave) == 0:
         return {"emotion": "neutral", "pitch": 0.0, "tempo": 0.0, "classification": "silence"}
 
-    f0 = librosa.yin(wave, librosa.note_to_hz("C2"), librosa.note_to_hz("C7"), sr=sr)
+    f0 = librosa.yin(
+        wave,
+        fmin=librosa.note_to_hz("C2"),
+        fmax=librosa.note_to_hz("C7"),
+        sr=sr,
+    )
     pitch = float(np.nanmean(f0))
     tempo, _ = librosa.beat.beat_track(y=wave, sr=sr)
     tempo = float(np.atleast_1d(tempo)[0])
@@ -37,8 +42,15 @@ def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
     if energy > 1e-4:
         classification = "speech" if 80 <= pitch <= 300 else "noise"
 
+    amp = float(np.mean(np.abs(wave)))
     emotion = "neutral"
-    if pitch > 180 and tempo > 120:
+    if amp > 0.4:
+        emotion = "stress"
+    elif pitch > 400 and amp < 0.1:
+        emotion = "fear"
+    elif pitch > 300 and amp > 0.2:
+        emotion = "joy"
+    elif pitch > 180 and tempo > 120:
         emotion = "excited"
     elif pitch < 120 and tempo < 90:
         emotion = "calm"

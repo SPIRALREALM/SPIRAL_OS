@@ -4,6 +4,32 @@ from __future__ import annotations
 
 from typing import Dict, Any
 
+# Mapping from emotional labels to Jungian archetypes
+EMOTION_ARCHETYPES = {
+    "joy": "Jester",
+    "stress": "Warrior",
+    "fear": "Orphan",
+    "excited": "Hero",
+    "calm": "Sage",
+    "neutral": "Everyman",
+}
+
+# Coarse weight for each emotion; can be used by higher level modules
+EMOTION_WEIGHT = {
+    "joy": 1.0,
+    "stress": 0.8,
+    "fear": 0.8,
+    "excited": 0.6,
+    "calm": 0.4,
+    "neutral": 0.2,
+}
+
+_CURRENT_STATE = {
+    "emotion": "neutral",
+    "archetype": EMOTION_ARCHETYPES["neutral"],
+    "weight": EMOTION_WEIGHT["neutral"],
+}
+
 import librosa
 import numpy as np
 
@@ -31,13 +57,51 @@ def analyze_audio_emotion(audio_path: str) -> Dict[str, Any]:
     tempo, _ = librosa.beat.beat_track(y=wave, sr=sr)
     tempo = float(np.atleast_1d(tempo)[0])
 
+    # Average absolute amplitude is used as a rough energy metric
+    energy = float(np.mean(np.abs(wave)))
+
     emotion = "neutral"
-    if pitch > 180 and tempo > 120:
+    if energy > 0.4:
+        emotion = "stress"
+    elif pitch > 400 and energy < 0.1:
+        emotion = "fear"
+    elif pitch > 300 and energy > 0.2:
+        emotion = "joy"
+    elif pitch > 180 and tempo > 120:
         emotion = "excited"
     elif pitch < 120 and tempo < 90:
         emotion = "calm"
 
+    _CURRENT_STATE["emotion"] = emotion
+    _CURRENT_STATE["archetype"] = EMOTION_ARCHETYPES.get(emotion, "Everyman")
+    _CURRENT_STATE["weight"] = EMOTION_WEIGHT.get(emotion, 0.0)
+
     return {"emotion": emotion, "pitch": round(pitch, 2), "tempo": round(tempo, 2)}
 
+def get_current_archetype() -> str:
+    """Return the Jungian archetype for the last analyzed emotion."""
+    return _CURRENT_STATE["archetype"]
 
-__all__ = ["analyze_audio_emotion"]
+
+def get_emotional_weight() -> float:
+    """Return a coarse numeric weight for the last analyzed emotion."""
+    return _CURRENT_STATE["weight"]
+
+
+def emotion_to_archetype(emotion: str) -> str:
+    """Map an emotion label to its corresponding Jungian archetype."""
+    return EMOTION_ARCHETYPES.get(emotion, "Everyman")
+
+
+def emotion_weight(emotion: str) -> float:
+    """Return the weight associated with ``emotion``."""
+    return EMOTION_WEIGHT.get(emotion, 0.0)
+
+
+__all__ = [
+    "analyze_audio_emotion",
+    "get_current_archetype",
+    "get_emotional_weight",
+    "emotion_to_archetype",
+    "emotion_weight",
+]

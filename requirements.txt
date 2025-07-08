@@ -1,0 +1,7 @@
+openai-whisper
+TTS
+numpy
+scipy
+pandas
+librosa
+huggingface-hub

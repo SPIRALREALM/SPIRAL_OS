@@ -49,7 +49,8 @@ python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 ## INANNA_AI DeepSeek-R1 Integration
 
 1. Copy `secrets.env.example` to `secrets.env` at the project root and set
-   `HF_TOKEN`.
+   `HF_TOKEN`. The `run_inanna.sh` helper script reads this file when starting
+   the chat agent.
 2. Run `python download_models.py deepseek` to fetch the DeepSeek-R1 model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.
 
@@ -64,10 +65,10 @@ these steps to place the model under `INANNA_AI/models`.
    pip install -r SPIRAL_OS/requirements.txt
    ```
 
-2. Copy the example secrets file and add your Hugging Face token:
+2. Copy the example secrets file to the project root and add your Hugging Face token:
 
    ```bash
-   cp secrets.env.example secrets.env
+   cp secrets.env.example secrets.env  # run from the repository root
    # edit secrets.env and set HF_TOKEN=<your token>
    ```
 
@@ -77,7 +78,7 @@ these steps to place the model under `INANNA_AI/models`.
    python download_models.py deepseek
    ```
 
-   The script loads `HF_TOKEN` from `secrets.env` and downloads
+   The script loads `HF_TOKEN` from `secrets.env` in the project root and downloads
    `deepseek-ai/DeepSeek-R1` into `INANNA_AI/models/DeepSeek-R1/`.
    To fetch the Gemma2 model via Ollama run `python download_models.py gemma2`.
 

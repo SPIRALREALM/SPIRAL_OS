@@ -3,4 +3,6 @@
 __all__ = [
     "config",
     "utils",
+    "tts_coqui",
+    "voice_evolution",
 ]

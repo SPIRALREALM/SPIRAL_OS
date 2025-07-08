@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 from . import source_loader, model
+from inanna_ai import db_storage
 from transformers import GenerationMixin
 
 WELCOME_MESSAGE = """
@@ -135,6 +136,7 @@ def chat_loop() -> None:
 
 def main() -> None:
     display_welcome_message()
+    db_storage.init_db()
 
     parser = argparse.ArgumentParser(description="INANNA activation agent")
     parser.add_argument("--activate", action="store_true", help="Recite birth chant")

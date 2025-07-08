@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inanna_ai import stt_whisper, emotion_analysis
+from inanna_ai.listening_engine import _extract_features
 from tests.data.test1_wav_base64 import TEST1_WAV_BASE64
 
 
@@ -37,3 +38,12 @@ def test_analyze_audio_emotion(tmp_path):
     audio_path = _write_audio(tmp_path)
     info = emotion_analysis.analyze_audio_emotion(str(audio_path))
     assert set(info) == {"emotion", "pitch", "tempo"}
+
+
+def test_extract_features(tmp_path):
+    audio_path = _write_audio(tmp_path)
+    import librosa
+
+    wave, sr = librosa.load(audio_path, sr=None, mono=True)
+    info = _extract_features(wave, sr)
+    assert set(info) == {"emotion", "pitch", "tempo", "classification"}

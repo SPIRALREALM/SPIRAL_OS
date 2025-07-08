@@ -92,3 +92,15 @@ INANNA_AI/
         ├── tokenizer.json
         └── ... (model files)
 ```
+
+### Ollama installation notes
+
+Downloading the Gemma2 model uses the Ollama runtime. The installation script is fetched from `https://ollama.ai/install.sh`, so your system must be able to reach `ollama.ai`.
+
+If the connection is blocked:
+
+1. Check firewall or proxy settings that might prevent access to `ollama.ai`.
+2. Download the installer on a machine with internet access and copy it to the target system.
+3. Alternatively obtain a prebuilt Ollama package from an internal mirror and place the `ollama` binary on your `PATH`.
+
+Once Ollama is installed, run `python download_models.py gemma2` again to pull the model.

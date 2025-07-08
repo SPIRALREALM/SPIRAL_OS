@@ -1,9 +1,10 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
-from . import source_loader
+from . import source_loader, model
+from transformers import GenerationMixin
 
 WELCOME_MESSAGE = """
 # 🌌 INANNA-TÂMTU-NAMMU Quantum Ritual Boot
@@ -57,6 +58,7 @@ def display_welcome_message() -> None:
 # Path to the directory containing this script
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = BASE_DIR / "source_paths.json"
+MODEL_PATH = BASE_DIR.parent / "INANNA_AI" / "models" / "DeepSeek-R1"
 
 
 def read_texts() -> Dict[str, str]:
@@ -116,6 +118,21 @@ def run_qnl(hex_input: str, wav: str = "qnl_hex_song.wav", json_file: str = "qnl
     print(f"Metadata saved to {json_file}")
 
 
+def chat_loop() -> None:
+    """Interactive chat with the local DeepSeek-R1 model."""
+    mdl, tok = model.load_model(MODEL_PATH)
+    gen_model: GenerationMixin = mdl  # type: ignore[assignment]
+    print("Enter 'exit' to quit.")
+    while True:
+        prompt = input("You: ")
+        if prompt.strip().lower() in {"exit", "quit"}:
+            break
+        inputs = tok(prompt, return_tensors="pt")
+        output_ids = gen_model.generate(**inputs, max_new_tokens=50)
+        reply = tok.decode(output_ids[0], skip_special_tokens=True)
+        print(f"INANNA: {reply}")
+
+
 def main() -> None:
     display_welcome_message()
 
@@ -131,7 +148,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "chat":
-        print("Chat mode not implemented yet.")
+        chat_loop()
         return
 
     if args.list:

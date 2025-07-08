@@ -93,11 +93,28 @@ def test_main_list_outputs_files(monkeypatch, tmp_path, capsys):
 
 
 def test_chat_subparser(monkeypatch, capsys):
+    dummy_model = type("M", (), {"generate": lambda self, **kw: [[0, 1]]})()
+    dummy_tokenizer = type(
+        "T",
+        (),
+        {
+            "__call__": lambda self, text, return_tensors=None: {},
+            "decode": lambda self, ids, skip_special_tokens=True: "hi there",
+        },
+    )()
+
+    monkeypatch.setattr(inanna_ai.model, "load_model", lambda path: (dummy_model, dummy_tokenizer))
+
+    inputs = iter(["hello", "exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
     argv_backup = sys.argv.copy()
     sys.argv = ["inanna_ai.py", "chat"]
     try:
         inanna_ai.main()
     finally:
         sys.argv = argv_backup
+
     out = capsys.readouterr().out
     assert "Quantum Ritual Boot" in out
+    assert "hi there" in out

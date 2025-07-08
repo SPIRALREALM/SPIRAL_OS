@@ -50,6 +50,8 @@ def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
         emotion = "fear"
     elif pitch > 300 and amp > 0.2:
         emotion = "joy"
+    elif pitch < 160 and amp < 0.1:
+        emotion = "sad"
     elif pitch > 180 and tempo > 120:
         emotion = "excited"
     elif pitch < 120 and tempo < 90:

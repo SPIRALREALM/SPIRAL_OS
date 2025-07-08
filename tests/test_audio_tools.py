@@ -82,3 +82,8 @@ def test_emotion_archetype_mapping(tmp_path):
     info = emotion_analysis.analyze_audio_emotion(str(fear_path))
     assert info["emotion"] == "fear"
     assert emotion_analysis.get_current_archetype() == "Orphan"
+
+    sad_path = _save_sine(tmp_path, 130.0, 0.05)
+    info = emotion_analysis.analyze_audio_emotion(str(sad_path))
+    assert info["emotion"] == "sad"
+    assert emotion_analysis.get_current_archetype() == "Caregiver"

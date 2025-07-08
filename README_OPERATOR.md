@@ -50,7 +50,7 @@ python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 
 1. Copy `secrets.env.example` to `secrets.env` at the project root and set
    `HF_TOKEN`.
-2. Run `python download_model.py` to fetch the model.
+2. Run `python download_models.py deepseek` to fetch the DeepSeek-R1 model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.
 
 ## Download Models
@@ -74,11 +74,12 @@ these steps to place the model under `INANNA_AI/models`.
 3. Run the model downloader:
 
    ```bash
-   python download_model.py
+   python download_models.py deepseek
    ```
 
    The script loads `HF_TOKEN` from `secrets.env` and downloads
    `deepseek-ai/DeepSeek-R1` into `INANNA_AI/models/DeepSeek-R1/`.
+   To fetch the Gemma2 model via Ollama run `python download_models.py gemma2`.
 
 Afterwards the directory structure should look like:
 

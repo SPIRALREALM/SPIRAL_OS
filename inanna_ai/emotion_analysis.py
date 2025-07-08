@@ -9,6 +9,7 @@ EMOTION_ARCHETYPES = {
     "joy": "Jester",
     "stress": "Warrior",
     "fear": "Orphan",
+    "sad": "Caregiver",
     "excited": "Hero",
     "calm": "Sage",
     "neutral": "Everyman",
@@ -19,6 +20,7 @@ EMOTION_WEIGHT = {
     "joy": 1.0,
     "stress": 0.8,
     "fear": 0.8,
+    "sad": 0.7,
     "excited": 0.6,
     "calm": 0.4,
     "neutral": 0.2,
@@ -67,6 +69,8 @@ def analyze_audio_emotion(audio_path: str) -> Dict[str, Any]:
         emotion = "fear"
     elif pitch > 300 and energy > 0.2:
         emotion = "joy"
+    elif pitch < 160 and energy < 0.1:
+        emotion = "sad"
     elif pitch > 180 and tempo > 120:
         emotion = "excited"
     elif pitch < 120 and tempo < 90:

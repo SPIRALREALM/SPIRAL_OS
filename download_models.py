@@ -1,3 +1,7 @@
+"""Helpers for downloading models.
+
+Downloading the Gemma2 model relies on Ollama. The installer is fetched from https://ollama.ai/install.sh so internet access to this domain is required.
+"""
 import argparse
 import os
 import shutil

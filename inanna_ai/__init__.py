@@ -7,4 +7,5 @@ __all__ = [
     "voice_evolution",
     "db_storage",
     "listening_engine",
+    "response_manager",
 ]

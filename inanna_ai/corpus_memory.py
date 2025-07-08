@@ -7,7 +7,10 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - optional dependency
+    SentenceTransformer = None  # type: ignore
 
 # Location of the repository root
 _REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +58,8 @@ def search_corpus(
     if not texts:
         return []
 
+    if SentenceTransformer is None:  # pragma: no cover - optional dependency
+        raise RuntimeError("sentence-transformers library not installed")
     model = SentenceTransformer(model_name)
     file_paths = list(texts.keys())
     corpus_emb = _build_embeddings(list(texts.values()), model)

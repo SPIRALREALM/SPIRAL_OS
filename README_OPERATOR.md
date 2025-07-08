@@ -71,23 +71,37 @@ these steps to place the model under `INANNA_AI/models`.
    # edit secrets.env and set HF_TOKEN=<your token>
    ```
 
-3. Run the model downloader:
+3. Run the downloader without arguments to display the menu of available models:
+
+   ```bash
+   python download_models.py
+   ```
+
+   This lists options such as `deepseek` and `gemma2`.
+
+4. Download the desired model. For DeepSeek-R1 run:
 
    ```bash
    python download_models.py deepseek
    ```
 
-   The script loads `HF_TOKEN` from `secrets.env` and downloads
-   `deepseek-ai/DeepSeek-R1` into `INANNA_AI/models/DeepSeek-R1/`.
-   To fetch the Gemma2 model via Ollama run `python download_models.py gemma2`.
+   The script loads `HF_TOKEN` from `secrets.env` and saves the model to `INANNA_AI/models/DeepSeek-R1/`.
+   To fetch the Gemma2 weights via Ollama run:
+
+   ```bash
+   python download_models.py gemma2
+   ```
+
+   The files will be stored in `INANNA_AI/models/gemma2/`.
+
+   **Prerequisites**: The Gemma2 option requires the [Ollama](https://ollama.ai) runtime. The downloader installs it automatically using `curl`, which needs internet access to `ollama.ai` and may fail on restricted networks. Model downloads are also pulled through Ollama, so outbound HTTPS must be allowed.
 
 Afterwards the directory structure should look like:
-
 ```
 INANNA_AI/
 └── models/
-    └── DeepSeek-R1/
-        ├── config.json
-        ├── tokenizer.json
+    ├── DeepSeek-R1/
+    │   └── ... (model files)
+    └── gemma2/
         └── ... (model files)
 ```

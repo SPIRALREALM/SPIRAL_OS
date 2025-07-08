@@ -12,6 +12,8 @@ This package provides a lightweight set of utilities for building a voice interf
 - `tts_coqui.py` – Generates speech using Coqui TTS.  When the library is not available it synthesizes a simple sine wave placeholder.
 - `db_storage.py` – Stores transcripts and generated responses in a SQLite database for later inspection.
 - `listening_engine.py` – Streams microphone audio and extracts real-time emotion and environment states.
+- `response_manager.py` – Chooses a Surface/Deep/Umbra/Albedo reply by
+  combining the transcript with the detected emotion and environment.
 - `main.py` – Command line interface that records microphone input using the listening engine, runs the processing steps above and plays or saves the response.
 
 ## Installation
@@ -56,6 +58,11 @@ python -m inanna_ai.main --duration 5
 The emotion analysis module maps each label to a Jungian archetype (for
 example `joy` → `Jester` and `calm` → `Sage`).  These mappings are defined in
 `emotion_analysis.EMOTION_ARCHETYPES`.
+
+The `response_manager.ResponseManager` pairs this emotional state and the
+environment classification with your transcript. It queries the corpus memory
+for related snippets and returns a reply tagged with one of the four cores
+(Surface, Deep, Umbra, Albedo).
 
 ## Extending the Codex
 

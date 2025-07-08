@@ -21,3 +21,6 @@ def test_generate_reply_queries_corpus(monkeypatch):
     reply = mgr.generate_reply("hello", info)
     assert "snippet text" in reply
     assert "excited" in calls['query']
+    assert "speech" in calls['query']
+    assert "excited" in reply
+    assert "speech" in reply

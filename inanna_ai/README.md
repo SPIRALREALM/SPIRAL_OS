@@ -35,6 +35,28 @@ docker run -it spiral_os
 
 You can then run example scripts such as `python run_song_demo.py` from within the container.
 
+## Real-time listening
+
+The `listening_engine.ListeningEngine` streams microphone audio and extracts
+features such as pitch, tempo and a coarse emotion label.  It relies on either
+the **sounddevice** or **pyaudio** package for microphone access.  Install one
+of them before starting a live session:
+
+```bash
+pip install sounddevice  # or: pip install pyaudio
+```
+
+Run the command line tool to capture a short recording and print the detected
+emotion and corresponding archetype:
+
+```bash
+python -m inanna_ai.main --duration 5
+```
+
+The emotion analysis module maps each label to a Jungian archetype (for
+example `joy` → `Jester` and `calm` → `Sage`).  These mappings are defined in
+`emotion_analysis.EMOTION_ARCHETYPES`.
+
 ## Extending the Codex
 
 The modules in this folder offer a foundation that can be expanded in many directions.  Possible extensions include:

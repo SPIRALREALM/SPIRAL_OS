@@ -149,6 +149,20 @@ python -m inanna_ai.network_utils analyze network_logs/capture.pcap
 
 Results are saved to `network_logs/summary.log`.
 
+### Defensive helpers
+
+The module `inanna_ai.defensive_network_utils` offers two quick utilities:
+
+```python
+from inanna_ai.defensive_network_utils import monitor_traffic, secure_communication
+
+monitor_traffic("eth0", packet_count=5)  # writes network_logs/defensive.pcap
+secure_communication("https://example.com/api", {"status": "ok"})
+```
+
+`monitor_traffic()` captures a handful of packets while
+`secure_communication()` sends an HTTPS POST request with basic error handling.
+
 
 ## Soul-Code Architecture
 

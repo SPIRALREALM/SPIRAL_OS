@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Sequence
 
 import numpy as np
+from .gates import sign_blob, verify_blob
 
 try:  # optional quantum library
     import qutip
@@ -23,10 +24,15 @@ class RFA7D:
         self.shape = tuple(shape) if shape is not None else (2,) * 7
         self.grid = np.random.rand(*self.shape) + 1j * np.random.rand(*self.shape)
         self.integrity_hash = hashlib.sha3_256(self.grid.tobytes()).hexdigest()
+        self.signature: bytes | None = None
+        self.public_key: bytes | None = None
         logger.debug("Initialized RFA7D with shape %s", self.shape)
 
     def execute(self, input_vector: Sequence[complex], noise: bool = False) -> np.ndarray:
         """Return the grid scaled by ``input_vector`` with optional noise."""
+        if not self.verify_integrity():
+            raise RuntimeError("Integrity check failed")
+
         vec = np.asarray(input_vector, dtype=np.complex128)
         flat = self.grid.ravel()
         if vec.size != flat.size:
@@ -41,9 +47,20 @@ class RFA7D:
         return result.reshape(self.shape)
 
     def verify_integrity(self) -> bool:
-        """Check whether the grid matches the stored integrity hash."""
+        """Check whether the grid and signature match the stored values."""
         current = hashlib.sha3_256(self.grid.tobytes()).hexdigest()
-        return current == self.integrity_hash
+        if current != self.integrity_hash:
+            return False
+        if self.signature and self.public_key:
+            return verify_blob(current.encode("utf-8"), self.signature, self.public_key)
+        return True
+
+    def sign_core(self, private_key_pem: bytes, public_key_pem: bytes) -> bytes:
+        """Sign the current grid hash and store the signature."""
+        self.public_key = public_key_pem
+        payload = self.integrity_hash.encode("utf-8")
+        self.signature = sign_blob(payload, private_key_pem)
+        return self.signature
 
     def encode_to_dna(self) -> str:
         """Serialize the grid to a DNA-like string and save it."""

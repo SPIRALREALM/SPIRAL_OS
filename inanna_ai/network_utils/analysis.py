@@ -32,10 +32,11 @@ def analyze_capture(pcap_path: str, *, log_dir: Optional[str] = None) -> dict:
         if src:
             talkers[src] += 1
 
+    top_talkers = [[addr, count] for addr, count in talkers.most_common(5)]
     summary = {
         "total_packets": len(packets),
         "protocols": dict(proto_counts),
-        "top_talkers": talkers.most_common(5),
+        "top_talkers": top_talkers,
     }
 
     cfg = load_config()

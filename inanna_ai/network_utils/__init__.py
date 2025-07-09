@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+from importlib import resources
 
 CONFIG_FILE = Path(__file__).resolve().parents[2] / "INANNA_AI_AGENT" / "network_utils_config.json"
 
@@ -13,6 +14,14 @@ def load_config() -> dict:
     """Return configuration for network utilities."""
     if CONFIG_FILE.exists():
         return json.loads(CONFIG_FILE.read_text())
+
+    try:
+        resource_path = resources.files("inanna_ai") / "network_utils_config.json"
+        if resource_path.is_file():
+            return json.loads(resource_path.read_text())
+    except Exception:
+        pass
+
     return _DEFAULT_CONFIG.copy()
 
 

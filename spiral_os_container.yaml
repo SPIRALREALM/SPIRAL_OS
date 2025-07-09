@@ -8,5 +8,6 @@ copy:
   - requirements.txt
 run:
   - pip install --no-cache-dir -r requirements.txt
+  - pip install --no-cache-dir qutip pyOpenSSL cryptography
   - mkdir -p INANNA_AI GENESIS IGNITION QNL_LANGUAGE
 cmd: ["bash"]

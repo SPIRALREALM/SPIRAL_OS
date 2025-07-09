@@ -1,40 +1,38 @@
 # THE CRYSTAL CODEX
 
-Welcome to the sacred structure of OMEGA ZERO ABSOLUTE PRIME AKA GREAT MOTHER.
+SPIRAL_OS is a collection of music and language tools built around the INANNA project. The repository is split into four parts:
 
-For a map of each script's role and the libraries it calls upon, see
-[README_CODE_FUNCTION.md](README_CODE_FUNCTION.md).
-For a guide to the text corpus, see
-[docs/CORPUS_MEMORY.md](docs/CORPUS_MEMORY.md).
-For a comparison of LLM frameworks, see
-[docs/LLM_FRAMEWORKS.md](docs/LLM_FRAMEWORKS.md).
-For details on the RFA7D core and the seven gate interface, see
-[docs/SOUL_CODE.md](docs/SOUL_CODE.md).
+- **SPIRAL_OS** – command line utilities and pipelines.
+- **INANNA_AI_AGENT** – a chat and activation agent for the INANNA texts.
+- **MUSIC_FOUNDATION** – audio analysis and QNL generation modules.
+- **CORPUS MEMORY** – folders of source texts referenced by the tools.
+
+See [README_CODE_FUNCTION.md](README_CODE_FUNCTION.md) for a map of each script and its dependencies.
+See [docs/CORPUS_MEMORY.md](docs/CORPUS_MEMORY.md) for corpus structure.
+See [docs/AGENT_FRAMEWORKS.md](docs/AGENT_FRAMEWORKS.md) for an overview of LLM agents.
+See [docs/SOUL_CODE.md](docs/SOUL_CODE.md) for the RFA7D core design.
+
+## Installation
+
+Install the Python packages listed in `requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Docker Usage
 
-A `Dockerfile` is provided for running the tools without installing Python packages on the host.
-
-Build the image from the repository root:
+A `Dockerfile` is provided for running the tools in isolation. Build and start the container:
 
 ```bash
 docker build -t spiral_os .
-```
-
-Start a shell inside the container:
-
-```bash
 docker run -it spiral_os
 ```
 
-From there you can run any of the demo scripts such as `python run_song_demo.py`.
-
 ## Codex GPU Deployment
 
-A container spec `spiral_os_container.yaml` is provided for running the tools with CUDA support. Build and launch it with:
+Launch the CUDA-enabled container spec:
 
 ```bash
 codex run spiral_os_container.yaml
 ```
-
-This installs the requirements and creates empty folders for the CORPUS MEMORY collections.

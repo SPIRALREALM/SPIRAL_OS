@@ -10,7 +10,7 @@ Use `pip` to install the required dependencies:
 pip install -r INANNA_AI_AGENT/Requirements_INANNA_AI_AGENT.txt
 ```
 
-The requirements file now includes `huggingface_hub` and `accelerate`. It also
+The requirements file now includes `requests`, `huggingface_hub` and `accelerate`. It also
 ensures `transformers` and `torch` are installed automatically.
 
 Copy `OPENAI_API_KEY.env.example` to `OPENAI_API_KEY.env` and add your OpenAI API key:

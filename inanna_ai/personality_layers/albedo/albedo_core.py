@@ -1,0 +1,28 @@
+from __future__ import annotations
+
+"""Simple state machine cycling through Nigredo -> Albedo -> Rubedo."""
+
+from enum import Enum
+
+
+class State(Enum):
+    NIGREDO = "nigredo"
+    ALBEDO = "albedo"
+    RUBEDO = "rubedo"
+
+
+class AlbedoCore:
+    """Track the current alchemical state."""
+
+    def __init__(self) -> None:
+        self.state = State.NIGREDO
+
+    def advance(self) -> None:
+        """Advance to the next state."""
+        if self.state is State.NIGREDO:
+            self.state = State.ALBEDO
+        elif self.state is State.ALBEDO:
+            self.state = State.RUBEDO
+
+
+__all__ = ["AlbedoCore", "State"]

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
 try:  # pragma: no cover - optional dependency
@@ -16,7 +17,7 @@ INANNA_DIR = ROOT / "INANNA_AI"
 QNL_DIR = ROOT / "QNL_LANGUAGE"
 AUDIT_DIR = ROOT / "audit_logs"
 INSIGHTS_FILE = AUDIT_DIR / "existential_insights.txt"
-ENDPOINT = "https://api.example.com/glm"
+ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
 
 
 class ExistentialReflector:

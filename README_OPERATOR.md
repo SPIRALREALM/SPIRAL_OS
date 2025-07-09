@@ -55,6 +55,10 @@ python start_spiral_os.py --interface eth0
 
 Use `--skip-network` to disable traffic monitoring.
 
+The GLM helper modules contact a remote endpoint defined by the
+`GLM_API_URL` environment variable.  If unset they default to
+`https://api.example.com/glm`.
+
 ## INANNA_AI DeepSeek-R1 Integration
 
 1. Copy `secrets.env.example` to `secrets.env` at the project root and set

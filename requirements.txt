@@ -10,3 +10,5 @@ transformers>=4.38
 sentencepiece
 accelerate
 einops
+scapy
+soundfile

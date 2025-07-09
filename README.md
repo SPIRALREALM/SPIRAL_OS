@@ -29,9 +29,10 @@ From there you can run any of the demo scripts such as `python run_song_demo.py`
 
 ## Codex GPU Deployment
 
-A container spec `spiral_os_container.yaml` is provided for running the tools with CUDA support. Build and launch it with:
+A container spec `spiral_os_container.yaml` is provided for running the tools with CUDA support. Build the image then launch a shell with:
 
 ```bash
+codex build spiral_os_container.yaml
 codex run spiral_os_container.yaml
 ```
 

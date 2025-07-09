@@ -44,7 +44,7 @@ def test_state_transitions(monkeypatch):
     layer.generate_response("hi")
     assert layer.state == "rubedo"
     layer.generate_response("hi")
-    assert layer.state == "rubedo"
+    assert layer.state == "nigredo"
 
 
 def test_prompt_construction(monkeypatch):

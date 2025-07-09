@@ -5,7 +5,7 @@ The **Albedo** layer introduces a small state machine that drives responses thro
 ## Project structure
 
 - `__init__.py` – exposes `AlbedoPersonalityLayer` used by the orchestrator.
-- `albedo_core.py` – tracks the current alchemical state (Nigredo → Albedo → Rubedo).
+- `albedo_core.py` – tracks the current alchemical state (Nigredo → Albedo → Rubedo → Nigredo).
 - `state_contexts.py` – prompt templates applied for each state.
 - `glm_integration.py` – wrapper around a GLM‑4.1V‑9B HTTP endpoint.
 
@@ -32,7 +32,7 @@ export GLM_API_URL=https://api.example.com/glm41v_9b
 python -m inanna_ai.main --duration 3
 ```
 
-Each invocation cycles through Nigredo, Albedo and Rubedo states. You can also use the layer programmatically:
+Each invocation cycles through Nigredo, Albedo and Rubedo states and then wraps back to Nigredo for a continuous loop. You can also use the layer programmatically:
 
 ```python
 from orchestrator import MoGEOrchestrator

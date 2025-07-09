@@ -25,8 +25,8 @@ class DummyResponse:
 def _patch_requests(monkeypatch, prompts):
     dummy = types.ModuleType("requests")
 
-    def post(url, json, timeout=10):
-        prompts.append(json.get("prompt"))
+    def post(url, json, timeout=10, headers=None):
+        prompts.append((json.get("prompt"), headers))
         return DummyResponse("reply")
 
     dummy.post = post
@@ -53,10 +53,19 @@ def test_prompt_construction(monkeypatch):
     monkeypatch.setattr(state_contexts, "CONTEXTS", {"nigredo": "A {text}"})
     layer = AlbedoPersonalityLayer()
     layer.generate_response("hello")
-    assert prompts == ["A hello"]
+    assert prompts == [("A hello", None)]
 
 
 def test_env_overrides_endpoint(monkeypatch):
     monkeypatch.setenv("GLM_API_URL", "http://foo")
     gi = importlib.reload(glm_integration)
     assert gi.ENDPOINT == "http://foo"
+
+
+def test_glm_header(monkeypatch):
+    prompts = []
+    monkeypatch.setenv("GLM_API_KEY", "tok")
+    gi = importlib.reload(glm_integration)
+    _patch_requests(monkeypatch, prompts)
+    gi.generate_completion("hello")
+    assert prompts == [("hello", {"Authorization": "Bearer tok"})]

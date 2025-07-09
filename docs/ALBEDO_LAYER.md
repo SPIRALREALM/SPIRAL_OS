@@ -20,7 +20,8 @@ export GLM_API_KEY=<your key>
 export GLM_API_URL=https://api.example.com/glm41v_9b
 ```
 
-The helper attaches the key as an `Authorization` header when present.
+The modules read `GLM_API_KEY` from the environment and attach it as an
+`Authorization: Bearer` header when present.
 
 ## Conversation loop
 

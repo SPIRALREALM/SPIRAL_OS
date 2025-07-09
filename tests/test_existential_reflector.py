@@ -50,3 +50,35 @@ def test_reflect_existence_function(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr().out
     assert out == "desc"
     assert "desc" in captured
+
+
+def test_existential_header(monkeypatch, tmp_path):
+    monkeypatch.setenv("GLM_API_KEY", "sek")
+    import importlib
+    er = importlib.reload(
+        __import__("inanna_ai.existential_reflector", fromlist=["ExistentialReflector"])
+    )
+
+    ina = tmp_path / "INANNA_AI"
+    qnl = tmp_path / "QNL_LANGUAGE"
+    ina.mkdir()
+    qnl.mkdir()
+    (ina / "a.md").write_text("x", encoding="utf-8")
+
+    monkeypatch.setattr(er, "INANNA_DIR", ina)
+    monkeypatch.setattr(er, "QNL_DIR", qnl)
+    monkeypatch.setattr(er, "AUDIT_DIR", tmp_path)
+    monkeypatch.setattr(er, "INSIGHTS_FILE", tmp_path / "i.txt")
+
+    hdr = {}
+    dummy = ModuleType("requests")
+
+    def post(url, json=None, timeout=10, headers=None):
+        hdr["h"] = headers
+        return DummyResponse({"description": "A"})
+
+    dummy.post = post
+    monkeypatch.setattr(er, "requests", dummy)
+
+    er.ExistentialReflector.reflect_on_identity()
+    assert hdr["h"] == {"Authorization": "Bearer sek"}

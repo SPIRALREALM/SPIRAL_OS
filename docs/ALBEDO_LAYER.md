@@ -13,11 +13,11 @@ The **Albedo** layer introduces a small state machine that drives responses thro
 
 ## Configuring the GLM endpoint
 
-The endpoint URL is defined in `glm_integration.ENDPOINT`. Set the environment variable `GLM_ENDPOINT` to override it or edit the constant directly. Provide your API key via `GLM_API_KEY`:
+The endpoint URL is defined in `glm_integration.ENDPOINT`. Set the environment variable `GLM_API_URL` to override it or edit the constant directly. Provide your API key via `GLM_API_KEY`:
 
 ```bash
 export GLM_API_KEY=<your key>
-export GLM_ENDPOINT=https://api.example.com/glm41v_9b
+export GLM_API_URL=https://api.example.com/glm41v_9b
 ```
 
 The helper attaches the key as an `Authorization` header when present.
@@ -28,7 +28,7 @@ To engage the Albedo personality, create the layer and pass it to the orchestrat
 
 ```bash
 export GLM_API_KEY=<your key>
-export GLM_ENDPOINT=https://api.example.com/glm41v_9b
+export GLM_API_URL=https://api.example.com/glm41v_9b
 python -m inanna_ai.main --duration 3
 ```
 

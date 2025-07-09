@@ -1,6 +1,7 @@
 import sys
 from types import ModuleType
 from pathlib import Path
+import importlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -60,3 +61,11 @@ def test_glm_analyze_code(tmp_path, monkeypatch):
     analysis = glm_analyze.analyze_code()
     assert analysis == 'ok'
     assert (out_dir / 'code_analysis.txt').read_text() == 'ok'
+
+
+def test_env_overrides_endpoint(monkeypatch):
+    monkeypatch.setenv('GLM_API_URL', 'http://test/endpoint')
+    gi = importlib.reload(glm_init)
+    ga = importlib.reload(glm_analyze)
+    assert gi.ENDPOINT == 'http://test/endpoint'
+    assert ga.ENDPOINT == 'http://test/endpoint'

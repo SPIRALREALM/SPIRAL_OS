@@ -3,6 +3,7 @@ from __future__ import annotations
 """Wrapper around a placeholder GLM-4.1V-9B endpoint."""
 
 import logging
+import os
 
 try:  # pragma: no cover - optional dependency
     import requests
@@ -11,7 +12,7 @@ except Exception:  # pragma: no cover - fallback when requests missing
 
 logger = logging.getLogger(__name__)
 
-ENDPOINT = "https://api.example.com/glm41v_9b"
+ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm41v_9b")
 
 
 def generate_completion(prompt: str) -> str:

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+import os
 
 try:  # pragma: no cover - optional dependency
     import requests
@@ -16,7 +17,7 @@ README_FILE = ROOT / "README.md"
 QNL_DIR = ROOT / "QNL_LANGUAGE"
 AUDIT_DIR = ROOT / "audit_logs"
 PURPOSE_FILE = AUDIT_DIR / "purpose.txt"
-ENDPOINT = "https://api.example.com/glm"
+ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
 
 
 def summarize_purpose() -> str:

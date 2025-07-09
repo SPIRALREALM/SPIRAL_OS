@@ -1,6 +1,7 @@
 import sys
 import types
 from pathlib import Path
+import importlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -53,3 +54,9 @@ def test_prompt_construction(monkeypatch):
     layer = AlbedoPersonalityLayer()
     layer.generate_response("hello")
     assert prompts == ["A hello"]
+
+
+def test_env_overrides_endpoint(monkeypatch):
+    monkeypatch.setenv("GLM_API_URL", "http://foo")
+    gi = importlib.reload(glm_integration)
+    assert gi.ENDPOINT == "http://foo"

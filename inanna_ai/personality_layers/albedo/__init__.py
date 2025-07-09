@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from .albedo_core import AlbedoCore, State
 from .glm_integration import generate_completion
-from .state_contexts import CONTEXTS
+from . import state_contexts
 
 
 class AlbedoPersonalityLayer:
@@ -21,7 +21,7 @@ class AlbedoPersonalityLayer:
 
     def generate_response(self, text: str) -> str:
         """Generate a GLM response for ``text``."""
-        template = CONTEXTS.get(self._core.state.value, "{text}")
+        template = state_contexts.CONTEXTS.get(self._core.state.value, "{text}")
         prompt = template.format(text=text)
         reply = self._client(prompt)
         self._core.advance()

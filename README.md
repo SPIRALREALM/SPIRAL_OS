@@ -10,6 +10,7 @@ For a comparison of LLM frameworks, see
 [docs/LLM_FRAMEWORKS.md](docs/LLM_FRAMEWORKS.md).
 For details on the RFA7D core and the seven gate interface, see
 [docs/SOUL_CODE.md](docs/SOUL_CODE.md).
+For an overview of available agents, see [AGENTS.md](AGENTS.md).
 
 ## Docker Usage
 

@@ -26,3 +26,13 @@ docker run -it spiral_os
 ```
 
 From there you can run any of the demo scripts such as `python run_song_demo.py`.
+
+## Codex GPU Deployment
+
+A container spec `spiral_os_container.yaml` is provided for running the tools with CUDA support. Build and launch it with:
+
+```bash
+codex run spiral_os_container.yaml
+```
+
+This installs the requirements and creates empty folders for the CORPUS MEMORY collections.

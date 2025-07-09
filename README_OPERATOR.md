@@ -1,6 +1,6 @@
 # Operator Guide
 
-This repository contains several command line utilities for working with the INANNA music tools and Quantum Narrative Language (QNL). Below is a quick summary of the main scripts and example commands for common tasks. See [AGENTS.md](AGENTS.md) for details about the defined agent.
+This repository contains several command line utilities for working with the INANNA music tools and Quantum Narrative Language (QNL). Below is a quick summary of the main scripts and example commands for common tasks. See [AGENTS.md](AGENTS.md#upcoming-components) for details about the agent and upcoming defensive modules.
 
 ## Installation
 

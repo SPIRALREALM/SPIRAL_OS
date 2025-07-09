@@ -24,6 +24,27 @@ chat mode requires the DeepSeek‑R1 weights placed under
 `INANNA_AI/models/DeepSeek-R1`. See `README_OPERATOR.md` for download
 instructions. Outputs reflect the original corpus; use responsibly.
 
+### Model downloads
+
+Model weights are fetched with `download_models.py`. Common commands include:
+
+```bash
+python download_models.py glm41v_9b --int8       # GLM-4.1V-9B
+python download_models.py deepseek_v3           # DeepSeek-V3
+python download_models.py mistral_8x22b --int8  # Mistral 8x22B
+```
+
+See [README_OPERATOR.md](README_OPERATOR.md#download-models) for details.
+
 ## Other Agents
 
 No other agents are currently defined.
+
+## Upcoming Components
+
+- **NetworkUtilities** – tools for packet capture and traffic analysis. They
+  provide defensive monitoring of network interfaces and help detect
+  suspicious activity.
+- **EthicalValidator** – a future module that inspects prompts and model
+  outputs for prohibited content. It acts as a defensive layer before requests
+  reach the language models.

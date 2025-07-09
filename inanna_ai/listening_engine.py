@@ -11,7 +11,7 @@ from typing import Dict, Generator, Optional, Tuple
 import numpy as np
 import librosa
 
-from . import utils
+from . import utils, emotion_analysis
 
 try:
     import sounddevice as sd
@@ -22,10 +22,26 @@ except Exception:  # pragma: no cover - optional dependency
 logger = logging.getLogger(__name__)
 
 
+def _infer_dialect(pitch: float) -> str:
+    """Return a crude dialect label based on ``pitch``."""
+    if pitch < 150:
+        return "lowland"
+    if pitch > 300:
+        return "upland"
+    return "neutral"
+
+
 def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
-    """Return pitch, tempo, emotion and classification for ``wave``."""
+    """Return pitch, tempo, emotion, dialect and classification for ``wave``."""
     if len(wave) == 0:
-        return {"emotion": "neutral", "pitch": 0.0, "tempo": 0.0, "classification": "silence"}
+        return {
+            "emotion": "neutral",
+            "pitch": 0.0,
+            "tempo": 0.0,
+            "classification": "silence",
+            "dialect": "neutral",
+            "weight": emotion_analysis.emotion_weight("neutral"),
+        }
 
     f0 = librosa.yin(
         wave,
@@ -57,11 +73,16 @@ def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
     elif pitch < 120 and tempo < 90:
         emotion = "calm"
 
+    dialect = _infer_dialect(pitch)
+    weight = emotion_analysis.emotion_weight(emotion)
+
     return {
         "emotion": emotion,
         "pitch": round(pitch, 2),
         "tempo": round(tempo, 2),
         "classification": classification,
+        "dialect": dialect,
+        "weight": weight,
     }
 
 
@@ -139,5 +160,24 @@ class ListeningEngine:
         return str(path), last_state
 
 
-__all__ = ["ListeningEngine"]
+def capture_audio(duration: float, sr: int = 44100) -> Tuple[np.ndarray, bool]:
+    """Record raw audio for ``duration`` seconds and report silence."""
+    if sd is None:
+        raise RuntimeError("sounddevice library not installed")
+    data = sd.rec(int(duration * sr), samplerate=sr, channels=1, dtype="float32")
+    sd.wait()
+    audio = data[:, 0]
+    is_silent = float(np.mean(np.abs(audio))) < 1e-4
+    return audio, is_silent
+
+
+def analyze_audio(duration: float, sr: int = 44100) -> Tuple[np.ndarray, Dict[str, float]]:
+    """Capture audio and return the features."""
+    audio, silent = capture_audio(duration, sr)
+    info = _extract_features(audio, sr)
+    info["is_silent"] = silent
+    return audio, info
+
+
+__all__ = ["ListeningEngine", "capture_audio", "analyze_audio"]
 

@@ -5,4 +5,5 @@ librosa
 pytest
 markdown
 sentence-transformers
-transformers
+transformers>=4.38
+torch>=2.1

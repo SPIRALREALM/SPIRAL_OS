@@ -13,5 +13,6 @@ __all__ = [
     "gate_orchestrator",
     "train_soul",
     "network_utils",
+    "defensive_network_utils",
     "ethical_validator",
 ]

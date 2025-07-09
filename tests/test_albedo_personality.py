@@ -1,0 +1,68 @@
+import sys
+import types
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from inanna_ai.personality_layers.albedo import (
+    AlbedoPersonalityLayer,
+    AlbedoCore,
+    State,
+    glm_integration,
+    state_contexts,
+)
+
+
+class DummyResponse:
+    def __init__(self, text: str) -> None:
+        self._text = text
+        self.text = text
+
+    def json(self):
+        return {"text": self._text}
+
+
+def _patch_requests(monkeypatch, prompts, replies):
+    dummy = types.ModuleType("requests")
+
+    def post(url, json, timeout=10):
+        prompts.append(json.get("prompt"))
+        return DummyResponse(replies.pop(0))
+
+    dummy.post = post
+    monkeypatch.setattr(glm_integration, "requests", dummy)
+
+
+def test_entity_recognition_and_state_transitions():
+    core = AlbedoCore()
+    assert [s.value for s in State] == ["nigredo", "albedo", "rubedo"]
+
+    assert core.state is State.NIGREDO
+    core.advance()
+    assert core.state is State.ALBEDO
+    core.advance()
+    assert core.state is State.RUBEDO
+    core.advance()
+    assert core.state is State.RUBEDO
+
+
+def test_prompt_formatting_and_glm(monkeypatch):
+    prompts = []
+    replies = ["one", "two", "three"]
+    _patch_requests(monkeypatch, prompts, replies)
+
+    monkeypatch.setattr(
+        state_contexts,
+        "CONTEXTS",
+        {"nigredo": "N-{text}", "albedo": "A-{text}", "rubedo": "R-{text}"},
+    )
+
+    layer = AlbedoPersonalityLayer()
+    out1 = layer.generate_response("hi")
+    out2 = layer.generate_response("hi")
+    out3 = layer.generate_response("hi")
+
+    assert [out1, out2, out3] == ["one", "two", "three"]
+    assert prompts == ["N-hi", "A-hi", "R-hi"]
+    assert layer.state == "rubedo"

@@ -9,4 +9,5 @@ __all__ = [
     "db_storage",
     "listening_engine",
     "response_manager",
+    "rfa_7d",
 ]

@@ -124,9 +124,15 @@ def main() -> None:
     parser.add_argument("hex_input", help="Hex string or path to text file containing hex bytes")
     parser.add_argument("--wav", default="qnl_hex_song.wav", help="Output WAV file")
     parser.add_argument("--json", default="qnl_hex_song.json", help="Output metadata JSON file")
+    parser.add_argument(
+        "--duration",
+        type=float,
+        default=1.0,
+        help="Duration per hex byte in seconds",
+    )
     args = parser.parse_args()
 
-    phrases, waveform = hex_to_song(args.hex_input)
+    phrases, waveform = hex_to_song(args.hex_input, duration_per_byte=args.duration)
 
     write(args.wav, 44100, waveform)
     metadata = generate_qnl_metadata(phrases)

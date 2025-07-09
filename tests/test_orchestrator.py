@@ -33,3 +33,20 @@ def test_route_music(tmp_path):
     result = orch.route("hi", info, text_modality=False, voice_modality=False, music_modality=True)
     assert Path(result["music_path"]).exists()
     assert result["qnl_phrases"]
+
+
+def test_route_with_albedo_layer(monkeypatch):
+    class DummyLayer:
+        def __init__(self):
+            self.calls = []
+
+        def generate_response(self, text: str) -> str:
+            self.calls.append(text)
+            return f"albedo:{text}"
+
+    layer = DummyLayer()
+    orch = MoGEOrchestrator(albedo_layer=layer)
+    info = {"emotion": "joy"}
+    result = orch.route("hello", info, text_modality=True, voice_modality=False, music_modality=False)
+    assert result["text"] == "albedo:hello"
+    assert layer.calls == ["hello"]

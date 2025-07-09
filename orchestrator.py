@@ -9,14 +9,16 @@ from typing import Any, Dict
 import soundfile as sf
 
 from inanna_ai import response_manager, tts_coqui, emotion_analysis
+from inanna_ai.personality_layers import AlbedoPersonalityLayer
 from SPIRAL_OS import qnl_engine
 
 
 class MoGEOrchestrator:
     """Route text and emotion data to the available models."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, albedo_layer: AlbedoPersonalityLayer | None = None) -> None:
         self._responder = response_manager.ResponseManager()
+        self._albedo = albedo_layer
 
     @staticmethod
     def _select_plane(weight: float, archetype: str) -> str:
@@ -49,7 +51,10 @@ class MoGEOrchestrator:
         }
 
         if text_modality:
-            result["text"] = self._responder.generate_reply(text, emotion_data)
+            if self._albedo is not None:
+                result["text"] = self._albedo.generate_response(text)
+            else:
+                result["text"] = self._responder.generate_reply(text, emotion_data)
 
         if voice_modality:
             speech_input = result.get("text", text)

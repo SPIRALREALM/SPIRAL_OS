@@ -9,7 +9,7 @@ from typing import Dict, Tuple
 import numpy as np
 import librosa
 
-from .utils import save_wav
+from .utils import save_wav, load_audio
 from .voice_evolution import get_voice_params
 from .emotion_analysis import emotion_to_archetype
 
@@ -17,6 +17,11 @@ try:
     from gtts import gTTS
 except Exception:  # pragma: no cover - optional dependency
     gTTS = None  # type: ignore
+
+try:  # optional playback dependency
+    import sounddevice as sd
+except Exception:  # pragma: no cover - optional dependency
+    sd = None
 
 logger = logging.getLogger(__name__)
 
@@ -72,4 +77,32 @@ def synthesize_speech(text: str, emotion: str) -> str:
     return str(out_path)
 
 
-__all__ = ["synthesize_speech"]
+def play_wav(path: str) -> None:
+    """Play a WAV file if a playback backend is available."""
+    if sd is None:
+        logger.warning("sounddevice library not installed; cannot play audio")
+        return
+    wave, sr = load_audio(path, sr=None, mono=True)
+    sd.play(wave, sr)
+    sd.wait()
+
+
+class SpeakingEngine:
+    """Wrapper that synthesizes and plays speech."""
+
+    def synthesize(self, text: str, emotion: str) -> str:
+        """Return a path to synthesized speech for ``text``."""
+        return synthesize_speech(text, emotion)
+
+    def play(self, path: str) -> None:
+        """Play an existing WAV file."""
+        play_wav(path)
+
+    def speak(self, text: str, emotion: str) -> str:
+        """Synthesize speech and play it immediately."""
+        path = self.synthesize(text, emotion)
+        self.play(path)
+        return path
+
+
+__all__ = ["synthesize_speech", "play_wav", "SpeakingEngine"]

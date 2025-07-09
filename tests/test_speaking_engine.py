@@ -22,3 +22,25 @@ def test_synthesize_speech_creates_wav(tmp_path, monkeypatch):
 
     path = speaking_engine.synthesize_speech("hello", "calm")
     assert Path(path).exists()
+
+
+def test_play_wav(monkeypatch):
+    played = {}
+
+    def dummy_load(path, sr=None, mono=True):
+        played["loaded"] = path
+        return np.zeros(10), 22050
+
+    class DummySD:
+        def play(self, wave, sr):
+            played["sr"] = sr
+        def wait(self):
+            played["waited"] = True
+
+    monkeypatch.setattr(speaking_engine, "sd", DummySD())
+    monkeypatch.setattr(speaking_engine, "load_audio", dummy_load)
+
+    speaking_engine.play_wav("x.wav")
+    assert played["loaded"] == "x.wav"
+    assert played["sr"] == 22050
+    assert played["waited"]

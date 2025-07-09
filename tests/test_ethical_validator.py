@@ -11,10 +11,23 @@ if "inanna_ai.ethical_validator" not in sys.modules:
     mod = types.ModuleType("inanna_ai.ethical_validator")
 
     class EthicalValidator:
-        def __init__(self, allowed_users=None):
+        def __init__(self, allowed_users=None, *, banned_keywords=None, log_dir="audit_logs"):
             self.allowed = set(allowed_users or [])
+            self.banned = [kw.lower() for kw in (banned_keywords or [])]
+            self.log_dir = Path(log_dir)
+
+        def validate_text(self, text):
+            lowered = text.lower()
+            for kw in self.banned:
+                if kw in lowered:
+                    self.log_dir.mkdir(parents=True, exist_ok=True)
+                    (self.log_dir / "rejected_prompts.log").write_text(text)
+                    return False
+            return True
 
         def validate(self, user, prompt):
+            if not self.validate_text(prompt):
+                raise ValueError("banned content")
             if user not in self.allowed:
                 raise PermissionError("unauthorized")
             return True
@@ -31,3 +44,22 @@ def test_unauthorized_usage_rejected():
         validator.validate("bob", "test")
 
     assert validator.validate("alice", "ok") is True
+
+
+def test_banned_prompt_logged(tmp_path):
+    log_dir = tmp_path / "audit"
+    validator = EthicalValidator(
+        allowed_users={"alice"},
+        banned_keywords=["bad"],
+        log_dir=log_dir,
+    )
+
+    assert validator.validate_text("all good") is True
+    assert validator.validate_text("very bad idea") is False
+
+    log_file = log_dir / "rejected_prompts.log"
+    assert log_file.exists()
+    assert "very bad idea" in log_file.read_text()
+
+    with pytest.raises(ValueError):
+        validator.validate("alice", "bad things")

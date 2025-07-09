@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 from orchestrator import MoGEOrchestrator
+from .rfa_7d import RFA7D
+from .gate_orchestrator import GateOrchestrator
 from . import (
     utils,
     stt_whisper,
@@ -23,25 +25,29 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     orchestrator = MoGEOrchestrator()
+    gate = GateOrchestrator()
+    core = RFA7D()
     speaker = speaking_engine.SpeakingEngine()
     engine = listening_engine.ListeningEngine()
 
     audio_path, audio_state = engine.record(args.duration)
     transcript = stt_whisper.transcribe_audio(audio_path)
 
+    encoded = gate.process_inward(transcript)
+    core_grid = core.execute(encoded)
+    gate_text = gate.process_outward(core_grid)
+
     result = orchestrator.route(
         transcript,
         audio_state,
         text_modality=True,
-        voice_modality=True,
+        voice_modality=False,
         music_modality=False,
     )
+
     response_text = result.get("text", "")
-    voice_path = result.get("voice_path")
-    if voice_path:
-        speaker.play(voice_path)
-    else:
-        voice_path = speaker.speak(response_text, audio_state.get("emotion", "neutral"))
+    final_text = f"{response_text} {gate_text}".strip()
+    voice_path = speaker.speak(final_text, audio_state.get("emotion", "neutral"))
 
     db_storage.save_interaction(
         transcript,
@@ -51,7 +57,7 @@ def main(argv: list[str] | None = None) -> None:
 
     print(f"Transcript: {transcript}")
     print(f"Emotion: {audio_state.get('emotion', 'neutral')}")
-    print(f"Response: {response_text}")
+    print(f"Response: {final_text}")
     print(f"Voice path: {voice_path}")
 
 

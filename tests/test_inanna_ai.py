@@ -118,3 +118,61 @@ def test_chat_subparser(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "Quantum Ritual Boot" in out
     assert "hi there" in out
+
+
+def test_voice_loop_gates(monkeypatch):
+    from inanna_ai import main as voice_main
+
+    monkeypatch.setattr(voice_main.utils, "setup_logger", lambda: None)
+    monkeypatch.setattr(voice_main.db_storage, "init_db", lambda: None)
+    saved = {}
+    monkeypatch.setattr(
+        voice_main.db_storage,
+        "save_interaction",
+        lambda t, e, p: saved.update({"transcript": t, "path": p}),
+    )
+
+    class DummyEngine:
+        def record(self, duration):
+            return "a.wav", {"emotion": "calm"}
+
+    monkeypatch.setattr(voice_main.listening_engine, "ListeningEngine", lambda: DummyEngine())
+    monkeypatch.setattr(voice_main.stt_whisper, "transcribe_audio", lambda p: "hello")
+
+    class DummyGate:
+        def process_inward(self, text):
+            saved["inward"] = text
+            return ["vec"]
+
+        def process_outward(self, grid):
+            saved["grid"] = grid
+            return "gate"
+
+    monkeypatch.setattr(voice_main, "GateOrchestrator", lambda: DummyGate())
+
+    class DummyCore:
+        def execute(self, vec):
+            saved["core"] = vec
+            return [1]
+
+    monkeypatch.setattr(voice_main, "RFA7D", lambda: DummyCore())
+
+    class DummyOrch:
+        def route(self, t, state, text_modality=True, voice_modality=False, music_modality=False):
+            saved["routed"] = t
+            return {"text": "reply"}
+
+    monkeypatch.setattr(voice_main, "MoGEOrchestrator", lambda: DummyOrch())
+
+    class DummySpeaker:
+        def speak(self, text, emotion):
+            saved["spoken"] = text
+            saved["emotion"] = emotion
+            return "resp.wav"
+
+    monkeypatch.setattr(voice_main.speaking_engine, "SpeakingEngine", lambda: DummySpeaker())
+
+    voice_main.main([])
+
+    assert saved["spoken"] == "reply gate"
+    assert saved["path"] == "resp.wav"

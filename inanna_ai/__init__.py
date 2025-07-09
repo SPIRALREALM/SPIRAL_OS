@@ -10,4 +10,5 @@ __all__ = [
     "listening_engine",
     "response_manager",
     "rfa_7d",
+    "gate_orchestrator",
 ]

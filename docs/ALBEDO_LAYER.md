@@ -29,7 +29,7 @@ To engage the Albedo personality, create the layer and pass it to the orchestrat
 ```bash
 export GLM_API_KEY=<your key>
 export GLM_API_URL=https://api.example.com/glm41v_9b
-python -m inanna_ai.main --duration 3
+python -m inanna_ai.main --duration 3 --personality albedo
 ```
 
 Each invocation cycles through Nigredo, Albedo and Rubedo states and then wraps back to Nigredo for a continuous loop. You can also use the layer programmatically:

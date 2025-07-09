@@ -176,3 +176,95 @@ def test_voice_loop_gates(monkeypatch):
 
     assert saved["spoken"] == "reply gate"
     assert saved["path"] == "resp.wav"
+
+
+def test_personality_flag_initializes_layer(monkeypatch):
+    import sys, types
+    sys.modules.setdefault("soundfile", types.ModuleType("soundfile"))
+    sys.modules["soundfile"].write = lambda *a, **k: None
+    sys.modules.setdefault("numpy", types.ModuleType("numpy"))
+    sys.modules["numpy"].random = types.SimpleNamespace(rand=lambda *a, **k: 0)
+    sys.modules["numpy"].int16 = "int16"
+    sys.modules.setdefault("librosa", types.ModuleType("librosa"))
+    sys.modules["librosa"].load = lambda *a, **k: ([], 0)
+    wavfile_mod = types.ModuleType("wavfile")
+    wavfile_mod.write = lambda *a, **k: None
+    io_mod = types.ModuleType("io")
+    io_mod.wavfile = wavfile_mod
+    scipy_mod = types.ModuleType("scipy")
+    scipy_mod.io = io_mod
+    sys.modules.setdefault("scipy", scipy_mod)
+    sys.modules.setdefault("scipy.io", io_mod)
+    sys.modules.setdefault("scipy.io.wavfile", wavfile_mod)
+    sys.modules.setdefault("SPIRAL_OS.qnl_engine", types.ModuleType("qnl_engine"))
+    gates_mod = types.ModuleType("gates")
+    gates_mod.sign_blob = lambda *a, **k: b""
+    gates_mod.verify_blob = lambda *a, **k: True
+    sys.modules.setdefault("inanna_ai.gates", gates_mod)
+    cryptography_mod = types.ModuleType("cryptography")
+    hazmat_mod = types.ModuleType("hazmat")
+    primitives = types.ModuleType("primitives")
+    hashes_mod = types.ModuleType("hashes")
+    hashes_mod.Hash = lambda *a, **k: None
+    primitives.hashes = hashes_mod
+    asym_mod = types.ModuleType("asymmetric")
+    padding_mod = types.ModuleType("padding")
+    asym_mod.padding = padding_mod
+    primitives.asymmetric = asym_mod
+    hazmat_mod.primitives = primitives
+    cryptography_mod.hazmat = hazmat_mod
+    sys.modules.setdefault("cryptography", cryptography_mod)
+    sys.modules.setdefault("cryptography.hazmat", hazmat_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives", primitives)
+    sys.modules.setdefault("cryptography.hazmat.primitives.hashes", hashes_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives.asymmetric", asym_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives.asymmetric.padding", padding_mod)
+
+    from inanna_ai import main as voice_main
+
+    monkeypatch.setattr(voice_main.utils, "setup_logger", lambda: None)
+    monkeypatch.setattr(voice_main.db_storage, "save_interaction", lambda *a, **k: None)
+    monkeypatch.setattr(voice_main.db_storage, "init_db", lambda: None)
+
+    class DummyEngine:
+        def record(self, duration):
+            return "a.wav", {"emotion": "calm"}
+
+    monkeypatch.setattr(voice_main.listening_engine, "ListeningEngine", lambda: DummyEngine())
+    monkeypatch.setattr(voice_main.stt_whisper, "transcribe_audio", lambda p: "hi")
+
+    class DummyGate:
+        def process_inward(self, text):
+            return ["vec"]
+
+        def process_outward(self, grid):
+            return "gate"
+
+    monkeypatch.setattr(voice_main, "GateOrchestrator", lambda: DummyGate())
+    monkeypatch.setattr(voice_main, "RFA7D", lambda: type("C", (), {"execute": lambda self, v: [1], "grid": type("G", (), {"size": 1})()})())
+
+    created = {}
+
+    class DummyLayer:
+        pass
+
+    def make_layer():
+        created["layer"] = True
+        return DummyLayer()
+
+    monkeypatch.setattr(voice_main, "AlbedoPersonalityLayer", make_layer)
+
+    class DummyOrch:
+        def __init__(self, *, albedo_layer=None):
+            created["albedo"] = albedo_layer
+
+        def route(self, *a, **k):
+            return {"text": "reply"}
+
+    monkeypatch.setattr(voice_main, "MoGEOrchestrator", DummyOrch)
+    monkeypatch.setattr(voice_main.speaking_engine, "SpeakingEngine", lambda: type("S", (), {"speak": lambda self, t, e: "v.wav"})())
+
+    voice_main.main(["--duration", "0", "--personality", "albedo"])
+
+    assert created.get("layer")
+    assert isinstance(created.get("albedo"), DummyLayer)

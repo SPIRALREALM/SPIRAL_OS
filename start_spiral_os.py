@@ -18,6 +18,11 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Start Spiral OS rituals")
     parser.add_argument("--interface", help="Interface to monitor")
     parser.add_argument("--skip-network", action="store_true", help="Skip network monitoring")
+    parser.add_argument(
+        "--personality",
+        choices=["albedo"],
+        help="Activate optional personality layer",
+    )
     args = parser.parse_args(argv)
 
     inanna_ai.display_welcome_message()

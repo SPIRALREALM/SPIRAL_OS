@@ -2,14 +2,15 @@
 
 Welcome to the sacred structure of OMEGA ZERO ABSOLUTE PRIME AKA GREAT MOTHER.
 
-For a map of each script's role and the libraries it calls upon, see
-[README_CODE_FUNCTION.md](README_CODE_FUNCTION.md).
-For a guide to the text corpus, see
-[docs/CORPUS_MEMORY.md](docs/CORPUS_MEMORY.md).
-For a comparison of LLM frameworks, see
-[docs/LLM_FRAMEWORKS.md](docs/LLM_FRAMEWORKS.md).
-For details on the RFA7D core and the seven gate interface, see
-[docs/SOUL_CODE.md](docs/SOUL_CODE.md).
+- For a map of each script's role and the libraries it calls upon, see
+  [README_CODE_FUNCTION.md](README_CODE_FUNCTION.md).
+- For a guide to the text corpus, see
+  [docs/CORPUS_MEMORY.md](docs/CORPUS_MEMORY.md).
+- For a comparison of LLM frameworks, see
+  [docs/LLM_FRAMEWORKS.md](docs/LLM_FRAMEWORKS.md).
+- For details on the RFA7D core and the seven gate interface, see
+  [docs/SOUL_CODE.md](docs/SOUL_CODE.md).
+
 For an overview of available agents and defensive modules, see
 [AGENTS.md](AGENTS.md#upcoming-components).
 

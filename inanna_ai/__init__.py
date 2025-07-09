@@ -11,4 +11,5 @@ __all__ = [
     "response_manager",
     "rfa_7d",
     "gate_orchestrator",
+    "train_soul",
 ]

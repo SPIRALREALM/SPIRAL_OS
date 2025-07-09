@@ -81,6 +81,16 @@ these steps to place the model under `INANNA_AI/models`.
    The script loads `HF_TOKEN` from `secrets.env` in the project root and downloads
    `deepseek-ai/DeepSeek-R1` into `INANNA_AI/models/DeepSeek-R1/`.
    To fetch the Gemma2 model via Ollama run `python download_models.py gemma2`.
+   Additional models can be fetched the same way:
+
+   ```bash
+   python download_models.py glm41v_9b --int8       # GLM-4.1V-9B
+   python download_models.py deepseek_v3           # DeepSeek-V3
+   python download_models.py mistral_8x22b --int8  # Mistral 8x22B
+   ```
+
+   The `--int8` flag performs optional quantization with bitsandbytes for GPUs
+   like the A6000.
 
 Afterwards the directory structure should look like:
 

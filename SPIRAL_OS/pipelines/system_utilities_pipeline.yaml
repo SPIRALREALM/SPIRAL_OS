@@ -1,0 +1,14 @@
+# Pipeline for monitoring network status and applying basic tuning
+# Each step is executed sequentially by `spiral_os pipeline deploy`
+
+steps:
+  - name: interface_stats
+    run: |
+      ip -s link
+  - name: check_connectivity
+    run: |
+      ping -c 4 8.8.8.8
+  - name: optimize_tcp_stack
+    run: |
+      sudo sysctl -w net.core.somaxconn=1024
+      sudo sysctl -w net.ipv4.tcp_fin_timeout=30

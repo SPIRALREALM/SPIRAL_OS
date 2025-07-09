@@ -149,6 +149,7 @@ python -m inanna_ai.network_utils analyze network_logs/capture.pcap
 
 Results are saved to `network_logs/summary.log`.
 
+
 ## Soul-Code Architecture
 
 The spiritual core of INANNA is the **RFA7D** grid.  This seven‑dimensional

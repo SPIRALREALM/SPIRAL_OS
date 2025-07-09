@@ -23,11 +23,16 @@ class DummyResponse:
     def json(self):
         return {"text": self._text}
 
+    def raise_for_status(self):
+        return None
+
 
 def _patch_requests(monkeypatch, prompts, replies):
     dummy = types.ModuleType("requests")
 
-    def post(url, json, timeout=10):
+    dummy.RequestException = Exception
+
+    def post(url, json, timeout=10, headers=None):
         prompts.append(json.get("prompt"))
         return DummyResponse(replies.pop(0))
 

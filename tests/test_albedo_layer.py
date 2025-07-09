@@ -21,12 +21,29 @@ class DummyResponse:
     def json(self):
         return {"text": self._text}
 
+    def raise_for_status(self):
+        return None
+
 
 def _patch_requests(monkeypatch, prompts):
     dummy = types.ModuleType("requests")
 
+    dummy.RequestException = Exception
+
     def post(url, json, timeout=10, headers=None):
         prompts.append((json.get("prompt"), headers))
+        return DummyResponse("reply")
+
+    dummy.post = post
+    monkeypatch.setattr(glm_integration, "requests", dummy)
+
+
+def _patch_requests_capture(monkeypatch, log):
+    dummy = types.ModuleType("requests")
+    dummy.RequestException = Exception
+
+    def post(url, json, timeout=10, headers=None):
+        log.append((url, json.get("prompt"), headers))
         return DummyResponse("reply")
 
     dummy.post = post
@@ -69,3 +86,49 @@ def test_glm_header(monkeypatch):
     _patch_requests(monkeypatch, prompts)
     gi.generate_completion("hello")
     assert prompts == [("hello", {"Authorization": "Bearer tok"})]
+
+
+def test_state_cycle_wraparound(monkeypatch):
+    prompts = []
+    _patch_requests(monkeypatch, prompts)
+    layer = AlbedoPersonalityLayer()
+
+    states = []
+    for _ in range(4):
+        layer.generate_response("hi")
+        states.append(layer.state)
+
+    assert states == ["albedo", "rubedo", "nigredo", "albedo"]
+
+
+def test_env_vars_honored(monkeypatch):
+    calls = []
+    monkeypatch.setenv("GLM_API_URL", "http://bar")
+    monkeypatch.setenv("GLM_API_KEY", "key")
+    gi = importlib.reload(glm_integration)
+    _patch_requests_capture(monkeypatch, calls)
+    gi.generate_completion("yo")
+    assert calls == [("http://bar", "yo", {"Authorization": "Bearer key"})]
+
+
+def test_glm_error_safe_message(monkeypatch):
+    class DummyExc(Exception):
+        pass
+
+    dummy = types.ModuleType("requests")
+    dummy.RequestException = DummyExc
+
+    def post(url, json, timeout=10, headers=None):
+        raise DummyExc("fail")
+
+    dummy.post = post
+    monkeypatch.setattr(glm_integration, "requests", dummy)
+
+    out = glm_integration.generate_completion("hi")
+    assert out == glm_integration.SAFE_ERROR_MESSAGE
+
+
+def test_glm_missing_requests(monkeypatch):
+    monkeypatch.setattr(glm_integration, "requests", None)
+    out = glm_integration.generate_completion("hi")
+    assert out == glm_integration.SAFE_ERROR_MESSAGE

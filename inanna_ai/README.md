@@ -59,6 +59,10 @@ The emotion analysis module maps each label to a Jungian archetype (for
 example `joy` → `Jester` and `calm` → `Sage`).  These mappings are defined in
 `emotion_analysis.EMOTION_ARCHETYPES`.
 
+The feature dictionary returned by the listening engine now also contains a
+`dialect` label inferred from pitch and a numeric `weight` taken from
+`emotion_analysis.EMOTION_WEIGHT`.
+
 The `response_manager.ResponseManager` pairs this emotional state and the
 environment classification with your transcript. It queries the corpus memory
 for related snippets and returns a reply tagged with one of the four cores

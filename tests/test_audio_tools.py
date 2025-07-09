@@ -51,7 +51,7 @@ def test_extract_features(tmp_path):
 
     wave, sr = librosa.load(audio_path, sr=None, mono=True)
     info = _extract_features(wave, sr)
-    assert set(info) == {"emotion", "pitch", "tempo", "classification"}
+    assert set(info) == {"emotion", "pitch", "tempo", "classification", "dialect", "weight"}
 
 
 def _save_sine(tmp_path: Path, freq: float, amp: float) -> Path:

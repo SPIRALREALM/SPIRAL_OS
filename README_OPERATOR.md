@@ -92,3 +92,16 @@ INANNA_AI/
         ├── tokenizer.json
         └── ... (model files)
 ```
+
+## Pipeline Deployment
+
+The `spiral_os` CLI runs YAML workflows found in `SPIRAL_OS/pipelines/`.
+Deploy the bundled test pipeline with:
+
+```bash
+./spiral_os pipeline deploy SPIRAL_OS/pipelines/test_pipeline.yaml
+```
+
+Each step's `run` command executes sequentially. The example pipeline
+generates a short QNL song with 0.05‑second audio segments and mixes a
+three‑second preview track.

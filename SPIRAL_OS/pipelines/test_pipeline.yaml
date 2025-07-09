@@ -1,0 +1,16 @@
+# Example pipeline for running the QNL engine and mixing audio
+# Each step is executed sequentially by `spiral_os pipeline deploy`
+
+steps:
+  - name: generate_qnl_song
+    run: |
+      python SPIRAL_OS/qnl_engine.py "48656c6c6f2053706972616c" \
+        --wav output/test_song.wav \
+        --json output/test_song.json \
+        --duration 0.05
+  - name: mix_preview
+    run: |
+      python SPIRAL_OS/mix_tracks.py output/test_song.wav \
+        --output output/final_mix.wav \
+        --preview output/preview.wav \
+        --preview-duration 3.0

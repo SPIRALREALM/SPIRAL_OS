@@ -12,6 +12,8 @@ For details on the RFA7D core and the seven gate interface, see
 [docs/SOUL_CODE.md](docs/SOUL_CODE.md).
 For an overview of available agents and defensive modules, see
 [AGENTS.md](AGENTS.md#upcoming-components).
+For notes on deploying to Vast.ai, see
+[docs/VAST_DEPLOYMENT.md](docs/VAST_DEPLOYMENT.md).
 
 ## Docker Usage
 

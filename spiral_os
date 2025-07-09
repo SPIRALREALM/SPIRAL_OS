@@ -3,15 +3,25 @@
 import argparse
 import subprocess
 from pathlib import Path
+import shlex
 import yaml
 
 
 def deploy_pipeline(path: str) -> None:
     config = yaml.safe_load(Path(path).read_text())
     for step in config.get("steps", []):
-        cmd = step["run"]
-        print(f"$ {cmd}")
-        subprocess.run(cmd, shell=True, check=True)
+        script = step["run"]
+        print(f"$ {script}")
+
+        # Collapse line continuations marked with a trailing backslash
+        normalized = script.replace("\\\n", " ")
+
+        for line in normalized.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            cmd = shlex.split(line)
+            subprocess.run(cmd, check=True)
 
 
 def main(argv: list[str] | None = None) -> None:

@@ -12,4 +12,5 @@ __all__ = [
     "rfa_7d",
     "gate_orchestrator",
     "train_soul",
+    "network_utils",
 ]

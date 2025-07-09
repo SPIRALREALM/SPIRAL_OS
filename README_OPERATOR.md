@@ -131,6 +131,24 @@ interfaces, verifies connectivity, and adjusts basic TCP parameters:
 ./spiral_os pipeline deploy SPIRAL_OS/pipelines/system_utilities_pipeline.yaml
 ```
 
+## Network monitoring
+
+The package `inanna_ai.network_utils` offers simple packet capture and
+analysis helpers. To record a short capture from interface `eth0`:
+
+```bash
+python -m inanna_ai.network_utils capture eth0 --count 50
+```
+
+The capture is written to `network_logs/capture.pcap`. Generate a traffic
+summary with:
+
+```bash
+python -m inanna_ai.network_utils analyze network_logs/capture.pcap
+```
+
+Results are saved to `network_logs/summary.log`.
+
 ## Soul-Code Architecture
 
 The spiritual core of INANNA is the **RFA7D** grid.  This seven‑dimensional

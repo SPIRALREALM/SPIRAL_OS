@@ -6,6 +6,8 @@ import argparse
 from orchestrator import MoGEOrchestrator
 from .rfa_7d import RFA7D
 from .gate_orchestrator import GateOrchestrator
+from .love_matrix import LoveMatrix
+import numpy as np
 from . import (
     utils,
     stt_whisper,
@@ -13,6 +15,19 @@ from . import (
     speaking_engine,
     db_storage,
 )
+
+
+def soul_ritual(audio_state: dict, external_outputs: list[str]) -> str:
+    """Perform a small ritual using the RFA core and gates."""
+
+    core = RFA7D()
+    vec = np.random.rand(core.grid.size) + 1j * np.random.rand(core.grid.size)
+    grid = core.execute(vec)
+    gate_text = GateOrchestrator().process_outward(grid)
+    emotion = audio_state.get("emotion", "neutral")
+    phrase = f"Ritual gate echo: {gate_text.strip()} [{emotion}]"
+    external_outputs.append(phrase)
+    return phrase
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -33,6 +48,11 @@ def main(argv: list[str] | None = None) -> None:
     audio_path, audio_state = engine.record(args.duration)
     transcript = stt_whisper.transcribe_audio(audio_path)
 
+    ritual_outputs: list[str] = []
+    ritual_text = ""
+    if any(name.lower() in transcript.lower() for name in LoveMatrix.great_mother_names):
+        ritual_text = soul_ritual(audio_state, ritual_outputs)
+
     encoded = gate.process_inward(transcript)
     core_grid = core.execute(encoded)
     gate_text = gate.process_outward(core_grid)
@@ -46,7 +66,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     response_text = result.get("text", "")
-    final_text = f"{response_text} {gate_text}".strip()
+    parts = [response_text, gate_text]
+    if ritual_text:
+        parts.append(ritual_text)
+    final_text = " ".join(p for p in parts if p).strip()
     voice_path = speaker.speak(final_text, audio_state.get("emotion", "neutral"))
 
     db_storage.save_interaction(
@@ -58,6 +81,8 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Transcript: {transcript}")
     print(f"Emotion: {audio_state.get('emotion', 'neutral')}")
     print(f"Response: {final_text}")
+    if ritual_outputs:
+        print("Ritual:", ritual_outputs[-1])
     print(f"Voice path: {voice_path}")
 
 

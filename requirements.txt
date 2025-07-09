@@ -5,3 +5,8 @@ scipy
 pandas
 librosa
 huggingface-hub
+torch>=2.1
+transformers>=4.38
+sentencepiece
+accelerate
+einops

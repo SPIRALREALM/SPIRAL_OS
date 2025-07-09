@@ -20,6 +20,7 @@ The requirements include common libraries like `numpy` and `scipy` as well as
 - **`SPIRAL_OS/mix_tracks.py`** – Mixes multiple audio files into a normalized track and optionally exports a short preview clip.
 - **`SPIRAL_OS/seven_dimensional_music.py`** – Creates layered music from a melody, optionally transmuting a hex payload and embedding secret data, then saves the final track and a JSON analysis of the seven planes.
 - **`SPIRAL_OS/qnl_engine.py`** – Converts a hex string to QNL phrases and a waveform, saving a WAV file and metadata JSON.
+- **`start_spiral_os.py`** – Runs the initialization sequence that summarizes the project, analyzes code, stores approved suggestions and can monitor network traffic.
 - **`MUSIC_FOUNDATION/inanna_music_COMPOSER_ai.py`** – Standalone converter that performs MP3 analysis and outputs QNL data and a preview WAV.
 - **`MUSIC_FOUNDATION/human_music_to_qnl_converter.py`** – Helper module for turning analyzed tempo/chroma values into QNL structures.
 - **`MUSIC_FOUNDATION/music_foundation.py`** – Basic music analysis utility that computes tempo and harmony from an MP3 and exports a preview.
@@ -45,6 +46,14 @@ Recites the INANNA birth chant. Use the `--hex` option to generate a QNL song fr
 ```bash
 python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 ```
+
+### Start Spiral OS
+
+```bash
+python start_spiral_os.py --interface eth0
+```
+
+Use `--skip-network` to disable traffic monitoring.
 
 ## INANNA_AI DeepSeek-R1 Integration
 

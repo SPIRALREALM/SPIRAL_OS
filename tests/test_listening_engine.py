@@ -72,3 +72,20 @@ def test_record(monkeypatch, tmp_path):
     assert saved["sr"] == sr
     assert len(saved["wave"]) == sr * 3 // 2
     assert state == listening_engine._extract_features(waves[-1], sr)
+
+
+def test_stream_states(monkeypatch):
+    """Engine should classify silence, speech and noise chunks."""
+    sr = 44100
+    waves = [
+        np.zeros(int(sr * 0.5), dtype=np.float32),
+        _sine(180, 0.4, sr),
+        _sine(500, 0.4, sr),
+    ]
+    _mock_stream(monkeypatch, waves)
+    engine = listening_engine.ListeningEngine(sr=sr, chunk_duration=0.5)
+
+    states = [state for _, state in engine.stream_chunks(duration=1.5)]
+    expected = [listening_engine._extract_features(w, sr) for w in waves]
+
+    assert states == expected

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inanna_ai.network_utils import capture_packets
-from inanna_ai.network_utils import analyze_capture
+from inanna_ai.network_utils import analyze_capture, load_config
 
 
 def _dummy_packet(proto: str, src: str | None = None):
@@ -70,3 +70,19 @@ def test_analyze_capture(tmp_path, monkeypatch):
     log_file = log_dir / "summary.log"
     assert log_file.exists()
     assert json.loads(log_file.read_text()) == summary
+
+
+def test_load_config_from_resource(tmp_path, monkeypatch):
+    cfg = tmp_path / "network_utils_config.json"
+    cfg.write_text(json.dumps({"log_dir": "x", "capture_file": "y"}))
+    import inanna_ai.network_utils as nu
+    monkeypatch.setattr(nu.resources, "files", lambda pkg: tmp_path)
+    monkeypatch.setattr(nu, "CONFIG_FILE", tmp_path / "missing.json")
+    assert load_config() == {"log_dir": "x", "capture_file": "y"}
+
+
+def test_load_config_missing(monkeypatch):
+    import inanna_ai.network_utils as nu
+    monkeypatch.setattr(nu.resources, "files", lambda pkg: Path('missing'))
+    monkeypatch.setattr(nu, "CONFIG_FILE", Path('missing'))
+    assert load_config() == {"log_dir": "network_logs", "capture_file": "network_logs/capture.pcap"}

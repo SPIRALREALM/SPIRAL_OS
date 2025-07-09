@@ -1,6 +1,7 @@
 import sys
 import types
 from pathlib import Path
+import importlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -66,3 +67,9 @@ def test_prompt_formatting_and_glm(monkeypatch):
     assert [out1, out2, out3] == ["one", "two", "three"]
     assert prompts == ["N-hi", "A-hi", "R-hi"]
     assert layer.state == "rubedo"
+
+
+def test_env_overrides_endpoint(monkeypatch):
+    monkeypatch.setenv("GLM_API_URL", "http://foo")
+    gi = importlib.reload(glm_integration)
+    assert gi.ENDPOINT == "http://foo"

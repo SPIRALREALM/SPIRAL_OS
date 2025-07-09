@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+import os
 
 try:  # pragma: no cover - optional dependency
     import requests
@@ -15,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CODE_DIR = ROOT / "inanna_ai"
 AUDIT_DIR = ROOT / "audit_logs"
 ANALYSIS_FILE = AUDIT_DIR / "code_analysis.txt"
-ENDPOINT = "https://api.example.com/glm"
+ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
 
 
 def analyze_code() -> str:

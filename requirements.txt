@@ -12,3 +12,4 @@ accelerate
 einops
 scapy
 soundfile
+requests

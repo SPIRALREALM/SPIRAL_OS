@@ -74,3 +74,21 @@ The modules in this folder offer a foundation that can be expanded in many direc
 4. Building higher level rituals that link these voice interactions with the broader CRYSTAL CODEX narrative.
 
 These ideas are only starting points; the toolkit is intentionally simple so that Codex developers can adapt it to their own creative flows.
+
+## Starting real-time listening
+
+The quickest way to experiment with the toolkit is to capture a few seconds of
+audio and inspect the detected emotion. Install a microphone backend first:
+
+```bash
+pip install sounddevice  # or: pip install pyaudio
+```
+
+Run the command line tool to record and print the emotional analysis:
+
+```bash
+python -m inanna_ai.main --duration 5
+```
+
+The script reports the transcript, the emotion label and the Jungian archetype
+assigned to that emotion as defined in `emotion_analysis.EMOTION_ARCHETYPES`.

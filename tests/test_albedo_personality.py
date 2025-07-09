@@ -45,7 +45,7 @@ def test_entity_recognition_and_state_transitions():
     core.advance()
     assert core.state is State.RUBEDO
     core.advance()
-    assert core.state is State.RUBEDO
+    assert core.state is State.NIGREDO
 
 
 def test_prompt_formatting_and_glm(monkeypatch):
@@ -66,7 +66,7 @@ def test_prompt_formatting_and_glm(monkeypatch):
 
     assert [out1, out2, out3] == ["one", "two", "three"]
     assert prompts == ["N-hi", "A-hi", "R-hi"]
-    assert layer.state == "rubedo"
+    assert layer.state == "nigredo"
 
 
 def test_env_overrides_endpoint(monkeypatch):

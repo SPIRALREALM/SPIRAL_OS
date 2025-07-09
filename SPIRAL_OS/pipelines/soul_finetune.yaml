@@ -1,0 +1,7 @@
+# Pipeline for refining the RFA7D core using past interactions
+# Each step is executed sequentially by `spiral_os pipeline deploy`
+
+steps:
+  - name: train_soul
+    run: |
+      python -m inanna_ai.train_soul QNL_LANGUAGE/interactions/log.txt

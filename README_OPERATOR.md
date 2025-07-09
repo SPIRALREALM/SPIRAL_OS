@@ -62,9 +62,9 @@ Use `--skip-network` to disable traffic monitoring.
    the chat agent.
 2. Run `python download_models.py deepseek` to fetch the DeepSeek-R1 model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.
-4. Optionally set `GLM_API_URL` to point at your GLM endpoint. The helper
-   defaults to `https://api.example.com/glm41v_9b` and uses `GLM_API_KEY` if
-   provided.
+4. Optionally set `GLM_API_URL` to point at your GLM endpoint. Set
+   `GLM_API_KEY` to include an `Authorization: Bearer <GLM_API_KEY>` header in
+   requests. The helper defaults to `https://api.example.com/glm41v_9b`.
 
 ## Download Models
 

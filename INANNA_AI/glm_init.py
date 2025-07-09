@@ -18,6 +18,8 @@ QNL_DIR = ROOT / "QNL_LANGUAGE"
 AUDIT_DIR = ROOT / "audit_logs"
 PURPOSE_FILE = AUDIT_DIR / "purpose.txt"
 ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
+API_KEY = os.getenv("GLM_API_KEY")
+HEADERS = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else None
 
 
 def summarize_purpose() -> str:
@@ -37,7 +39,7 @@ def summarize_purpose() -> str:
 
     data = {"text": "\n".join(texts)}
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
-    resp = requests.post(ENDPOINT, json=data, timeout=10)
+    resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
     try:
         summary = resp.json().get("summary", "")
     except Exception:  # pragma: no cover - non-json response

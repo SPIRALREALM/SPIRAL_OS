@@ -69,3 +69,43 @@ def test_env_overrides_endpoint(monkeypatch):
     ga = importlib.reload(glm_analyze)
     assert gi.ENDPOINT == 'http://test/endpoint'
     assert ga.ENDPOINT == 'http://test/endpoint'
+
+
+def test_glm_headers(monkeypatch, tmp_path):
+    monkeypatch.setenv('GLM_API_KEY', 'secret')
+    gi = importlib.reload(glm_init)
+    ga = importlib.reload(glm_analyze)
+
+    readme = tmp_path / 'README.md'
+    qnl = tmp_path / 'QNL'
+    qnl.mkdir()
+    readme.write_text('hi', encoding='utf-8')
+
+    out_dir = tmp_path / 'logs'
+
+    monkeypatch.setattr(gi, 'ROOT', tmp_path)
+    monkeypatch.setattr(gi, 'README_FILE', readme)
+    monkeypatch.setattr(gi, 'QNL_DIR', qnl)
+    monkeypatch.setattr(gi, 'AUDIT_DIR', out_dir)
+    monkeypatch.setattr(gi, 'PURPOSE_FILE', out_dir / 'purpose.txt')
+
+    monkeypatch.setattr(ga, 'ROOT', tmp_path)
+    monkeypatch.setattr(ga, 'CODE_DIR', qnl)
+    monkeypatch.setattr(ga, 'AUDIT_DIR', out_dir)
+    monkeypatch.setattr(ga, 'ANALYSIS_FILE', out_dir / 'a.txt')
+
+    seen = []
+    dummy = ModuleType('requests')
+
+    def post(url, json=None, timeout=10, headers=None):
+        seen.append(headers)
+        return DummyResponse({'summary': 'x' if 'purpose' in str(out_dir) else 'y'})
+
+    dummy.post = post
+    monkeypatch.setattr(gi, 'requests', dummy)
+    monkeypatch.setattr(ga, 'requests', dummy)
+
+    gi.summarize_purpose()
+    ga.analyze_code()
+
+    assert seen == [{'Authorization': 'Bearer secret'}, {'Authorization': 'Bearer secret'}]

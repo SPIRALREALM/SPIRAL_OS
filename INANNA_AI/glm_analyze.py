@@ -17,6 +17,8 @@ CODE_DIR = ROOT / "inanna_ai"
 AUDIT_DIR = ROOT / "audit_logs"
 ANALYSIS_FILE = AUDIT_DIR / "code_analysis.txt"
 ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
+API_KEY = os.getenv("GLM_API_KEY")
+HEADERS = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else None
 
 
 def analyze_code() -> str:
@@ -34,7 +36,7 @@ def analyze_code() -> str:
 
     data = {"text": "\n".join(snippets)}
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
-    resp = requests.post(ENDPOINT, json=data, timeout=10)
+    resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
     try:
         analysis = resp.json().get("analysis", "")
     except Exception:  # pragma: no cover - non-json response

@@ -1,10 +1,13 @@
 import argparse
 import json
+import logging
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 from . import source_loader, model
 from inanna_ai import db_storage
+from inanna_ai.ethical_validator import EthicalValidator
 from transformers import GenerationMixin
 
 WELCOME_MESSAGE = """
@@ -60,6 +63,13 @@ def display_welcome_message() -> None:
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = BASE_DIR / "source_paths.json"
 MODEL_PATH = BASE_DIR.parent / "INANNA_AI" / "models" / "DeepSeek-R1"
+
+logger = logging.getLogger(__name__)
+
+AUDIT_DIR = BASE_DIR.parent / "audit_logs"
+ANALYSIS_PATH = AUDIT_DIR / "code_analysis.txt"
+SUGGESTIONS_FILE = BASE_DIR.parent / "INANNA_AI" / "suggestions.txt"
+SUGGESTIONS_LOG = AUDIT_DIR / "suggestions.txt"
 
 
 def read_texts() -> Dict[str, str]:
@@ -117,6 +127,36 @@ def run_qnl(hex_input: str, wav: str = "qnl_hex_song.wav", json_file: str = "qnl
     Path(json_file).write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"WAV saved to {wav}")
     print(f"Metadata saved to {json_file}")
+
+
+def suggest_enhancement(validator: EthicalValidator | None = None) -> List[str]:
+    """Validate code analysis suggestions and store approved ones."""
+    validator = validator or EthicalValidator()
+
+    if not ANALYSIS_PATH.exists():
+        return []
+
+    suggestions = [s.strip() for s in ANALYSIS_PATH.read_text(encoding="utf-8").splitlines() if s.strip()]
+    approved: List[str] = []
+    for s in suggestions:
+        if validator.validate_text(s):
+            approved.append(s)
+
+    if approved:
+        SUGGESTIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        SUGGESTIONS_FILE.write_text("\n".join(approved), encoding="utf-8")
+
+        AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.utcnow().isoformat()
+        with SUGGESTIONS_LOG.open("a", encoding="utf-8") as fh:
+            for s in approved:
+                fh.write(f"{timestamp} {s}\n")
+
+        logger.info("Wrote %d suggestion(s) to %s", len(approved), SUGGESTIONS_FILE)
+    else:
+        logger.info("No valid suggestions found")
+
+    return approved
 
 
 def chat_loop() -> None:

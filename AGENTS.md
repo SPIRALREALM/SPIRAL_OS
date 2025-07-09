@@ -40,11 +40,17 @@ See [README_OPERATOR.md](README_OPERATOR.md#download-models) for details.
 
 No other agents are currently defined.
 
+## Available Components
+
+- **NetworkUtilities** – a command line toolkit for packet capture and traffic
+  analysis. Invoke it with `python -m inanna_ai.network_utils` followed by
+  `capture` or `analyze` subcommands. Results are written to the
+  `network_logs` directory. See
+  [README_OPERATOR.md](README_OPERATOR.md#network-monitoring) for usage
+  instructions.
+
 ## Upcoming Components
 
-- **NetworkUtilities** – tools for packet capture and traffic analysis. They
-  provide defensive monitoring of network interfaces and help detect
-  suspicious activity.
 - **EthicalValidator** – a future module that inspects prompts and model
   outputs for prohibited content. It acts as a defensive layer before requests
-  reach the language models.
+  reach the language models. *(See Issue&nbsp;1.)*

@@ -2,6 +2,7 @@ import sys
 from types import ModuleType
 from pathlib import Path
 import importlib
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -16,6 +17,9 @@ class DummyResponse:
 
     def json(self):
         return self._data
+
+    def raise_for_status(self):
+        return None
 
 
 def test_glm_init_summarize(tmp_path, monkeypatch):
@@ -109,3 +113,72 @@ def test_glm_headers(monkeypatch, tmp_path):
     ga.analyze_code()
 
     assert seen == [{'Authorization': 'Bearer secret'}, {'Authorization': 'Bearer secret'}]
+
+
+def test_glm_init_error(tmp_path, monkeypatch):
+    readme = tmp_path / 'README.md'
+    qnl = tmp_path / 'QNL_LANGUAGE'
+    qnl.mkdir()
+    readme.write_text('hello', encoding='utf-8')
+    (qnl / 'a.md').write_text('world', encoding='utf-8')
+
+    out_dir = tmp_path / 'audit_logs'
+
+    monkeypatch.setattr(glm_init, 'ROOT', tmp_path)
+    monkeypatch.setattr(glm_init, 'README_FILE', readme)
+    monkeypatch.setattr(glm_init, 'QNL_DIR', qnl)
+    monkeypatch.setattr(glm_init, 'AUDIT_DIR', out_dir)
+    monkeypatch.setattr(glm_init, 'PURPOSE_FILE', out_dir / 'purpose.txt')
+
+    class DummyExc(Exception):
+        pass
+
+    class ErrorResp:
+        text = 'bad'
+
+        def json(self):
+            return {'summary': 'bad'}
+
+        def raise_for_status(self):
+            raise DummyExc('fail')
+
+    dummy = ModuleType('requests')
+    dummy.RequestException = DummyExc
+    dummy.post = lambda *a, **k: ErrorResp()
+    monkeypatch.setattr(glm_init, 'requests', dummy)
+
+    with pytest.raises(DummyExc):
+        glm_init.summarize_purpose()
+
+
+def test_glm_analyze_error(tmp_path, monkeypatch):
+    code_dir = tmp_path / 'inanna_ai'
+    code_dir.mkdir()
+    (code_dir / 'x.py').write_text('print(1)', encoding='utf-8')
+
+    out_dir = tmp_path / 'audit_logs'
+
+    monkeypatch.setattr(glm_analyze, 'ROOT', tmp_path)
+    monkeypatch.setattr(glm_analyze, 'CODE_DIR', code_dir)
+    monkeypatch.setattr(glm_analyze, 'AUDIT_DIR', out_dir)
+    monkeypatch.setattr(glm_analyze, 'ANALYSIS_FILE', out_dir / 'code_analysis.txt')
+
+    class DummyExc(Exception):
+        pass
+
+    class ErrorResp:
+        text = 'bad'
+
+        def json(self):
+            return {'analysis': 'bad'}
+
+        def raise_for_status(self):
+            raise DummyExc('fail')
+
+    dummy = ModuleType('requests')
+    dummy.RequestException = DummyExc
+    dummy.post = lambda *a, **k: ErrorResp()
+    monkeypatch.setattr(glm_analyze, 'requests', dummy)
+
+    with pytest.raises(DummyExc):
+        glm_analyze.analyze_code()

@@ -39,3 +39,23 @@ bash scripts/setup_vast_ai.sh
 The script installs dependencies, prepares the `INANNA_AI/models` folder and can
 invoke `download_models.py` to pull large checkpoints. Edit the script to suit
 your needs.
+
+## Initialize GLM environment
+
+Run the setup script to install Python packages and create core directories under `/`:
+
+```bash
+bash scripts/setup_glm.sh
+```
+
+It prepares `/INANNA_AI`, `/QNL_LANGUAGE` and `/audit_logs` with placeholder ethics notes.
+
+## Clone a private repository
+
+If you need to pull another repository into the system use `setup_repo.sh` and a GitHub token:
+
+```bash
+GITHUB_TOKEN=your-token bash scripts/setup_repo.sh owner/repo
+```
+
+The script clones the repository to `/INANNA_AI/repo` and writes `confirmation.txt` once completed.

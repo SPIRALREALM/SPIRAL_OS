@@ -1,3 +1,5 @@
+import importlib
+import os
 import sys
 from types import ModuleType
 from pathlib import Path
@@ -18,6 +20,9 @@ class DummyResponse:
 
 
 def test_glm_init_summarize(tmp_path, monkeypatch):
+    monkeypatch.setenv("GLM_API_URL", "https://test.example.com")
+    importlib.reload(glm_init)
+
     readme = tmp_path / 'README.md'
     qnl = tmp_path / 'QNL_LANGUAGE'
     qnl.mkdir()
@@ -42,6 +47,9 @@ def test_glm_init_summarize(tmp_path, monkeypatch):
 
 
 def test_glm_analyze_code(tmp_path, monkeypatch):
+    monkeypatch.setenv("GLM_API_URL", "https://test.example.com")
+    importlib.reload(glm_analyze)
+
     code_dir = tmp_path / 'inanna_ai'
     code_dir.mkdir()
     (code_dir / 'x.py').write_text('print(1)', encoding='utf-8')

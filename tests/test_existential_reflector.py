@@ -16,6 +16,9 @@ class DummyResponse:
     def json(self):
         return self._data
 
+    def raise_for_status(self):
+        return None
+
 
 def test_reflect_on_identity(tmp_path, monkeypatch):
     ina = tmp_path / "INANNA_AI"

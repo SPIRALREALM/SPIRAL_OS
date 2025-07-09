@@ -39,7 +39,12 @@ def summarize_purpose() -> str:
 
     data = {"text": "\n".join(texts)}
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
-    resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
+    try:
+        resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
+        resp.raise_for_status()
+    except requests.RequestException as exc:  # pragma: no cover - network errors
+        logger.error("Failed to query %s: %s", ENDPOINT, exc)
+        raise
     try:
         summary = resp.json().get("summary", "")
     except Exception:  # pragma: no cover - non-json response

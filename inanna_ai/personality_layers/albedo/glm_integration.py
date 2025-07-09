@@ -22,7 +22,13 @@ def generate_completion(prompt: str) -> str:
     if requests is None:
         raise RuntimeError("requests library is required")
 
-    resp = requests.post(ENDPOINT, json={"prompt": prompt}, timeout=10, headers=HEADERS)
+    try:
+        resp = requests.post(ENDPOINT, json={"prompt": prompt}, timeout=10, headers=HEADERS)
+        resp.raise_for_status()
+    except requests.RequestException as exc:  # pragma: no cover - network errors
+        logger.error("Failed to query %s: %s", ENDPOINT, exc)
+        raise
+
     try:
         text = resp.json().get("text", "")
     except Exception:  # pragma: no cover - non-json response

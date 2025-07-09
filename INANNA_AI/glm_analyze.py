@@ -36,7 +36,12 @@ def analyze_code() -> str:
 
     data = {"text": "\n".join(snippets)}
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
-    resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
+    try:
+        resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
+        resp.raise_for_status()
+    except requests.RequestException as exc:  # pragma: no cover - network errors
+        logger.error("Failed to query %s: %s", ENDPOINT, exc)
+        raise
     try:
         analysis = resp.json().get("analysis", "")
     except Exception:  # pragma: no cover - non-json response

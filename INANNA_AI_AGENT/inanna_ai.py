@@ -7,6 +7,7 @@ from typing import Dict, Tuple, List
 
 from . import source_loader, model
 from inanna_ai import db_storage
+from inanna_ai.existential_reflector import ExistentialReflector
 from inanna_ai.ethical_validator import EthicalValidator
 from transformers import GenerationMixin
 
@@ -157,6 +158,13 @@ def suggest_enhancement(validator: EthicalValidator | None = None) -> List[str]:
         logger.info("No valid suggestions found")
 
     return approved
+
+
+def reflect_existence() -> str:
+    """Print and return a short self description from the GLM."""
+    desc = ExistentialReflector.reflect_on_identity()
+    print(desc)
+    return desc
 
 
 def chat_loop() -> None:

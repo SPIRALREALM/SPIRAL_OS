@@ -1,6 +1,7 @@
 # Code Function Overview
 
 This document summarizes the purpose of the main scripts and modules in this repository and lists their key dependencies. See `README_OPERATOR.md` for more detailed usage instructions.
+For an overview of the Albedo personality layer see [docs/ALBEDO_LAYER.md](docs/ALBEDO_LAYER.md).
 
 ## Main scripts
 

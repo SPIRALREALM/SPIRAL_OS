@@ -33,6 +33,32 @@ Install development and test packages:
 pip install -r dev-requirements.txt
 ```
 
+## Local Usage
+
+1. Copy `secrets.env.example` to `secrets.env` and provide values for
+   environment variables such as `HF_TOKEN`, `GITHUB_TOKEN`,
+   `OPENAI_API_KEY`, `GLM_API_URL`, `GLM_API_KEY` and `CORPUS_PATH`.
+2. Download the required model weights before first launch:
+
+   ```bash
+   python download_models.py deepseek
+   ```
+
+   This saves `deepseek-ai/DeepSeek-R1` under `INANNA_AI/models/DeepSeek-R1/`.
+3. Start the INANNA chat agent via the helper script:
+
+   ```bash
+   ./run_inanna.sh
+   ```
+
+   The script loads `secrets.env`, checks for models and launches
+   `INANNA_AI_AGENT/inanna_ai.py chat`.
+4. Run the initialization sequence with:
+
+   ```bash
+   python start_spiral_os.py
+   ```
+
 ## Docker Usage
 
 A `Dockerfile` is provided for running the tools without installing Python packages on the host.

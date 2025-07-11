@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  inanna_ai:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/home/inanna/app/logs
+    environment:
+      - CORPUS_MEMORY_PATH=/home/inanna/app/data/corpus_memory.json
+    restart: unless-stopped

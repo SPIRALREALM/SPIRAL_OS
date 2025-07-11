@@ -5,3 +5,4 @@ oracle_output/
 OPENAI_API_KEY.env
 INANNA_AI/models/
 secrets.env
+logs/

@@ -13,3 +13,4 @@ einops
 scapy
 soundfile
 requests
+beautifulsoup4

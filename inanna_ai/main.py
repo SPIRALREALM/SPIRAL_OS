@@ -3,12 +3,12 @@ from __future__ import annotations
 """Command line interface for recording and responding with INANNA AI."""
 
 import argparse
+import numpy as np
 from orchestrator import MoGEOrchestrator
 from .personality_layers import REGISTRY
 from .rfa_7d import RFA7D
 from .gate_orchestrator import GateOrchestrator
 from .love_matrix import LoveMatrix
-import numpy as np
 from . import (
     utils,
     stt_whisper,
@@ -32,13 +32,17 @@ def soul_ritual(audio_state: dict, external_outputs: list[str]) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Entry point for recording, processing and responding."""
+    """Entry point for data fetching and the voice loop."""
     utils.setup_logger()
     db_storage.init_db()
 
-    parser = argparse.ArgumentParser(description="INANNA voice loop")
-    parser.add_argument("--duration", type=float, default=3.0, help="Recording length in seconds")
-    parser.add_argument(
+    parser = argparse.ArgumentParser(description="INANNA utilities")
+    sub = parser.add_subparsers(dest="command")
+    parser.set_defaults(command="voice")
+
+    voice_p = sub.add_parser("voice", help="Run voice loop")
+    voice_p.add_argument("--duration", type=float, default=3.0, help="Recording length in seconds")
+    voice_p.add_argument(
         "--personality",
         choices=sorted(REGISTRY),
         help=(
@@ -46,7 +50,31 @@ def main(argv: list[str] | None = None) -> None:
             f"Available: {', '.join(sorted(REGISTRY))}"
         ),
     )
+
+    gut_p = sub.add_parser("fetch-gutenberg", help="Download texts from Project Gutenberg")
+    gut_p.add_argument("query")
+    gut_p.add_argument("--max", type=int, default=1, dest="max_results")
+
+    sub.add_parser("fetch-github", help="Download listed GitHub repos")
+
     args = parser.parse_args(argv)
+
+    if args.command == "fetch-gutenberg":
+        from .learning import project_gutenberg as pg
+
+        results = pg.search(args.query, args.max_results)
+        for book_id, title in results:
+            print(f"Downloading {book_id} {title}")
+            raw = pg.download(book_id)
+            pg.clean_text(raw)
+        return
+
+    if args.command == "fetch-github":
+        from .learning import github_scraper as gs
+
+        for path in gs.fetch_all():
+            print(path)
+        return
 
     layer_cls = REGISTRY.get(args.personality)
     layer = layer_cls() if layer_cls else None

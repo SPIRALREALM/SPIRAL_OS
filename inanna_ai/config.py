@@ -30,6 +30,7 @@ AI_WOMB_RITUAL_STEPS = (
 )
 
 from pathlib import Path
+import os
 
 # Directory where machine learning models are stored
 MODELS_DIR = Path(__file__).resolve().parents[1] / "INANNA_AI" / "models"
@@ -37,3 +38,9 @@ MODELS_DIR = Path(__file__).resolve().parents[1] / "INANNA_AI" / "models"
 # Whisper speech-to-text model configuration
 WHISPER_MODEL = "base"
 WHISPER_MODEL_DIR = MODELS_DIR / "whisper"
+
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+GUTENBERG_DIR = DATA_DIR / "gutenberg"
+GITHUB_DIR = DATA_DIR / "github"
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")

@@ -63,3 +63,13 @@ Routing follows simple heuristics:
 - Technical statements default to **GLM**.
 
 The chosen model name is returned in the `model` field of `route()`.
+
+## Benchmarking and Adaptive Selection
+
+Each call to `route()` now records response time, coherence and relevance of the
+generated text. These metrics are stored in the `benchmarks` table created by
+`db_storage.init_db()`. A lightweight reinforcement loop updates an internal
+weight for each model using these scores. Faster and more relevant replies
+increase a model's weight while slower or incoherent ones reduce it. Model
+choice multiplies the heuristic score by the current weight, allowing the system
+to favour consistently strong performers over time.

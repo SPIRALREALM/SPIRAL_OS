@@ -25,6 +25,18 @@ def init_db(db_path: Path = DB_PATH) -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS benchmarks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                model TEXT NOT NULL,
+                response_time REAL NOT NULL,
+                coherence REAL NOT NULL,
+                relevance REAL NOT NULL
+            )
+            """
+        )
     conn.close()
 
 
@@ -43,6 +55,54 @@ def save_interaction(
             (datetime.utcnow().isoformat(), transcript, emotion, response_path),
         )
     conn.close()
+
+
+def log_benchmark(
+    model: str,
+    response_time: float,
+    coherence: float,
+    relevance: float,
+    *,
+    db_path: Path = DB_PATH,
+) -> None:
+    """Record model metrics in the database."""
+    conn = sqlite3.connect(db_path)
+    with conn:
+        conn.execute(
+            "INSERT INTO benchmarks(timestamp, model, response_time, coherence, relevance) VALUES (?, ?, ?, ?, ?)",
+            (
+                datetime.utcnow().isoformat(),
+                model,
+                response_time,
+                coherence,
+                relevance,
+            ),
+        )
+    conn.close()
+
+
+def fetch_benchmarks(limit: Optional[int] = None, db_path: Path = DB_PATH) -> List[Dict[str, float | str]]:
+    """Return recorded benchmark metrics."""
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    query = "SELECT timestamp, model, response_time, coherence, relevance FROM benchmarks ORDER BY id DESC"
+    params = ()
+    if limit is not None:
+        query += " LIMIT ?"
+        params = (limit,)
+    cur.execute(query, params)
+    rows = cur.fetchall()
+    conn.close()
+    return [
+        {
+            "timestamp": row[0],
+            "model": row[1],
+            "response_time": row[2],
+            "coherence": row[3],
+            "relevance": row[4],
+        }
+        for row in rows
+    ]
 
 
 def fetch_interactions(limit: Optional[int] = None, db_path: Path = DB_PATH) -> List[Dict[str, str]]:
@@ -79,4 +139,6 @@ __all__ = [
     "save_interaction",
     "fetch_interactions",
     "last_interaction",
+    "log_benchmark",
+    "fetch_benchmarks",
 ]

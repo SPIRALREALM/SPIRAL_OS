@@ -15,3 +15,4 @@ soundfile
 requests
 beautifulsoup4
 streamlit
+sentence-transformers  # optional, for semantic validation

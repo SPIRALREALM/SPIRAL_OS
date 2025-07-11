@@ -1,7 +1,6 @@
 import sys
 import types
 from pathlib import Path
-import importlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -9,6 +8,7 @@ sys.path.insert(0, str(ROOT))
 from inanna_ai.personality_layers.albedo import (
     AlbedoPersonality,
     AlchemicalPersona,
+    GLMIntegration,
     State,
     glm_integration,
     state_contexts,
@@ -76,5 +76,5 @@ def test_prompt_formatting_and_glm(monkeypatch):
 
 def test_env_overrides_endpoint(monkeypatch):
     monkeypatch.setenv("GLM_API_URL", "http://foo")
-    gi = importlib.reload(glm_integration)
-    assert gi.ENDPOINT == "http://foo"
+    gi = GLMIntegration()
+    assert gi.endpoint == "http://foo"

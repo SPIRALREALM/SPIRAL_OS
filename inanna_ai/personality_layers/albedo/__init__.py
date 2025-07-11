@@ -10,9 +10,13 @@ from . import state_contexts
 class AlbedoPersonality:
     """Generate text according to the current alchemical state."""
 
-    def __init__(self, glm: GLMIntegration | None = None, persona: AlchemicalPersona | None = None) -> None:
+    def __init__(
+        self,
+        integration: GLMIntegration | None = None,
+        persona: AlchemicalPersona | None = None,
+    ) -> None:
         self._persona = persona or AlchemicalPersona()
-        self._glm = glm or GLMIntegration()
+        self._glm = integration or GLMIntegration()
 
     @property
     def state(self) -> str:

@@ -9,3 +9,4 @@ transformers>=4.38
 torch>=2.1
 pyopenssl
 streamlit
+stable-baselines3

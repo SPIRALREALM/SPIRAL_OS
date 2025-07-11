@@ -11,6 +11,7 @@ from datetime import datetime
 import logging
 
 import numpy as np
+from . import adaptive_learning
 try:
     from sentence_transformers import SentenceTransformer
 except Exception:  # pragma: no cover - optional dependency
@@ -96,6 +97,20 @@ class EthicalValidator:
         if user not in self.allowed:
             raise PermissionError("unauthorized")
         return True
+
+    def apply_feedback(
+        self,
+        reward: float,
+        categories: Dict[str, List[str]] | None = None,
+    ) -> None:
+        """Update learning agent with validator feedback."""
+        adaptive_learning.update(
+            validator_reward=reward,
+            validator_categories=categories,
+        )
+        self.threshold = adaptive_learning.THRESHOLD_AGENT.threshold
+        if categories:
+            self.categories.update(categories)
 
 
 __all__ = ["EthicalValidator"]

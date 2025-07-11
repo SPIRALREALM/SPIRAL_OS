@@ -16,6 +16,7 @@ __all__ = [
     "defensive_network_utils",
     "ethical_validator",
     "existential_reflector",
+    "adaptive_learning",
     "context",
     "personality_layers",
     "learning",

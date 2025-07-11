@@ -6,6 +6,8 @@ import argparse
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
+from . import config
+
 import numpy as np
 try:
     from sentence_transformers import SentenceTransformer
@@ -21,6 +23,7 @@ MEMORY_DIRS: List[Path] = [
     _REPO_ROOT / "GENESIS",
     _REPO_ROOT / "IGNITION",
     _REPO_ROOT / "QNL_LANGUAGE",
+    config.GITHUB_DIR,
 ]
 
 

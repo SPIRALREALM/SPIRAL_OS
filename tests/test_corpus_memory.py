@@ -10,7 +10,7 @@ from inanna_ai import corpus_memory
 
 def test_cli_search(tmp_path, monkeypatch, capsys):
     dirs = []
-    for name in ["INANNA_AI", "GENESIS", "IGNITION", "QNL_LANGUAGE"]:
+    for name in ["INANNA_AI", "GENESIS", "IGNITION", "QNL_LANGUAGE", "github"]:
         d = tmp_path / name
         d.mkdir()
         dirs.append(d)

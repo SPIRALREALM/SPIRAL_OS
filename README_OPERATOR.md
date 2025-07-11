@@ -59,9 +59,10 @@ Use `--skip-network` to disable traffic monitoring.
 
 ## INANNA_AI DeepSeek-R1 Integration
 
-1. Copy `secrets.env.example` to `secrets.env` at the project root and set
-   `HF_TOKEN`. The `run_inanna.sh` helper script reads this file when starting
-   the chat agent.
+1. Copy `secrets.env.example` to `secrets.env` at the project root and fill in
+   values like `HF_TOKEN`, `GITHUB_TOKEN`, `OPENAI_API_KEY`, `GLM_API_URL`,
+   `GLM_API_KEY` and `CORPUS_PATH`. The `run_inanna.sh` helper script reads this
+   file when starting the chat agent.
 2. Run `python download_models.py deepseek` to fetch the DeepSeek-R1 model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.
    To load a different model directory pass `--model-dir <path>` to either command,
@@ -81,11 +82,11 @@ these steps to place the model under `INANNA_AI/models`.
    pip install -r SPIRAL_OS/requirements.txt
    ```
 
-2. Copy the example secrets file to the project root and add your Hugging Face token:
+2. Copy the example secrets file to the project root:
 
    ```bash
    cp secrets.env.example secrets.env  # run from the repository root
-   # edit secrets.env and set HF_TOKEN=<your token>
+   # edit secrets.env and provide your tokens and paths
    ```
 
 3. Run the model downloader:

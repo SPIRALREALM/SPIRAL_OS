@@ -11,3 +11,4 @@ pyopenssl
 streamlit
 stable-baselines3
 python-json-logger
+httpx

@@ -1,13 +1,13 @@
 import sys
 from types import ModuleType
 from pathlib import Path
-import importlib
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from INANNA_AI import glm_init, glm_analyze
+from inanna_ai.glm_integration import GLMIntegration
 
 
 class DummyResponse:
@@ -69,16 +69,12 @@ def test_glm_analyze_code(tmp_path, monkeypatch):
 
 def test_env_overrides_endpoint(monkeypatch):
     monkeypatch.setenv('GLM_API_URL', 'http://test/endpoint')
-    gi = importlib.reload(glm_init)
-    ga = importlib.reload(glm_analyze)
-    assert gi.ENDPOINT == 'http://test/endpoint'
-    assert ga.ENDPOINT == 'http://test/endpoint'
+    integration = GLMIntegration()
+    assert integration.endpoint == 'http://test/endpoint'
 
 
 def test_glm_headers(monkeypatch, tmp_path):
-    monkeypatch.setenv('GLM_API_KEY', 'secret')
-    gi = importlib.reload(glm_init)
-    ga = importlib.reload(glm_analyze)
+    integration = GLMIntegration(api_key='secret')
 
     readme = tmp_path / 'README.md'
     qnl = tmp_path / 'QNL'
@@ -87,16 +83,16 @@ def test_glm_headers(monkeypatch, tmp_path):
 
     out_dir = tmp_path / 'logs'
 
-    monkeypatch.setattr(gi, 'ROOT', tmp_path)
-    monkeypatch.setattr(gi, 'README_FILE', readme)
-    monkeypatch.setattr(gi, 'QNL_DIR', qnl)
-    monkeypatch.setattr(gi, 'AUDIT_DIR', out_dir)
-    monkeypatch.setattr(gi, 'PURPOSE_FILE', out_dir / 'purpose.txt')
+    monkeypatch.setattr(glm_init, 'ROOT', tmp_path)
+    monkeypatch.setattr(glm_init, 'README_FILE', readme)
+    monkeypatch.setattr(glm_init, 'QNL_DIR', qnl)
+    monkeypatch.setattr(glm_init, 'AUDIT_DIR', out_dir)
+    monkeypatch.setattr(glm_init, 'PURPOSE_FILE', out_dir / 'purpose.txt')
 
-    monkeypatch.setattr(ga, 'ROOT', tmp_path)
-    monkeypatch.setattr(ga, 'CODE_DIR', qnl)
-    monkeypatch.setattr(ga, 'AUDIT_DIR', out_dir)
-    monkeypatch.setattr(ga, 'ANALYSIS_FILE', out_dir / 'a.txt')
+    monkeypatch.setattr(glm_analyze, 'ROOT', tmp_path)
+    monkeypatch.setattr(glm_analyze, 'CODE_DIR', qnl)
+    monkeypatch.setattr(glm_analyze, 'AUDIT_DIR', out_dir)
+    monkeypatch.setattr(glm_analyze, 'ANALYSIS_FILE', out_dir / 'a.txt')
 
     seen = []
     dummy = ModuleType('requests')
@@ -106,11 +102,11 @@ def test_glm_headers(monkeypatch, tmp_path):
         return DummyResponse({'summary': 'x' if 'purpose' in str(out_dir) else 'y'})
 
     dummy.post = post
-    monkeypatch.setattr(gi, 'requests', dummy)
-    monkeypatch.setattr(ga, 'requests', dummy)
+    monkeypatch.setattr(glm_init, 'requests', dummy)
+    monkeypatch.setattr(glm_analyze, 'requests', dummy)
 
-    gi.summarize_purpose()
-    ga.analyze_code()
+    glm_init.summarize_purpose(integration)
+    glm_analyze.analyze_code(integration)
 
     assert seen == [{'Authorization': 'Bearer secret'}, {'Authorization': 'Bearer secret'}]
 

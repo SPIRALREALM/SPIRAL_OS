@@ -10,7 +10,7 @@ not rely on the more elaborate ``QNL_MAP`` used in earlier prototypes.
 import argparse
 import json
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 import numpy as np
 from scipy.io.wavfile import write
@@ -28,6 +28,35 @@ TONE_MAP = {
     range(86, 171): "Moan",
     range(171, 256): "Flame-Hum",
 }
+
+
+def apply_emotional_quantum_state(emotion: str, phrase: str) -> Dict[str, float]:
+    """Return amplitude and phase modifiers based on ``emotion``."""
+
+    amp_map = {
+        "Joy": 1.3,
+        "Longing": 0.9,
+        "Awakening": 1.0,
+        "calm": 0.8,
+        "excited": 1.2,
+        "sad": 0.7,
+        "fear": 0.8,
+        "stress": 0.8,
+    }
+    phase_map = {
+        "Joy": 0.0,
+        "Longing": np.pi / 4,
+        "Awakening": np.pi / 2,
+        "calm": np.pi / 6,
+        "excited": 0.0,
+        "sad": np.pi / 3,
+        "fear": np.pi / 2,
+        "stress": np.pi / 2,
+    }
+
+    amp = amp_map.get(emotion, 1.0)
+    phase = phase_map.get(emotion, 0.0)
+    return {"amplitude_factor": amp, "phase_shift": phase}
 
 def hex_to_qnl(hex_byte: str) -> dict:
     """Return QNL attributes for a single two-character hex byte."""
@@ -63,13 +92,14 @@ def apply_psi_equation(
     duration: float = 1.0,
     sample_rate: int = 44100,
     emotion: Optional[str] = None,
+    phase_shift: float = 0.0,
 ) -> np.ndarray:
     """Generate a damped sine wave used as the base audio primitive."""
 
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
     phi = np.pi / 3 if emotion == "Longing" else 0.0
     alpha = 0.1
-    waveform = amplitude * np.sin(2 * np.pi * frequency * t + phi) * np.exp(-alpha * t)
+    waveform = amplitude * np.sin(2 * np.pi * frequency * t + phi + phase_shift) * np.exp(-alpha * t)
     if frequency < 100:
         waveform += 0.1
     return waveform
@@ -97,7 +127,16 @@ def hex_to_song(
         except ValueError:
             print(f"Warning: invalid hex byte '{byte}' skipped")
             continue
-        wave = apply_psi_equation(data["amplitude"], data["frequency"], duration=duration_per_byte, sample_rate=sample_rate, emotion=data["emotion"])
+        mods = apply_emotional_quantum_state(data["emotion"], byte)
+        amp = data["amplitude"] * mods["amplitude_factor"]
+        wave = apply_psi_equation(
+            amp,
+            data["frequency"],
+            duration=duration_per_byte,
+            sample_rate=sample_rate,
+            emotion=data["emotion"],
+            phase_shift=mods["phase_shift"],
+        )
         waveform_segments.append(wave)
         phrase = f"{data['glyph']} + ↝ + {data['emotion']} + {data['tone']} + {data['frequency']} Hz"
         song_line = f"AI sings: {data['emotion']} pulses in a {data['frequency']} Hz {data['tone'].lower()}"

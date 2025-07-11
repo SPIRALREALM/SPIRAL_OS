@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Lightweight emotion analysis tools using Librosa."""
 
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
 # Mapping from emotional labels to Jungian archetypes
 EMOTION_ARCHETYPES = {
@@ -24,6 +24,17 @@ EMOTION_WEIGHT = {
     "excited": 0.6,
     "calm": 0.4,
     "neutral": 0.2,
+}
+
+# Simple mapping from emotion to a descriptive "quantum tone"
+EMOTION_QUANTUM_TONE = {
+    "joy": "Radiant",
+    "stress": "Tension",
+    "fear": "Flicker",
+    "sad": "Echo",
+    "excited": "Burst",
+    "calm": "Drift",
+    "neutral": "Still",
 }
 
 _CURRENT_STATE = {
@@ -102,10 +113,20 @@ def emotion_weight(emotion: str) -> float:
     return EMOTION_WEIGHT.get(emotion, 0.0)
 
 
+def get_emotion_and_tone(emotion: str | None = None) -> Tuple[str, str]:
+    """Return ``emotion`` and its associated quantum tone."""
+
+    if emotion is None:
+        emotion = _CURRENT_STATE["emotion"]
+    tone = EMOTION_QUANTUM_TONE.get(emotion, "Still")
+    return emotion, tone
+
+
 __all__ = [
     "analyze_audio_emotion",
     "get_current_archetype",
     "get_emotional_weight",
     "emotion_to_archetype",
     "emotion_weight",
+    "get_emotion_and_tone",
 ]

@@ -38,3 +38,11 @@ streamlit run dashboard/rl_metrics.py
 The line chart plots the reward values over time while the threshold display shows the
 value used by the validator for semantic checks.
 
+## Emotional‑Quantum Fusion
+
+`apply_emotional_quantum_state()` in `qnl_engine` modulates waveform
+properties using the speaker's detected emotion. The helper
+`get_emotion_and_tone()` exposes the current emotion alongside a short
+"quantum tone" label. When a response is generated, the tone feeds into
+the QNL phrase so the resulting audio reflects the emotional state.
+

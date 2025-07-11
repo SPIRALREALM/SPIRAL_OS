@@ -6,7 +6,7 @@ try:  # pragma: no cover - optional dependency
 except Exception:  # pragma: no cover - optional dependency
     SentenceTransformer = None  # type: ignore
 
-_MODEL: SentenceTransformer | None = None
+_MODEL: "SentenceTransformer | None" = None
 
 # Map Western note names to QNL glyphs
 QNL_GLYPHS = {

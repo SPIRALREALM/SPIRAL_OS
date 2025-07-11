@@ -8,7 +8,7 @@ import soundfile as sf
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from SPIRAL_OS.seven_dimensional_music import main
+from SPIRAL_OS import seven_dimensional_music as sdm
 
 
 def test_cli_creates_final_track(tmp_path):
@@ -27,7 +27,7 @@ def test_cli_creates_final_track(tmp_path):
         str(out),
     ]
     try:
-        main()
+        sdm.main()
     finally:
         sys.argv = argv_backup
 
@@ -67,7 +67,7 @@ def test_cli_secret_message(tmp_path):
     ]
     try:
         os.chdir(tmp_path)
-        main()
+        sdm.main()
     finally:
         os.chdir(cwd)
         sys.argv = argv_backup
@@ -77,3 +77,29 @@ def test_cli_secret_message(tmp_path):
     assert hidden == secret
     jpath = out.with_suffix(".json")
     assert jpath.exists()
+
+
+def test_quantum_music_changes_with_context(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        sdm,
+        "quantum_embed",
+        lambda text: np.array([len(text)], dtype=float),
+    )
+    monkeypatch.setattr(
+        sdm,
+        "embedding_to_params",
+        lambda emb: (emb[0] * 0.01, 1.0 + emb[0] * 0.01, 1.0),
+    )
+    monkeypatch.setattr(
+        sdm.qnl_engine,
+        "hex_to_song",
+        lambda *a, **k: ([], np.ones(100, dtype=np.int16)),
+    )
+    monkeypatch.setattr(sdm.emotion_analysis, "emotion_weight", lambda e: 0.5)
+
+    p1 = sdm.generate_quantum_music("alpha", "joy", output_dir=tmp_path)
+    p2 = sdm.generate_quantum_music("beta", "sad", output_dir=tmp_path)
+    assert p1 != p2
+    w1, _ = sf.read(p1, always_2d=False)
+    w2, _ = sf.read(p2, always_2d=False)
+    assert w1.shape != w2.shape or not np.allclose(w1, w2)

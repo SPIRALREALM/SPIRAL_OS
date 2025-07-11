@@ -12,6 +12,7 @@ __all__ = [
     "rfa_7d",
     "gate_orchestrator",
     "train_soul",
+    "retrain_and_deploy",
     "network_utils",
     "defensive_network_utils",
     "ethical_validator",

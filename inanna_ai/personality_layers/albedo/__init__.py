@@ -23,7 +23,7 @@ class AlbedoPersonality:
         """Return the name of the current state."""
         return self._persona.state.value
 
-    def generate_response(self, text: str) -> str:
+    def generate_response(self, text: str, *, quantum_context: str | None = None) -> str:
         """Generate a GLM response for ``text``."""
         entity, triggers = self._persona.detect_state_trigger(text)
         template = state_contexts.CONTEXTS.get(self._persona.state.value, "{text}")
@@ -31,9 +31,10 @@ class AlbedoPersonality:
             "text": text,
             "entity": entity,
             "triggers": ",".join(sorted(triggers)) if triggers else "",
+            "qcontext": quantum_context or "",
         }
         prompt = template.format(**ctx)
-        reply = self._glm.complete(prompt)
+        reply = self._glm.complete(prompt, quantum_context=quantum_context)
         self._persona.update_metrics(triggers)
         self._persona.advance()
         return reply

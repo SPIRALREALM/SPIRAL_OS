@@ -40,13 +40,18 @@ class GLMIntegration:
             return {"Authorization": f"Bearer {self.api_key}"}
         return None
 
-    def complete(self, prompt: str) -> str:
-        """Return the GLM completion for ``prompt``."""
+    def complete(self, prompt: str, *, quantum_context: str | None = None) -> str:
+        """Return the GLM completion for ``prompt``.
+
+        ``quantum_context`` is included in the request payload when provided.
+        """
         if requests is None:
             logger.warning("requests missing; returning safe message")
             return SAFE_ERROR_MESSAGE
 
         payload = {"prompt": prompt, "temperature": self.temperature}
+        if quantum_context is not None:
+            payload["quantum_context"] = quantum_context
         try:
             resp = requests.post(
                 self.endpoint, json=payload, timeout=10, headers=self.headers

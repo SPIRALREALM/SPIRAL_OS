@@ -1,6 +1,12 @@
 """Shared utilities for converting music analysis into QNL data."""
 
 import numpy as np
+try:  # pragma: no cover - optional dependency
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - optional dependency
+    SentenceTransformer = None  # type: ignore
+
+_MODEL: SentenceTransformer | None = None
 
 # Map Western note names to QNL glyphs
 QNL_GLYPHS = {
@@ -14,6 +20,23 @@ QNL_TONES = {
     "C": "Longing", "D": "Joy", "E": "Memory", "F": "Paradox",
     "G": "Awakening", "A": "Hope", "B": "Fusion",
 }
+
+
+def _get_model(name: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
+    """Return cached sentence transformer model."""
+    if SentenceTransformer is None:  # pragma: no cover - optional dependency
+        raise RuntimeError("sentence-transformers library not installed")
+    global _MODEL
+    if _MODEL is None:
+        _MODEL = SentenceTransformer(name)
+    return _MODEL
+
+
+def quantum_embed(text: str) -> np.ndarray:
+    """Return embedding for ``text`` as a NumPy array."""
+    model = _get_model()
+    emb = model.encode(text)
+    return np.asarray(emb, dtype=np.float32)
 
 
 def note_index_to_name(index: int) -> str:
@@ -57,3 +80,11 @@ def generate_qnl_structure(chroma_vector: np.ndarray, tempo: float, metadata=Non
     if planes is not None:
         data["planes"] = planes
     return data
+
+
+__all__ = [
+    "note_index_to_name",
+    "chroma_to_qnl",
+    "generate_qnl_structure",
+    "quantum_embed",
+]

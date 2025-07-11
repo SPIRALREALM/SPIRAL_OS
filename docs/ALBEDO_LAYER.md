@@ -50,6 +50,20 @@ orchestrator = MoGEOrchestrator(albedo_layer=layer)
 
 Calling `orchestrator.route()` with `text_modality=True` will return the GLM reply reflecting the current state.
 
+## Quantum personality context
+
+Version 2 introduces an optional *quantum context* argument.  The
+``AlchemicalPersona`` computes a sentence embedding for each message using
+``MUSIC_FOUNDATION.qnl_utils.quantum_embed``.  ``AlbedoPersonality.generate_response``
+accepts a ``quantum_context`` string which is forwarded to
+``GLMIntegration.complete`` and inserted into the state templates in
+``state_contexts``.  The persona updates its state weights using the embedding
+and the current emotional weight from :mod:`inanna_ai.emotion_analysis`.
+
+```python
+layer.generate_response("I love Alice", quantum_context="entangled")
+```
+
 ## Examples
 
 The persona inspects each message to detect emotional keywords and entity types.

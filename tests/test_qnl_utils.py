@@ -6,7 +6,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from MUSIC_FOUNDATION.qnl_utils import chroma_to_qnl, generate_qnl_structure
+from MUSIC_FOUNDATION import qnl_utils
+from MUSIC_FOUNDATION.qnl_utils import chroma_to_qnl, generate_qnl_structure, quantum_embed
 
 
 def test_generate_qnl_structure():
@@ -43,3 +44,18 @@ def test_chroma_to_qnl_order_and_notes():
     phrases = chroma_to_qnl(chroma)
     assert [p["note"] for p in phrases] == ["E", "C#", "D", "C"]
     assert phrases[0]["glyph"] == '🪞♾'
+
+
+def test_quantum_embed(monkeypatch):
+    calls = []
+
+    class DummyModel:
+        def encode(self, text: str):
+            calls.append(text)
+            return np.array([1.0, 2.0])
+
+    monkeypatch.setattr(qnl_utils, "SentenceTransformer", lambda name: DummyModel())
+    qnl_utils._MODEL = None
+    vec = quantum_embed("hello")
+    assert calls == ["hello"]
+    assert vec.tolist() == [1.0, 2.0]

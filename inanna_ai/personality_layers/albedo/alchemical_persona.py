@@ -8,6 +8,10 @@ import random
 import re
 from typing import Callable, Dict, Iterable, Set, Tuple
 
+import numpy as np
+from ...emotion_analysis import get_emotional_weight
+from MUSIC_FOUNDATION.qnl_utils import quantum_embed
+
 
 class State(Enum):
     """Possible alchemical phases."""
@@ -31,9 +35,11 @@ class AlchemicalPersona:
     entanglement: float = 0.0
     state: State = State.NIGREDO
     rng: Callable[[], float] = random.random
+    last_embedding: np.ndarray | None = field(default=None, init=False, repr=False)
 
     def detect_state_trigger(self, text: str) -> Tuple[str, TriggerSet]:
         """Return entity type and emotion triggers found in ``text``."""
+        self.last_embedding = quantum_embed(text)
         if re.search(r"\b(angel|demon|spirit|god)\b", text, re.I):
             entity = "deity"
         elif re.search(r"\b[A-Z][a-z]+\b", text):
@@ -61,6 +67,12 @@ class AlchemicalPersona:
             self.shadow_balance = min(1.0, self.shadow_balance + 0.1)
         else:
             self.shadow_balance = max(0.0, self.shadow_balance - 0.1)
+
+        weight = get_emotional_weight()
+        if self.last_embedding is not None:
+            factor = float(np.mean(self.last_embedding)) * weight * 0.001
+            cur = self.weights.get(self.state, 1.0)
+            self.weights[self.state] = min(1.0, max(0.1, cur + factor))
 
     def advance(self) -> None:
         """Move to the next state using transition ``weights``."""

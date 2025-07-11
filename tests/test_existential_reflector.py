@@ -85,3 +85,33 @@ def test_existential_header(monkeypatch, tmp_path):
 
     er.ExistentialReflector.reflect_on_identity()
     assert hdr["h"] == {"Authorization": "Bearer sek"}
+
+
+def test_reflect_on_dilemma(monkeypatch, tmp_path):
+    import inanna_ai.existential_reflector as er
+    from inanna_ai import context
+
+    audit = tmp_path / "audit_logs"
+    monkeypatch.setattr(er, "AUDIT_DIR", audit)
+    monkeypatch.setattr(er, "INSIGHTS_FILE", audit / "i.txt")
+
+    # reset context
+    context._CONTEXT.clear()
+
+    payload = {}
+    dummy = ModuleType("requests")
+
+    def post(url, json=None, timeout=10, headers=None):
+        payload.update(json or {})
+        return DummyResponse({"description": "reflect"})
+
+    dummy.post = post
+    monkeypatch.setattr(er, "requests", dummy)
+
+    desc = er.ExistentialReflector.reflect_on_dilemma("What is truth?", "joy")
+
+    assert desc == "reflect"
+    assert payload["prompt"] == "What is truth?"
+    assert payload["emotion"] == "joy"
+    assert "context" in payload and payload["context"] == ["What is truth?"]
+    assert (audit / "i.txt").read_text() == "reflect"

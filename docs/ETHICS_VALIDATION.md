@@ -11,3 +11,11 @@ validator = EthicalValidator(banned_categories={"harm": ["cause injury"]}, thres
 ```
 
 If the sentence‑transformers library is unavailable, only keyword checks run.
+
+## Existential Reflection
+
+`ExistentialReflector` offers brief philosophical responses based on the current
+emotion and a short history of prompts. The method `reflect_on_dilemma()`
+packages the user's question, detected emotion and recent context lines into a
+request for the GLM. The returned insight is saved to
+`audit_logs/existential_insights.txt` for transparency.

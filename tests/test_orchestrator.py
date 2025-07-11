@@ -17,6 +17,7 @@ def test_route_text_only(tmp_path, monkeypatch):
     result = orch.route("hello", info, text_modality=True, voice_modality=False, music_modality=False)
     assert result["plane"] == "ascension"
     assert "text" in result and result["text"]
+    assert result["model"]
 
 
 def test_route_voice(tmp_path):
@@ -50,3 +51,17 @@ def test_route_with_albedo_layer(monkeypatch):
     result = orch.route("hello", info, text_modality=True, voice_modality=False, music_modality=False)
     assert result["text"] == "albedo:hello"
     assert layer.calls == ["hello"]
+
+def test_context_model_selection(monkeypatch):
+    orch = MoGEOrchestrator()
+    monkeypatch.setattr(
+        "inanna_ai.corpus_memory.search_corpus",
+        lambda *a, **k: [("p", "snippet")],
+    )
+    # First call with high emotion selects Mistral
+    res1 = orch.route("I feel happy", {"emotion": "joy"})
+    assert res1["model"] == "mistral"
+
+    # Second neutral technical message still routes to Mistral due to context
+    res2 = orch.route("import os", {"emotion": "neutral"})
+    assert res2["model"] == "mistral"

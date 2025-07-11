@@ -21,10 +21,10 @@ cd SPIRAL_OS
 pip install -r requirements.txt
 ```
 
-Optionally install the test requirements with:
+Optionally install the development requirements with:
 
 ```bash
-pip install -r tests/requirements.txt
+pip install -r dev-requirements.txt
 ```
 
 ## GPU setup and model downloads (optional)

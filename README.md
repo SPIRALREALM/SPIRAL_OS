@@ -15,8 +15,23 @@ Welcome to the sacred structure of OMEGA ZERO ABSOLUTE PRIME AKA GREAT MOTHER.
 
 For an overview of available agents and defensive modules, see
 [AGENTS.md](AGENTS.md#upcoming-components).
+
 For notes on deploying to Vast.ai, see
 [docs/VAST_DEPLOYMENT.md](docs/VAST_DEPLOYMENT.md).
+
+## Installation
+
+Install the runtime dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Install development and test packages:
+
+```bash
+pip install -r dev-requirements.txt
+```
 
 ## Docker Usage
 

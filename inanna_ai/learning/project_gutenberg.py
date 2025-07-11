@@ -8,6 +8,12 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+from .. import corpus_memory
+try:  # pragma: no cover - optional dependency
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - optional dependency
+    SentenceTransformer = None  # type: ignore
+
 from .. import config
 
 _SEARCH_URL = "https://www.gutenberg.org/ebooks/search/?query={query}"
@@ -79,4 +85,44 @@ def chunk(text: str, max_tokens: int = 200) -> List[str]:
     for i in range(0, len(words), max_tokens):
         out.append(" ".join(words[i : i + max_tokens]))
     return out
+
+
+def ingest(title_or_id: str) -> Path:
+    """Download ``title_or_id`` and store chunk embeddings.
+
+    The argument may be a search query or numeric book identifier. The cleaned
+    text is split into chunks and each chunk embedded into the corpus vector
+    database with ``book_id`` and ``title`` metadata.  The path to the cleaned
+    text is returned.
+    """
+
+    results = search(title_or_id, max_results=1)
+    if not results:
+        raise RuntimeError(f"No results for {title_or_id}")
+    book_id, title = results[0]
+
+    raw_path = download(book_id)
+    clean_path = clean_text(raw_path)
+    text = clean_path.read_text(encoding="utf-8")
+    pieces = chunk(text)
+
+    if SentenceTransformer is None:  # pragma: no cover - optional dependency
+        raise RuntimeError("sentence-transformers library not installed")
+
+    try:
+        collection = corpus_memory.create_collection()
+    except Exception:
+        collection = None
+
+    if collection is not None and pieces:
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+        emb = model.encode(pieces, convert_to_numpy=True)
+        collection.add(
+            ids=[f"{book_id}:{i}" for i in range(len(pieces))],
+            embeddings=[e.tolist() for e in emb],
+            metadatas=[{"book_id": book_id, "title": title} for _ in pieces],
+            documents=pieces,
+        )
+
+    return clean_path
 

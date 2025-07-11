@@ -5,11 +5,11 @@ The **Albedo** layer introduces a stateful persona that drives responses through
 ## Project structure
 
 - `__init__.py` – exposes `AlbedoPersonality` used by the orchestrator.
-- `alchemical_persona.py` – weighted state machine with entity recognition.
+- `alchemical_persona.py` – weighted state machine with `detect_state_trigger()`.
 - `state_contexts.py` – prompt templates applied for each state.
 - `glm_integration.py` – `GLMIntegration` class for HTTP requests.
 
-`AlbedoPersonality` detects entities and emotional triggers, builds a state specific prompt and updates shadow metrics before advancing the persona.
+`AlbedoPersonality` calls `detect_state_trigger()` to extract entities and emotional cues, builds a state specific prompt and updates shadow metrics after each response.
 
 ## Configuring the GLM endpoint
 
@@ -44,3 +44,34 @@ orchestrator = MoGEOrchestrator(albedo_layer=layer)
 ```
 
 Calling `orchestrator.route()` with `text_modality=True` will return the GLM reply reflecting the current state.
+
+## Examples
+
+The persona inspects each message to detect emotional keywords and entity types.
+State metrics are updated after the model replies.
+
+```python
+from inanna_ai.personality_layers.albedo import AlchemicalPersona
+
+core = AlchemicalPersona()
+entity, triggers = core.detect_state_trigger("I love Alice")
+print(entity)           # "person"
+print(triggers)         # {"affection"}
+core.update_metrics(triggers)
+print(core.entanglement, core.shadow_balance)
+```
+
+When combined with ``AlbedoPersonality`` the detected entity and triggers are
+inserted into the prompt:
+
+```python
+from inanna_ai.personality_layers import AlbedoPersonality
+layer = AlbedoPersonality()
+reply = layer.generate_response("I love Alice")
+```
+
+The first call uses the ``nigredo`` template and yields a prompt like:
+
+```
+[Nigredo] (person) I love Alice affection
+```

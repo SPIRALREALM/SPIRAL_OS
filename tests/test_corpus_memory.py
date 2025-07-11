@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inanna_ai import corpus_memory
+import types
 
 
 def test_cli_search(tmp_path, monkeypatch, capsys):
@@ -33,6 +34,39 @@ def test_cli_search(tmp_path, monkeypatch, capsys):
 
     monkeypatch.setattr(corpus_memory, "SentenceTransformer", lambda name: DummyModel(name))
 
+    class DummyCollection:
+        def __init__(self) -> None:
+            self.ids = []
+            self.embeddings = []
+
+        def add(self, ids, embeddings, metadatas):
+            self.ids.extend(ids)
+            self.embeddings.extend([np.array(e) for e in embeddings])
+
+        def query(self, query_embeddings, n_results):
+            q = np.array(query_embeddings[0])
+            sims = [float(e @ q / ((np.linalg.norm(e) * np.linalg.norm(q)) + 1e-8)) for e in self.embeddings]
+            order = np.argsort(sims)[::-1][:n_results]
+            return {"ids": [[self.ids[i] for i in order]]}
+
+    class DummyClient:
+        def __init__(self, path):
+            self.collection = DummyCollection()
+
+        def get_or_create_collection(self, name):
+            return self.collection
+
+        def create_collection(self, name):
+            self.collection = DummyCollection()
+            return self.collection
+
+        def delete_collection(self, name):
+            self.collection = DummyCollection()
+
+    shared_client = DummyClient("dummy")
+    dummy_chroma = types.SimpleNamespace(PersistentClient=lambda path: shared_client)
+    monkeypatch.setattr(corpus_memory, "chromadb", dummy_chroma)
+
     corpus_memory.reindex_corpus()
 
     argv_backup = sys.argv.copy()
@@ -44,3 +78,41 @@ def test_cli_search(tmp_path, monkeypatch, capsys):
 
     out = capsys.readouterr().out.lower()
     assert "found.md" in out
+
+
+def test_cli_reindex_runs(monkeypatch):
+    called = {"reindex": False}
+
+    def dummy_reindex():
+        called["reindex"] = True
+
+    monkeypatch.setattr(corpus_memory, "reindex_corpus", dummy_reindex)
+
+    argv_backup = sys.argv.copy()
+    sys.argv = ["corpus_memory", "--reindex"]
+    try:
+        corpus_memory.main()
+    finally:
+        sys.argv = argv_backup
+
+    assert called["reindex"]
+
+
+def test_cli_reindex_with_search(monkeypatch):
+    called = {"reindex": False, "search": False}
+
+    monkeypatch.setattr(corpus_memory, "reindex_corpus", lambda: called.__setitem__("reindex", True))
+    monkeypatch.setattr(
+        corpus_memory,
+        "search_corpus",
+        lambda *a, **k: called.__setitem__("search", True) or [("p", "s")],
+    )
+
+    argv_backup = sys.argv.copy()
+    sys.argv = ["corpus_memory", "--reindex", "--search", "hello"]
+    try:
+        corpus_memory.main()
+    finally:
+        sys.argv = argv_backup
+
+    assert called["reindex"] and called["search"]

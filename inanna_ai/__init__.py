@@ -17,4 +17,5 @@ __all__ = [
     "ethical_validator",
     "existential_reflector",
     "personality_layers",
+    "learning",
 ]

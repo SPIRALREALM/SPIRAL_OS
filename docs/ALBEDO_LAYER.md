@@ -13,14 +13,19 @@ The **Albedo** layer introduces a stateful persona that drives responses through
 
 ## Configuring the GLM endpoint
 
-The endpoint URL is defined in `glm_integration.ENDPOINT`. Set the environment variable `GLM_API_URL` to override it or edit the constant directly. Provide your API key via `GLM_API_KEY`:
+`GLMIntegration` reads the endpoint and API key from environment variables by default.  Override them when instantiating the class or set `GLM_API_URL` and `GLM_API_KEY`:
 
-```bash
-export GLM_API_KEY=<your key>
-export GLM_API_URL=https://api.example.com/glm41v_9b
+```python
+from inanna_ai.glm_integration import GLMIntegration
+
+glm = GLMIntegration(
+    endpoint="https://api.example.com/glm41v_9b",
+    api_key="<your key>",
+)
 ```
 
-The modules read `GLM_API_KEY` from the environment and attach it as an
+When no arguments are provided the class falls back to the `GLM_API_URL` and
+`GLM_API_KEY` environment variables and attaches the key as an
 `Authorization: Bearer` header when present.
 
 ## Conversation loop

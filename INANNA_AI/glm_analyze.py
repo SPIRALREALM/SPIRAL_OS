@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 import os
+from inanna_ai.glm_integration import GLMIntegration
 
 try:  # pragma: no cover - optional dependency
     import requests
@@ -16,13 +17,11 @@ ROOT = Path(__file__).resolve().parents[1]
 CODE_DIR = ROOT / "inanna_ai"
 AUDIT_DIR = ROOT / "audit_logs"
 ANALYSIS_FILE = AUDIT_DIR / "code_analysis.txt"
-ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
-API_KEY = os.getenv("GLM_API_KEY")
-HEADERS = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else None
 
 
-def analyze_code() -> str:
+def analyze_code(integration: GLMIntegration | None = None) -> str:
     """Send code base to the GLM endpoint and store the suggestions."""
+    integration = integration or GLMIntegration()
     if requests is None:
         raise RuntimeError("requests library is required")
 
@@ -37,10 +36,15 @@ def analyze_code() -> str:
     data = {"text": "\n".join(snippets)}
     AUDIT_DIR.mkdir(parents=True, exist_ok=True)
     try:
-        resp = requests.post(ENDPOINT, json=data, timeout=10, headers=HEADERS)
+        resp = requests.post(
+            integration.endpoint,
+            json=data,
+            timeout=10,
+            headers=integration.headers,
+        )
         resp.raise_for_status()
     except requests.RequestException as exc:  # pragma: no cover - network errors
-        logger.error("Failed to query %s: %s", ENDPOINT, exc)
+        logger.error("Failed to query %s: %s", integration.endpoint, exc)
         raise
     try:
         analysis = resp.json().get("analysis", "")

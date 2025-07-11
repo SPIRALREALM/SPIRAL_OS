@@ -3,6 +3,12 @@ from pathlib import Path
 import types
 import re
 
+sys.modules.setdefault("requests", types.ModuleType("requests"))
+bs4_mod = types.ModuleType("bs4")
+bs4_mod.BeautifulSoup = lambda *a, **k: None
+sys.modules.setdefault("bs4", bs4_mod)
+sys.modules.setdefault("numpy", types.ModuleType("numpy"))
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
@@ -78,3 +84,42 @@ def test_chunk_respects_token_limit():
     chunks = pg.chunk(text, max_tokens=3)
     assert all(len(c.split()) <= 3 for c in chunks)
     assert " ".join(chunks) == text
+
+
+def test_ingest_downloads_and_embeds(monkeypatch, tmp_path):
+    monkeypatch.setattr(pg, "search", lambda q, max_results=1: [("1", "Book")])
+
+    raw = tmp_path / "book.txt"
+    raw.write_text("alpha beta gamma", encoding="utf-8")
+    monkeypatch.setattr(pg, "download", lambda book_id, dest_dir=None: raw)
+    monkeypatch.setattr(pg, "clean_text", lambda path: path)
+
+    seen = {}
+
+    class DummyModel:
+        def __init__(self, name):
+            seen["model"] = name
+
+        def encode(self, texts, convert_to_numpy=True):
+            seen["texts"] = list(texts)
+            class Vec(list):
+                def tolist(self):
+                    return list(self)
+
+            return [Vec([0.0]) for _ in texts]
+
+    class DummyCollection:
+        def add(self, ids=None, embeddings=None, metadatas=None, documents=None):
+            seen["ids"] = ids
+            seen["metadatas"] = metadatas
+            seen["docs"] = documents
+
+    monkeypatch.setattr(pg, "SentenceTransformer", DummyModel)
+    monkeypatch.setattr(pg.corpus_memory, "create_collection", lambda: DummyCollection())
+
+    pg.ingest("query")
+
+    assert seen["model"] == "all-MiniLM-L6-v2"
+    assert seen["docs"] == ["alpha beta gamma"]
+    assert seen["metadatas"] == [{"book_id": "1", "title": "Book"}]
+    assert seen["ids"][0].startswith("1:")

@@ -1,7 +1,6 @@
 import sys
 import types
 from pathlib import Path
-import importlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -76,16 +75,15 @@ def test_prompt_construction(monkeypatch):
 
 def test_env_overrides_endpoint(monkeypatch):
     monkeypatch.setenv("GLM_API_URL", "http://foo")
-    gi = importlib.reload(glm_integration)
-    assert gi.ENDPOINT == "http://foo"
+    gi = GLMIntegration()
+    assert gi.endpoint == "http://foo"
 
 
 def test_glm_header(monkeypatch):
     prompts = []
     monkeypatch.setenv("GLM_API_KEY", "tok")
-    gi = importlib.reload(glm_integration)
     _patch_requests(monkeypatch, prompts)
-    GLMIntegration(api_key="tok", endpoint=gi.ENDPOINT).complete("hello")
+    GLMIntegration().complete("hello")
     assert prompts == [("hello", {"Authorization": "Bearer tok"})]
 
 
@@ -106,9 +104,8 @@ def test_env_vars_honored(monkeypatch):
     calls = []
     monkeypatch.setenv("GLM_API_URL", "http://bar")
     monkeypatch.setenv("GLM_API_KEY", "key")
-    gi = importlib.reload(glm_integration)
     _patch_requests_capture(monkeypatch, calls)
-    GLMIntegration(endpoint=gi.ENDPOINT, api_key="key").complete("yo")
+    GLMIntegration().complete("yo")
     assert calls == [("http://bar", "yo", {"Authorization": "Bearer key"})]
 
 
@@ -124,13 +121,11 @@ def test_glm_error_safe_message(monkeypatch):
 
     dummy.post = post
     monkeypatch.setattr(glm_integration, "requests", dummy)
-    gi = importlib.reload(glm_integration)
-    out = GLMIntegration(endpoint=gi.ENDPOINT).complete("hi")
+    out = GLMIntegration().complete("hi")
     assert out == glm_integration.SAFE_ERROR_MESSAGE
 
 
 def test_glm_missing_requests(monkeypatch):
     monkeypatch.setattr(glm_integration, "requests", None)
-    gi = importlib.reload(glm_integration)
-    out = GLMIntegration(endpoint=gi.ENDPOINT).complete("hi")
+    out = GLMIntegration().complete("hi")
     assert out == glm_integration.SAFE_ERROR_MESSAGE

@@ -12,17 +12,26 @@ except Exception:  # pragma: no cover - fallback when requests missing
 
 logger = logging.getLogger(__name__)
 
-ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm41v_9b")
-API_KEY = os.getenv("GLM_API_KEY")
+DEFAULT_ENDPOINT = "https://api.example.com/glm41v_9b"
 SAFE_ERROR_MESSAGE = "GLM unavailable"
 
 
 class GLMIntegration:
     """Small wrapper around a GLM endpoint."""
 
-    def __init__(self, endpoint: str | None = None, api_key: str | None = None, temperature: float = 0.8) -> None:
-        self.endpoint = endpoint or ENDPOINT
-        self.api_key = api_key or API_KEY
+    def __init__(
+        self,
+        endpoint: str | None = None,
+        api_key: str | None = None,
+        temperature: float = 0.8,
+    ) -> None:
+        """Initialize from arguments or environment variables."""
+        if endpoint is None:
+            endpoint = os.getenv("GLM_API_URL", DEFAULT_ENDPOINT)
+        if api_key is None:
+            api_key = os.getenv("GLM_API_KEY")
+        self.endpoint = endpoint
+        self.api_key = api_key
         self.temperature = temperature
 
     @property
@@ -39,7 +48,9 @@ class GLMIntegration:
 
         payload = {"prompt": prompt, "temperature": self.temperature}
         try:
-            resp = requests.post(self.endpoint, json=payload, timeout=10, headers=self.headers)
+            resp = requests.post(
+                self.endpoint, json=payload, timeout=10, headers=self.headers
+            )
             resp.raise_for_status()
         except requests.RequestException as exc:  # pragma: no cover - network errors
             logger.error("Failed to query %s: %s", self.endpoint, exc)
@@ -52,4 +63,4 @@ class GLMIntegration:
         return text or SAFE_ERROR_MESSAGE
 
 
-__all__ = ["GLMIntegration", "ENDPOINT", "SAFE_ERROR_MESSAGE"]
+__all__ = ["GLMIntegration", "DEFAULT_ENDPOINT", "SAFE_ERROR_MESSAGE"]

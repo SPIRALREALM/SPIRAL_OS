@@ -11,3 +11,20 @@ validator = EthicalValidator(banned_categories={"harm": ["cause injury"]}, thres
 ```
 
 If the sentence‑transformers library is unavailable, only keyword checks run.
+
+## Context Awareness
+
+Use `inanna_ai.context_awareness` to record recent interactions and supply them
+when validating a prompt:
+
+```python
+from inanna_ai.context_awareness import record_interaction, retrieve_context
+from inanna_ai.ethical_validator import EthicalValidator
+
+record_interaction("hello world")
+context = retrieve_context(5)
+validator.validate("alice", "be nice", recent_context=context)
+```
+
+The context texts are appended before the semantic check so violations can be
+detected across the conversation history.

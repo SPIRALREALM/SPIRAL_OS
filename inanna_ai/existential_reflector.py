@@ -26,7 +26,7 @@ class ExistentialReflector:
     """Helper to query the GLM about the system identity."""
 
     @staticmethod
-    def reflect_on_identity() -> str:
+    def reflect_on_identity(recent_context: list[str] | None = None) -> str:
         """Return a concise self-description derived from project texts."""
         if requests is None:
             raise RuntimeError("requests library is required")
@@ -39,6 +39,9 @@ class ExistentialReflector:
                         texts.append(path.read_text(encoding="utf-8"))
                     except Exception:  # pragma: no cover - unreadable file
                         logger.warning("Failed to read %s", path)
+
+        if recent_context:
+            texts.extend(recent_context)
 
         data = {"text": "\n".join(texts)}
         AUDIT_DIR.mkdir(parents=True, exist_ok=True)
@@ -61,3 +64,4 @@ class ExistentialReflector:
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
     print(ExistentialReflector.reflect_on_identity())
+

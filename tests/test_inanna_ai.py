@@ -104,7 +104,12 @@ def test_chat_subparser(monkeypatch, capsys):
         },
     )()
 
-    monkeypatch.setattr(inanna_ai.model, "load_model", lambda path: (dummy_model, dummy_tokenizer))
+    used = {}
+    def fake_load_model(path):
+        used["path"] = path
+        return dummy_model, dummy_tokenizer
+
+    monkeypatch.setattr(inanna_ai.model, "load_model", fake_load_model)
 
     inputs = iter(["hello", "exit"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
@@ -119,6 +124,38 @@ def test_chat_subparser(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "Quantum Ritual Boot" in out
     assert "hi there" in out
+    assert used.get("path") == inanna_ai.MODEL_PATH
+
+
+def test_chat_model_dir_option(monkeypatch):
+    dummy_model = type("M", (), {"generate": lambda self, **kw: [[0, 1]]})()
+    dummy_tokenizer = type(
+        "T",
+        (),
+        {
+            "__call__": lambda self, text, return_tensors=None: {},
+            "decode": lambda self, ids, skip_special_tokens=True: "hi",
+        },
+    )()
+
+    seen = {}
+
+    def fake_load_model(path):
+        seen["path"] = path
+        return dummy_model, dummy_tokenizer
+
+    monkeypatch.setattr(inanna_ai.model, "load_model", fake_load_model)
+    inputs = iter(["exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    argv_backup = sys.argv.copy()
+    sys.argv = ["inanna_ai.py", "chat", "--model-dir", "custom"]
+    try:
+        inanna_ai.main()
+    finally:
+        sys.argv = argv_backup
+
+    assert seen.get("path") == Path("custom")
 
 
 def test_voice_loop_gates(monkeypatch):

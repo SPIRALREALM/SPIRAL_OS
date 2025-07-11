@@ -1,0 +1,13 @@
+# Pipeline for updating repository list and fetching GitHub data
+# Each step is executed sequentially by `spiral_os pipeline deploy`
+
+steps:
+  - name: update_github_list
+    run: |
+      python -m inanna_ai.main update-github-list
+  - name: fetch_github
+    run: |
+      python -m inanna_ai.main fetch-github
+  - name: reindex_corpus
+    run: |
+      python -m inanna_ai.corpus_memory --reindex

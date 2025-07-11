@@ -147,6 +147,13 @@ interfaces, verifies connectivity, and adjusts basic TCP parameters:
 ./spiral_os pipeline deploy SPIRAL_OS/pipelines/system_utilities_pipeline.yaml
 ```
 
+A fourth workflow, `github_ingest.yaml`, updates the repository list and downloads source code from GitHub. It can also rebuild the corpus memory index.
+
+```bash
+./spiral_os pipeline deploy SPIRAL_OS/pipelines/github_ingest.yaml
+```
+
+
 ## Network monitoring
 
 The package `inanna_ai.network_utils` offers simple packet capture and

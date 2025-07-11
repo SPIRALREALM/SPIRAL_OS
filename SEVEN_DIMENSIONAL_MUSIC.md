@@ -28,6 +28,15 @@ python SPIRAL_OS/seven_dimensional_music.py --melody sample.mid --message "Greet
 
 The script writes `human_layer.wav`, `crystal_layer.wav`, `synthetic_layer.wav`, and a mixed `final_track.wav` with `final_track.json` describing the seven‑plane analysis.
 
+## Quantum Adaptation
+
+`generate_quantum_music(context, emotion)` embeds the textual context and
+emotion using `quantum_embed`. The resulting vector maps to pitch, tempo and
+filter values that alter each layer. When `reactive_music_loop` calls
+`emotion_analysis` on a stream of audio, a new track is generated whenever the
+detected emotion changes. This produces music that evolves with the listener's
+mood.
+
 ## Decoding the Synthetic Layer
 
 The secret text is embedded in `human_layer.wav`. You can decode it using `synthetic_stego.extract_data`:

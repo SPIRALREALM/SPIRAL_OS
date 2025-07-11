@@ -24,8 +24,11 @@ except Exception:  # pragma: no cover - optional
     mido = None
 
 from SPIRAL_OS import qnl_engine
+from SPIRAL_OS.mix_tracks import apply_audio_params, embedding_to_params
 from MUSIC_FOUNDATION.synthetic_stego import embed_data, extract_data
 from MUSIC_FOUNDATION.seven_plane_analyzer import analyze_seven_planes
+from MUSIC_FOUNDATION.qnl_utils import quantum_embed
+from inanna_ai import emotion_analysis
 
 
 def midi_to_wave(midi_path: str, sample_rate: int = 44100) -> Tuple[np.ndarray, int]:
@@ -76,21 +79,45 @@ def load_melody(path: str) -> Tuple[np.ndarray, int]:
     raise ValueError(f"Unsupported file type: {path}")
 
 
-def build_human_layer(wave: np.ndarray, sr: int) -> np.ndarray:
-    """Return the base waveform."""
-    return wave.astype(np.float32)
+def build_human_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+) -> np.ndarray:
+    """Return the base waveform adjusted by audio parameters."""
+    out = apply_audio_params(wave, sr, pitch, tempo, cutoff)
+    return out.astype(np.float32)
 
 
-def build_crystal_layer(wave: np.ndarray, sr: int) -> np.ndarray:
-    """Apply a simple pre-emphasis filter as a crystal shimmer."""
-    return librosa.effects.preemphasis(wave)
+def build_crystal_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+) -> np.ndarray:
+    """Return a pre-emphasized shimmer with audio parameter adjustments."""
+    out = apply_audio_params(wave, sr, pitch, tempo, cutoff)
+    return librosa.effects.preemphasis(out)
 
 
-def build_synthetic_layer(wave: np.ndarray, sr: int) -> np.ndarray:
-    """Amplitude-modulate the waveform for a synthetic texture."""
-    t = np.arange(wave.size) / sr
-    mod = np.sin(2 * np.pi * 2 * t)
-    return wave * mod
+def build_synthetic_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+    *,
+    weight: float = 1.0,
+) -> np.ndarray:
+    """Return an amplitude-modulated texture influenced by ``weight``."""
+    out = apply_audio_params(wave, sr, pitch, tempo, cutoff)
+    t = np.arange(out.size) / sr
+    mod_freq = 2 + weight * 4
+    mod = np.sin(2 * np.pi * mod_freq * t)
+    return out * mod
 
 
 def build_payload_layer(payload: str, sr: int) -> Tuple[np.ndarray, list[dict]]:
@@ -116,6 +143,63 @@ def mix_layers(layers: List[np.ndarray]) -> np.ndarray:
     if np.max(np.abs(mixed)):
         mixed /= np.max(np.abs(mixed))
     return mixed
+
+
+def generate_quantum_music(
+    context: str,
+    emotion: str,
+    *,
+    output_dir: str | Path = ".",
+) -> Path:
+    """Create a short track from ``context`` and ``emotion`` using QNL."""
+
+    emb = quantum_embed(f"{context} {emotion}")
+    pitch, tempo, cutoff = embedding_to_params(emb)
+    weight = emotion_analysis.emotion_weight(emotion)
+
+    hex_input = context.encode("utf-8").hex()
+    _, raw = qnl_engine.hex_to_song(hex_input, duration_per_byte=0.05)
+    wave = raw.astype(np.float32) / 32767.0
+    sr = 44100
+
+    human = build_human_layer(wave, sr, pitch, tempo, cutoff)
+    crystal = build_crystal_layer(wave, sr, pitch, tempo, cutoff)
+    synthetic = build_synthetic_layer(
+        wave,
+        sr,
+        pitch,
+        tempo,
+        cutoff,
+        weight=weight,
+    )
+
+    final = mix_layers([human, crystal, synthetic])
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"quantum_{abs(hash(context+emotion))}.wav"
+    sf.write(out_path, final, sr)
+    return out_path
+
+
+def reactive_music_loop(
+    context: str,
+    audio_paths: List[str],
+    *,
+    output_dir: str | Path = ".",
+) -> list[Path]:
+    """Generate music whenever the detected emotion changes."""
+
+    outputs: list[Path] = []
+    last_emotion: str | None = None
+    for path in audio_paths:
+        info = emotion_analysis.analyze_audio_emotion(str(path))
+        emo = info.get("emotion", "neutral")
+        if last_emotion is None or emo != last_emotion:
+            out = generate_quantum_music(context, emo, output_dir=output_dir)
+            outputs.append(out)
+        last_emotion = emo
+    return outputs
 
 
 def main(argv: Optional[List[str]] = None) -> None:

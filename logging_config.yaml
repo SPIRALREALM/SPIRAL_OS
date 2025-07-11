@@ -1,0 +1,13 @@
+version: 1
+formatters:
+  json:
+    '()': pythonjsonlogger.jsonlogger.JsonFormatter
+handlers:
+  file:
+    class: logging.FileHandler
+    formatter: json
+    filename: logs/inanna_ai.log
+    encoding: utf-8
+root:
+  level: INFO
+  handlers: [file]

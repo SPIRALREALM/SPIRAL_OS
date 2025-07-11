@@ -1,9 +1,12 @@
 import argparse
 import json
 import logging
+import logging.config
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple, List
+
+import yaml
 
 from . import source_loader, model
 from inanna_ai import db_storage
@@ -183,6 +186,15 @@ def chat_loop(model_dir: str | Path = MODEL_PATH) -> None:
 
 
 def main() -> None:
+    config_path = BASE_DIR.parent / "logging_config.yaml"
+    if config_path.exists():
+        with config_path.open("r", encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+        Path("logs").mkdir(exist_ok=True)
+        logging.config.dictConfig(config)
+    else:  # pragma: no cover - fallback
+        logging.basicConfig(level=logging.INFO)
+
     display_welcome_message()
     db_storage.init_db()
 

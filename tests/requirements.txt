@@ -10,3 +10,4 @@ torch>=2.1
 pyopenssl
 streamlit
 stable-baselines3
+python-json-logger

@@ -52,6 +52,7 @@ python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 
 ```bash
 python start_spiral_os.py --interface eth0
+python start_spiral_os.py --interface eth0 --personality albedo
 ```
 
 Use `--skip-network` to disable traffic monitoring.
@@ -194,6 +195,7 @@ with the core's integrity hash — the "soul signature":
 
 ```bash
 python -m inanna_ai.main --duration 3
+python -m inanna_ai.main --duration 3 --personality albedo
 ```
 
 Example output:

@@ -11,7 +11,7 @@ conversation flow.
 import argparse
 import numpy as np
 from orchestrator import MoGEOrchestrator
-from .personality_layers import REGISTRY
+from .personality_layers import REGISTRY, list_personalities
 from .rfa_7d import RFA7D
 from .gate_orchestrator import GateOrchestrator
 from .love_matrix import LoveMatrix
@@ -52,10 +52,10 @@ def main(argv: list[str] | None = None) -> None:
     voice_p.add_argument("--duration", type=float, default=3.0, help="Recording length in seconds")
     voice_p.add_argument(
         "--personality",
-        choices=sorted(REGISTRY),
+        choices=list_personalities(),
         help=(
             "Activate optional personality layer. "
-            f"Available: {', '.join(sorted(REGISTRY))}"
+            f"Available: {', '.join(list_personalities())}"
         ),
     )
 

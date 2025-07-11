@@ -7,6 +7,11 @@ if [ -f "secrets.env" ]; then
     set +a
 fi
 
+# Start the FastAPI health server in the background
+python -m uvicorn server:app --host 0.0.0.0 --port 8000 &
+SERVER_PID=$!
+trap 'kill $SERVER_PID' EXIT
+
 # Check for required models before starting chat
 MODELS_DIR="INANNA_AI/models"
 if [ ! -d "$MODELS_DIR/DeepSeek-R1" ] && [ ! -d "$MODELS_DIR/gemma2" ]; then

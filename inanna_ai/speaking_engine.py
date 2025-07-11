@@ -4,13 +4,13 @@ from __future__ import annotations
 import logging
 import tempfile
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Any, Dict, Iterable, Tuple
 
 import numpy as np
 import librosa
 
 from .utils import save_wav, load_audio
-from .voice_evolution import get_voice_params
+from .voice_evolution import get_voice_params, update_voice_from_history
 from .emotion_analysis import emotion_to_archetype
 
 try:
@@ -46,8 +46,14 @@ def _apply_style(wave: np.ndarray, sr: int, style: Dict[str, float]) -> np.ndarr
     return wave
 
 
-def synthesize_speech(text: str, emotion: str) -> str:
+def synthesize_speech(
+    text: str,
+    emotion: str,
+    history: Iterable[Dict[str, Any]] | None = None,
+) -> str:
     """Synthesize ``text`` to a WAV file styled by ``emotion``."""
+    if history:
+        update_voice_from_history(history)
     style = get_voice_params(emotion)
     archetype = emotion_to_archetype(emotion)
     out_path = Path(tempfile.gettempdir()) / f"gtts_{abs(hash(text))}.wav"
@@ -90,17 +96,27 @@ def play_wav(path: str) -> None:
 class SpeakingEngine:
     """Wrapper that synthesizes and plays speech."""
 
-    def synthesize(self, text: str, emotion: str) -> str:
+    def synthesize(
+        self,
+        text: str,
+        emotion: str,
+        history: Iterable[Dict[str, Any]] | None = None,
+    ) -> str:
         """Return a path to synthesized speech for ``text``."""
-        return synthesize_speech(text, emotion)
+        return synthesize_speech(text, emotion, history)
 
     def play(self, path: str) -> None:
         """Play an existing WAV file."""
         play_wav(path)
 
-    def speak(self, text: str, emotion: str) -> str:
+    def speak(
+        self,
+        text: str,
+        emotion: str,
+        history: Iterable[Dict[str, Any]] | None = None,
+    ) -> str:
         """Synthesize speech and play it immediately."""
-        path = self.synthesize(text, emotion)
+        path = self.synthesize(text, emotion, history)
         self.play(path)
         return path
 

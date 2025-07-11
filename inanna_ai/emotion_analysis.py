@@ -45,17 +45,17 @@ _CURRENT_STATE = {
 
 import librosa
 import numpy as np
+import opensmile
 
 
 
 def analyze_audio_emotion(audio_path: str) -> Dict[str, Any]:
-    """Return a simple emotion estimate with pitch and tempo of ``audio_path``.
+    """Return an emotion estimate for ``audio_path``.
 
-    The function loads the audio file, computes its average pitch using
-    :func:`librosa.yin` and estimates tempo via
-    :func:`librosa.beat.beat_track`. A basic rule-based classifier then
-    assigns one of ``"excited"``, ``"calm"`` or ``"neutral"`` emotions based on
-    these values.
+    The analysis extracts pitch and tempo using ``librosa`` and uses
+    ``openSMILE``'s eGeMAPSv02 configuration to obtain coarse arousal and
+    valence scores. A basic rule-based classifier then derives a discrete
+    emotion label from these values.
     """
     wave, sr = librosa.load(audio_path, sr=None, mono=True)
 
@@ -70,17 +70,27 @@ def analyze_audio_emotion(audio_path: str) -> Dict[str, Any]:
     tempo, _ = librosa.beat.beat_track(y=wave, sr=sr)
     tempo = float(np.atleast_1d(tempo)[0])
 
-    # Average absolute amplitude is used as a rough energy metric
+    smile = opensmile.Smile(
+        feature_set=opensmile.FeatureSet.eGeMAPSv02,
+        feature_level=opensmile.FeatureLevel.Functionals,
+    )
+    feats = smile.process_signal(wave, sr).iloc[0]
+    loudness = float(feats["loudness_sma3_amean"])
+    hnr = float(feats.get("HNRdBACF_sma3nz_amean", 0.0))
+
+    arousal = max(0.0, min(1.0, (loudness + 60.0) / 60.0))
+    valence = max(0.0, min(1.0, (hnr + 20.0) / 40.0))
+
     energy = float(np.mean(np.abs(wave)))
 
     emotion = "neutral"
-    if energy > 0.4:
+    if arousal > 0.75:
         emotion = "stress"
-    elif pitch > 400 and energy < 0.1:
+    elif valence < 0.3 and arousal > 0.5:
         emotion = "fear"
-    elif pitch > 300 and energy > 0.2:
+    elif valence > 0.7 and arousal > 0.5:
         emotion = "joy"
-    elif pitch < 160 and energy < 0.1:
+    elif valence < 0.4 and arousal < 0.4:
         emotion = "sad"
     elif pitch > 180 and tempo > 120:
         emotion = "excited"
@@ -90,8 +100,16 @@ def analyze_audio_emotion(audio_path: str) -> Dict[str, Any]:
     _CURRENT_STATE["emotion"] = emotion
     _CURRENT_STATE["archetype"] = EMOTION_ARCHETYPES.get(emotion, "Everyman")
     _CURRENT_STATE["weight"] = EMOTION_WEIGHT.get(emotion, 0.0)
+    _CURRENT_STATE["arousal"] = arousal
+    _CURRENT_STATE["valence"] = valence
 
-    return {"emotion": emotion, "pitch": round(pitch, 2), "tempo": round(tempo, 2)}
+    return {
+        "emotion": emotion,
+        "pitch": round(pitch, 2),
+        "tempo": round(tempo, 2),
+        "arousal": round(arousal, 3),
+        "valence": round(valence, 3),
+    }
 
 def get_current_archetype() -> str:
     """Return the Jungian archetype for the last analyzed emotion."""

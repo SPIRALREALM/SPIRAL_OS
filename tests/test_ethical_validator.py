@@ -11,10 +11,30 @@ if "inanna_ai.ethical_validator" not in sys.modules:
     mod = types.ModuleType("inanna_ai.ethical_validator")
 
     class EthicalValidator:
-        def __init__(self, allowed_users=None, *, banned_keywords=None, log_dir="audit_logs"):
+        def __init__(
+            self,
+            allowed_users=None,
+            *,
+            banned_keywords=None,
+            banned_categories=None,
+            log_dir="audit_logs",
+            threshold=0.7,
+        ):
             self.allowed = set(allowed_users or [])
             self.banned = [kw.lower() for kw in (banned_keywords or [])]
+            self.categories = banned_categories or {}
             self.log_dir = Path(log_dir)
+            self.threshold = threshold
+
+        def semantic_check(self, text):
+            lowered = text.lower()
+            violations = []
+            for cat, phrases in self.categories.items():
+                for ph in phrases:
+                    if ph in lowered:
+                        violations.append(cat)
+                        break
+            return violations
 
         def validate_text(self, text):
             lowered = text.lower()
@@ -23,6 +43,8 @@ if "inanna_ai.ethical_validator" not in sys.modules:
                     self.log_dir.mkdir(parents=True, exist_ok=True)
                     (self.log_dir / "rejected_prompts.log").write_text(text)
                     return False
+            if self.semantic_check(text):
+                return False
             return True
 
         def validate(self, user, prompt):
@@ -63,3 +85,19 @@ def test_banned_prompt_logged(tmp_path):
 
     with pytest.raises(ValueError):
         validator.validate("alice", "bad things")
+
+
+def test_semantic_detection(tmp_path):
+    log_dir = tmp_path / "audit"
+    import inanna_ai.ethical_validator as ev
+
+    validator = ev.EthicalValidator(
+        allowed_users={"alice"},
+        banned_categories={"harm": ["cause injury"]},
+        log_dir=log_dir,
+        threshold=0.5,
+    )
+
+    validator.semantic_check = lambda text: ["harm"] if "hurt" in text else []
+
+    assert validator.validate_text("I want to hurt them") is False

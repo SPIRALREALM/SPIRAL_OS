@@ -9,7 +9,7 @@ from typing import Any, Dict, Iterable, Tuple
 import numpy as np
 import librosa
 
-from .utils import save_wav, load_audio
+from .utils import save_wav, load_audio, sentiment_score
 from .voice_evolution import get_voice_params, update_voice_from_history
 from .emotion_analysis import emotion_to_archetype
 
@@ -72,8 +72,16 @@ def synthesize_speech(
     timbre: str = "neutral",
 ) -> str:
     """Synthesize ``text`` to a WAV file styled by ``emotion``."""
-    if history:
-        update_voice_from_history(history)
+    entries = list(history) if history else []
+    entries.append(
+        {
+            "emotion": emotion,
+            "arousal": 0.5,
+            "valence": 0.5,
+            "sentiment": sentiment_score(text),
+        }
+    )
+    update_voice_from_history(entries)
     style = get_voice_params(emotion)
     archetype = emotion_to_archetype(emotion)
     out_path = Path(tempfile.gettempdir()) / f"gtts_{abs(hash(text))}.wav"

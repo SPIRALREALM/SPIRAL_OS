@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import datetime
+import json
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
@@ -34,6 +35,14 @@ def init_db(db_path: Path = DB_PATH) -> None:
                 response_time REAL NOT NULL,
                 coherence REAL NOT NULL,
                 relevance REAL NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS voice_profiles (
+                emotion TEXT PRIMARY KEY,
+                params TEXT NOT NULL
             )
             """
         )
@@ -116,6 +125,31 @@ def log_feedback(
             ),
         )
     conn.close()
+
+
+def save_voice_profiles(
+    profiles: Dict[str, Dict[str, float]], *, db_path: Path = DB_PATH
+) -> None:
+    """Persist voice style parameters to ``db_path``."""
+    conn = sqlite3.connect(db_path)
+    with conn:
+        for emotion, params in profiles.items():
+            conn.execute(
+                "INSERT INTO voice_profiles(emotion, params) VALUES (?, ?) "
+                "ON CONFLICT(emotion) DO UPDATE SET params=excluded.params",
+                (emotion, json.dumps(params)),
+            )
+    conn.close()
+
+
+def fetch_voice_profiles(db_path: Path = DB_PATH) -> Dict[str, Dict[str, float]]:
+    """Return stored voice profiles keyed by emotion."""
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute("SELECT emotion, params FROM voice_profiles")
+    rows = cur.fetchall()
+    conn.close()
+    return {row[0]: json.loads(row[1]) for row in rows}
 
 
 def fetch_benchmarks(limit: Optional[int] = None, db_path: Path = DB_PATH) -> List[Dict[str, float | str]]:
@@ -209,4 +243,6 @@ __all__ = [
     "fetch_benchmarks",
     "log_feedback",
     "fetch_feedback",
+    "save_voice_profiles",
+    "fetch_voice_profiles",
 ]

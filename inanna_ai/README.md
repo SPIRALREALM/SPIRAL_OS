@@ -63,6 +63,14 @@ The feature dictionary returned by the listening engine now also contains a
 `dialect` label inferred from pitch and a numeric `weight` taken from
 `emotion_analysis.EMOTION_WEIGHT`.
 
+## Adaptive voice loop
+
+`voice_evolution.VoiceEvolution` stores style parameters for each emotion in a
+SQLite table.  When speech is synthesized the engine appends a sentiment score
+for the text and updates these profiles.  The new parameters are averaged with
+previous values so the voice slowly adapts to positive or negative feedback.
+Profiles are written back to the database via `db_storage.save_voice_profiles`.
+
 The `response_manager.ResponseManager` pairs this emotional state and the
 environment classification with your transcript. It queries the corpus memory
 for related snippets and returns a reply tagged with one of the four cores

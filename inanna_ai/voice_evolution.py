@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Iterable
+from pathlib import Path
+
+from . import db_storage
 
 import numpy as np
 
@@ -33,20 +36,36 @@ class VoiceEvolution:
                 continue
             if "arousal" not in entry or "valence" not in entry:
                 continue
-            data = grouped.setdefault(emotion, {"arousal": [], "valence": []})
+            data = grouped.setdefault(
+                emotion, {"arousal": [], "valence": [], "sentiment": []}
+            )
             data["arousal"].append(entry["arousal"])
             data["valence"].append(entry["valence"])
+            if "sentiment" in entry and entry["sentiment"] is not None:
+                data["sentiment"].append(entry["sentiment"])
 
         for emotion, values in grouped.items():
             arousal = float(np.mean(values["arousal"]))
             valence = float(np.mean(values["valence"]))
+            sentiment = float(np.mean(values["sentiment"])) if values["sentiment"] else 0.0
             style = self.styles.setdefault(emotion, {"speed": 1.0, "pitch": 0.0})
-            style["speed"] = round(1.0 + (arousal - 0.5) * 0.4, 3)
-            style["pitch"] = round((valence - 0.5) * 2.0, 3)
+            new_speed = round(1.0 + (arousal - 0.5) * 0.4, 3)
+            new_pitch = round((valence - 0.5) * 2.0, 3)
+            weight = 1.0 + sentiment
+            style["speed"] = round((style["speed"] + new_speed * weight) / (1.0 + weight), 3)
+            style["pitch"] = round((style["pitch"] + new_pitch * weight) / (1.0 + weight), 3)
 
     def reset(self) -> None:
         """Reset styles to the default values."""
         self.styles = {k: v.copy() for k, v in DEFAULT_VOICE_STYLES.items()}
+
+    def load_profiles(self, db_path: Path = db_storage.DB_PATH) -> None:
+        """Populate styles from stored voice profiles."""
+        self.styles.update(db_storage.fetch_voice_profiles(db_path=db_path))
+
+    def store_profiles(self, db_path: Path = db_storage.DB_PATH) -> None:
+        """Persist current styles to ``db_path``."""
+        db_storage.save_voice_profiles(self.styles, db_path=db_path)
 
 
 _evolver = VoiceEvolution()
@@ -62,9 +81,21 @@ def update_voice_from_history(history: Iterable[Dict[str, Any]]) -> None:
     _evolver.update_from_history(history)
 
 
+def load_profiles(db_path: Path = db_storage.DB_PATH) -> None:
+    """Load voice profiles into the default :class:`VoiceEvolution`."""
+    _evolver.load_profiles(db_path)
+
+
+def store_profiles(db_path: Path = db_storage.DB_PATH) -> None:
+    """Persist profiles from the default :class:`VoiceEvolution`."""
+    _evolver.store_profiles(db_path)
+
+
 __all__ = [
     "VoiceEvolution",
     "get_voice_params",
     "update_voice_from_history",
+    "load_profiles",
+    "store_profiles",
     "DEFAULT_VOICE_STYLES",
 ]

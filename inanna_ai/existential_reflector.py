@@ -21,6 +21,8 @@ ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
 API_KEY = os.getenv("GLM_API_KEY")
 HEADERS = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else None
 
+from . import emotion_analysis, context
+
 
 class ExistentialReflector:
     """Helper to query the GLM about the system identity."""
@@ -57,6 +59,38 @@ class ExistentialReflector:
         INSIGHTS_FILE.write_text(desc, encoding="utf-8")
         logger.info("Wrote existential insights to %s", INSIGHTS_FILE)
         return desc
+
+    @staticmethod
+    def reflect_on_dilemma(prompt: str, emotion: str) -> str:
+        """Return a short reflection on ``prompt`` using recent context."""
+        if requests is None:
+            raise RuntimeError("requests library is required")
+
+        context.add(prompt)
+        recent_ctx = context.recent()
+        payload = {
+            "prompt": prompt,
+            "emotion": emotion,
+            "archetype": emotion_analysis.emotion_to_archetype(emotion),
+            "context": recent_ctx,
+        }
+
+        AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            resp = requests.post(ENDPOINT, json=payload, timeout=10, headers=HEADERS)
+            resp.raise_for_status()
+        except requests.RequestException as exc:  # pragma: no cover - network errors
+            logger.error("Failed to query %s: %s", ENDPOINT, exc)
+            raise
+
+        try:
+            reflection = resp.json().get("description", "")
+        except Exception:  # pragma: no cover - non-json response
+            reflection = resp.text
+
+        INSIGHTS_FILE.write_text(reflection, encoding="utf-8")
+        logger.info("Wrote existential insights to %s", INSIGHTS_FILE)
+        return reflection
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution

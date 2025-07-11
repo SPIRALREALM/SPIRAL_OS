@@ -5,6 +5,8 @@ from __future__ import annotations
 from .alchemical_persona import AlchemicalPersona, State
 from .glm_integration import GLMIntegration
 from . import state_contexts
+from ...emotion_analysis import get_emotion_and_tone
+from SPIRAL_OS import qnl_engine
 
 
 class AlbedoPersonality:
@@ -26,6 +28,10 @@ class AlbedoPersonality:
     def generate_response(self, text: str, *, quantum_context: str | None = None) -> str:
         """Generate a GLM response for ``text``."""
         entity, triggers = self._persona.detect_state_trigger(text)
+        emotion, tone = get_emotion_and_tone()
+        if quantum_context is None:
+            qnl_engine.apply_emotional_quantum_state(emotion, text)
+            quantum_context = f"{emotion}:{tone}"
         template = state_contexts.CONTEXTS.get(self._persona.state.value, "{text}")
         ctx = {
             "text": text,

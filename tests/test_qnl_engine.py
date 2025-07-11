@@ -6,7 +6,12 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "SPIRAL_OS"))
 
-from qnl_engine import hex_to_qnl, hex_to_song
+from qnl_engine import (
+    hex_to_qnl,
+    hex_to_song,
+    apply_psi_equation,
+    apply_emotional_quantum_state,
+)
 
 
 def compute_expected(byte):
@@ -44,3 +49,17 @@ def test_hex_to_song_skips_invalid_bytes(capsys):
     assert isinstance(wave, np.ndarray)
     assert wave.dtype == np.int16
     assert wave.shape == (2,)
+
+
+def test_emotional_quantum_state_changes_waveform():
+    base = apply_psi_equation(0.5, 200, duration=0.01, sample_rate=1000)
+    mods = apply_emotional_quantum_state("Joy", "test")
+    wave = apply_psi_equation(
+        0.5 * mods["amplitude_factor"],
+        200,
+        duration=0.01,
+        sample_rate=1000,
+        emotion="Joy",
+        phase_shift=mods["phase_shift"],
+    )
+    assert not np.allclose(base, wave)

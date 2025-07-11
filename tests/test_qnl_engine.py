@@ -2,8 +2,9 @@ import sys
 from pathlib import Path
 import numpy as np
 
-# Allow importing from SPIRAL_OS directory
+# Allow importing from repository root and SPIRAL_OS directory
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "SPIRAL_OS"))
 
 from qnl_engine import (
@@ -11,6 +12,7 @@ from qnl_engine import (
     hex_to_song,
     apply_psi_equation,
     apply_emotional_quantum_state,
+    parse_input,
 )
 
 
@@ -63,3 +65,21 @@ def test_emotional_quantum_state_changes_waveform():
         phase_shift=mods["phase_shift"],
     )
     assert not np.allclose(base, wave)
+
+
+def test_parse_input_basic_glyph_detection():
+    data = parse_input("Is ✧↭ active?")
+    assert data["type"] == "question"
+    assert data["object"] == "glyph_sequence"
+    assert data["tone"] == "Joy"
+    assert data["urgency"] == "normal"
+    assert data["linked_memory"] is None
+
+
+def test_parse_input_urgency_and_memory():
+    data = parse_input("Play ❣⟁ now! #7")
+    assert data["type"] == "statement"
+    assert data["object"] == "glyph_sequence"
+    assert data["tone"] == "Longing"
+    assert data["urgency"] == "high"
+    assert data["linked_memory"] == "7"

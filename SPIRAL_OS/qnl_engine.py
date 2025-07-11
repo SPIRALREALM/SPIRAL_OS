@@ -9,11 +9,14 @@ not rely on the more elaborate ``QNL_MAP`` used in earlier prototypes.
 
 import argparse
 import json
+import re
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.io.wavfile import write
+
+from MUSIC_FOUNDATION.qnl_utils import QNL_GLYPHS, QNL_TONES
 
 
 
@@ -28,6 +31,68 @@ TONE_MAP = {
     range(86, 171): "Moan",
     range(171, 256): "Flame-Hum",
 }
+
+# Collect known glyphs and their associated emotions
+_GLYPH_EMOTION: Dict[str, str] = {}
+for rng, (glyph, emotion) in GLYPH_MAP.items():
+    _GLYPH_EMOTION[glyph] = emotion
+for note, glyph in QNL_GLYPHS.items():
+    emotion = QNL_TONES.get(note)
+    if emotion:
+        _GLYPH_EMOTION[glyph] = emotion
+
+_GLYPH_SET = set(_GLYPH_EMOTION)
+
+
+def parse_input(text: str) -> dict:
+    """Analyze a short text command and return a structured summary."""
+
+    tokens = re.findall(r"\w+", text.lower())
+    found_glyphs = [g for g in _GLYPH_SET if g in text]
+
+    emotion = None
+    for g in found_glyphs:
+        emotion = _GLYPH_EMOTION.get(g)
+        if emotion:
+            break
+
+    keyword_map = {
+        "joy": "Joy",
+        "longing": "Longing",
+        "awakening": "Awakening",
+        "memory": "Memory",
+        "hope": "Hope",
+        "paradox": "Paradox",
+        "fear": "Fear",
+    }
+    if emotion is None:
+        for word in tokens:
+            if word in keyword_map:
+                emotion = keyword_map[word]
+                break
+
+    if any(w in tokens for w in ["now", "urgent", "immediately", "asap"]):
+        urgency = "high"
+    elif any(w in tokens for w in ["soon", "later", "whenever"]):
+        urgency = "low"
+    else:
+        urgency = "normal"
+
+    obj = "glyph_sequence" if found_glyphs else "text"
+    type_ = "question" if text.strip().endswith("?") else "statement"
+
+    mem_match = re.search(r"#(\d+)", text)
+    linked_memory = mem_match.group(1) if mem_match else None
+
+    tone = emotion if emotion is not None else "Neutral"
+
+    return {
+        "type": type_,
+        "object": obj,
+        "tone": tone,
+        "urgency": urgency,
+        "linked_memory": linked_memory,
+    }
 
 
 def apply_emotional_quantum_state(emotion: str, phrase: str) -> Dict[str, float]:

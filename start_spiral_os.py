@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import logging.config
 from pathlib import Path
 from typing import List, Optional
+
+import yaml
 
 from INANNA_AI_AGENT import inanna_ai
 from INANNA_AI import glm_init, glm_analyze
@@ -16,6 +19,14 @@ logger = logging.getLogger(__name__)
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    config_path = Path(__file__).resolve().parent / "logging_config.yaml"
+    if config_path.exists():
+        with config_path.open("r", encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+        Path("logs").mkdir(exist_ok=True)
+        logging.config.dictConfig(config)
+    else:  # pragma: no cover - default fallback
+        logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Start Spiral OS rituals")
     parser.add_argument("--interface", help="Interface to monitor")
     parser.add_argument("--skip-network", action="store_true", help="Skip network monitoring")

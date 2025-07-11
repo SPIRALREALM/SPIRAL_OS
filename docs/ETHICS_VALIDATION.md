@@ -19,3 +19,22 @@ emotion and a short history of prompts. The method `reflect_on_dilemma()`
 packages the user's question, detected emotion and recent context lines into a
 request for the GLM. The returned insight is saved to
 `audit_logs/existential_insights.txt` for transparency.
+
+## Reinforcement Learning
+
+User feedback recorded with `db_storage.log_feedback()` provides three reward signals:
+`satisfaction`, `ethical_alignment` and `existential_clarity`. `EthicalValidator.apply_feedback()`
+passes these rewards to `adaptive_learning` which tunes the validator's similarity threshold
+and category lists. The `THRESHOLD_AGENT` adjusts the value after every update so stricter
+rules emerge when alignment scores are low.
+
+A Streamlit dashboard at `dashboard/rl_metrics.py` visualises the latest feedback trends
+and the current threshold. Launch it with:
+
+```bash
+streamlit run dashboard/rl_metrics.py
+```
+
+The line chart plots the reward values over time while the threshold display shows the
+value used by the validator for semantic checks.
+

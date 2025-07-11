@@ -4,7 +4,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 
 DB_PATH = Path(__file__).resolve().parent / "interactions.db"
 
@@ -34,6 +34,18 @@ def init_db(db_path: Path = DB_PATH) -> None:
                 response_time REAL NOT NULL,
                 coherence REAL NOT NULL,
                 relevance REAL NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                emotion TEXT NOT NULL,
+                satisfaction REAL NOT NULL,
+                ethical_alignment REAL NOT NULL,
+                existential_clarity REAL NOT NULL
             )
             """
         )
@@ -81,6 +93,31 @@ def log_benchmark(
     conn.close()
 
 
+def log_feedback(
+    emotion: str,
+    satisfaction: float,
+    ethical_alignment: float,
+    existential_clarity: float,
+    *,
+    db_path: Path = DB_PATH,
+) -> None:
+    """Record user feedback in the database."""
+    conn = sqlite3.connect(db_path)
+    with conn:
+        conn.execute(
+            "INSERT INTO feedback(timestamp, emotion, satisfaction, ethical_alignment, existential_clarity)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (
+                datetime.utcnow().isoformat(),
+                emotion,
+                satisfaction,
+                ethical_alignment,
+                existential_clarity,
+            ),
+        )
+    conn.close()
+
+
 def fetch_benchmarks(limit: Optional[int] = None, db_path: Path = DB_PATH) -> List[Dict[str, float | str]]:
     """Return recorded benchmark metrics."""
     conn = sqlite3.connect(db_path)
@@ -100,6 +137,35 @@ def fetch_benchmarks(limit: Optional[int] = None, db_path: Path = DB_PATH) -> Li
             "response_time": row[2],
             "coherence": row[3],
             "relevance": row[4],
+        }
+        for row in rows
+    ]
+
+
+def fetch_feedback(
+    limit: Optional[int] = None, db_path: Path = DB_PATH
+) -> List[Dict[str, Any]]:
+    """Return feedback entries ordered from newest to oldest."""
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    query = (
+        "SELECT timestamp, emotion, satisfaction, ethical_alignment, "
+        "existential_clarity FROM feedback ORDER BY id DESC"
+    )
+    params = ()
+    if limit is not None:
+        query += " LIMIT ?"
+        params = (limit,)
+    cur.execute(query, params)
+    rows = cur.fetchall()
+    conn.close()
+    return [
+        {
+            "timestamp": row[0],
+            "emotion": row[1],
+            "satisfaction": row[2],
+            "ethical_alignment": row[3],
+            "existential_clarity": row[4],
         }
         for row in rows
     ]
@@ -141,4 +207,6 @@ __all__ = [
     "last_interaction",
     "log_benchmark",
     "fetch_benchmarks",
+    "log_feedback",
+    "fetch_feedback",
 ]

@@ -167,9 +167,9 @@ def reflect_existence() -> str:
     return desc
 
 
-def chat_loop() -> None:
-    """Interactive chat with the local DeepSeek-R1 model."""
-    mdl, tok = model.load_model(MODEL_PATH)
+def chat_loop(model_dir: str | Path = MODEL_PATH) -> None:
+    """Interactive chat with a local language model."""
+    mdl, tok = model.load_model(model_dir)
     gen_model: GenerationMixin = mdl  # type: ignore[assignment]
     print("Enter 'exit' to quit.")
     while True:
@@ -193,12 +193,18 @@ def main() -> None:
     parser.add_argument("--json", default="qnl_hex_song.json", help="Output metadata JSON for QNL engine")
     parser.add_argument("--list", action="store_true", help="List available source texts")
     subparsers = parser.add_subparsers(dest="command")
-    subparsers.add_parser("chat", help="Interact with the local model")
+    chat_parser = subparsers.add_parser("chat", help="Interact with the local model")
+    chat_parser.add_argument(
+        "--model-dir",
+        "--model",
+        default=str(MODEL_PATH),
+        help="Path to the local model directory",
+    )
 
     args = parser.parse_args()
 
     if args.command == "chat":
-        chat_loop()
+        chat_loop(Path(args.model_dir))
         return
 
     if args.list:

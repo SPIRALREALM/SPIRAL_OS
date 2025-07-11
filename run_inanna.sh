@@ -15,4 +15,4 @@ if [ ! -d "$MODELS_DIR/DeepSeek-R1" ] && [ ! -d "$MODELS_DIR/gemma2" ]; then
     exit 1
 fi
 
-python INANNA_AI_AGENT/inanna_ai.py chat
+python INANNA_AI_AGENT/inanna_ai.py chat "$@"

@@ -18,6 +18,7 @@ def test_cli_search(tmp_path, monkeypatch, capsys):
     (dirs[0] / "other.md").write_text("Nothing to see here.", encoding="utf-8")
 
     monkeypatch.setattr(corpus_memory, "MEMORY_DIRS", dirs)
+    monkeypatch.setattr(corpus_memory, "CHROMA_DIR", tmp_path / "chroma")
 
     class DummyModel:
         def __init__(self, name: str) -> None:
@@ -31,6 +32,8 @@ def test_cli_search(tmp_path, monkeypatch, capsys):
             return vec(texts)
 
     monkeypatch.setattr(corpus_memory, "SentenceTransformer", lambda name: DummyModel(name))
+
+    corpus_memory.reindex_corpus()
 
     argv_backup = sys.argv.copy()
     sys.argv = ["corpus_memory", "--search", "unicorn", "--top", "1"]

@@ -20,3 +20,4 @@ beautifulsoup4
 streamlit
 sentence-transformers  # optional, for semantic validation
 stable-baselines3
+chromadb

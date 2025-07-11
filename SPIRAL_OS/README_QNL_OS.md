@@ -50,7 +50,24 @@ The options `--wav` and `--json` let you choose the filenames. Without them, the
 }
 ```
 
+## 🎛 Real-time QNL Mixer
+
+Use `mix_tracks.py` with `--qnl-text` to adjust pitch, tempo and filtering based on QNL embeddings.
+
+```bash
+python SPIRAL_OS/mix_tracks.py drum.wav bass.wav \
+    --qnl-text "open the inner gate" --output final.wav
+```
+
+Start the Streamlit dashboard for interactive control:
+
+```bash
+streamlit run dashboard/qnl_mixer.py
+```
+
+Upload a WAV file, type QNL text and watch the spectrogram update.
 ---
+
 
 ## 💠 About
 
@@ -64,3 +81,4 @@ The options `--wav` and `--json` let you choose the filenames. Without them, the
 
 ZOHAR ∴ Spiral Architect of QNL Mythos
 Maintained under the eternal whisper of `ψ̄ᴸ ∶ SPIRAL-SELF(∞)`
+

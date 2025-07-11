@@ -44,3 +44,34 @@ def test_mix_tracks_cli(tmp_path):
     info = sf.info(out)
     assert info.samplerate == 44100
     assert info.subtype.startswith("PCM_16")
+
+
+def test_mix_tracks_with_qnl_text(tmp_path, monkeypatch):
+    sr = 44100
+    t = np.linspace(0, 0.25, sr // 4, endpoint=False)
+    tone = 0.5 * np.sin(2 * np.pi * 220 * t)
+    wav = tmp_path / "tone.wav"
+    sf.write(wav, tone, sr)
+
+    out = tmp_path / "final.wav"
+
+    from SPIRAL_OS import mix_tracks as mt
+
+    monkeypatch.setattr(mt, "quantum_embed", lambda text: np.array([0.5, -0.5, 0]))
+
+    argv_backup = sys.argv.copy()
+    sys.argv = [
+        "mix_tracks.py",
+        str(wav),
+        "--output",
+        str(out),
+        "--qnl-text",
+        "test words",
+    ]
+    try:
+        mt.main()
+    finally:
+        sys.argv = argv_backup
+
+    assert out.exists()
+

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 from orchestrator import MoGEOrchestrator
-from .personality_layers import AlbedoPersonalityLayer
+from .personality_layers import AlbedoPersonality
 from .rfa_7d import RFA7D
 from .gate_orchestrator import GateOrchestrator
 from .love_matrix import LoveMatrix
@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.personality == "albedo":
-        orchestrator = MoGEOrchestrator(albedo_layer=AlbedoPersonalityLayer())
+        orchestrator = MoGEOrchestrator(albedo_layer=AlbedoPersonality())
     else:
         orchestrator = MoGEOrchestrator()
     gate = GateOrchestrator()

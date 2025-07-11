@@ -33,7 +33,7 @@ def test_activate_returns_chant(tmp_path, monkeypatch):
     assert chant.strip() != ""
 
 
-def test_hex_cli_outputs_wav_and_json(tmp_path):
+def test_hex_cli_outputs_wav_and_json(tmp_path, monkeypatch):
     wav = tmp_path / "out.wav"
     json_path = tmp_path / "out.json"
     argv_backup = sys.argv.copy()
@@ -46,6 +46,7 @@ def test_hex_cli_outputs_wav_and_json(tmp_path):
         "--json",
         str(json_path),
     ]
+    monkeypatch.setattr(inanna_ai, "run_qnl", lambda *a, **k: (wav.write_text(""), json_path.write_text("{}")))
     try:
         inanna_ai.main()
     finally:
@@ -121,6 +122,43 @@ def test_chat_subparser(monkeypatch, capsys):
 
 
 def test_voice_loop_gates(monkeypatch):
+    import types, sys
+    sys.modules.setdefault("soundfile", types.ModuleType("soundfile"))
+    numpy_mod = types.ModuleType("numpy")
+    numpy_mod.ndarray = object
+    sys.modules.setdefault("numpy", numpy_mod)
+    sys.modules.setdefault("librosa", types.ModuleType("librosa"))
+    wavfile_mod = types.ModuleType("wavfile")
+    wavfile_mod.write = lambda *a, **k: None
+    io_mod = types.ModuleType("io")
+    io_mod.wavfile = wavfile_mod
+    scipy_mod = types.ModuleType("scipy")
+    scipy_mod.io = io_mod
+    sys.modules.setdefault("scipy", scipy_mod)
+    sys.modules.setdefault("scipy.io", io_mod)
+    sys.modules.setdefault("scipy.io.wavfile", wavfile_mod)
+    cryptography_mod = types.ModuleType("cryptography")
+    hazmat_mod = types.ModuleType("hazmat")
+    primitives = types.ModuleType("primitives")
+    hashes_mod = types.ModuleType("hashes")
+    primitives.hashes = hashes_mod
+    asym_mod = types.ModuleType("asymmetric")
+    padding_mod = types.ModuleType("padding")
+    asym_mod.padding = padding_mod
+    asym_mod.rsa = lambda *a, **k: None
+    primitives.asymmetric = asym_mod
+    serialization_mod = types.ModuleType("serialization")
+    serialization_mod.load_pem_private_key = lambda *a, **k: None
+    serialization_mod.load_pem_public_key = lambda *a, **k: None
+    hazmat_mod.primitives = primitives
+    cryptography_mod.hazmat = hazmat_mod
+    sys.modules.setdefault("cryptography", cryptography_mod)
+    sys.modules.setdefault("cryptography.hazmat", hazmat_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives", primitives)
+    sys.modules.setdefault("cryptography.hazmat.primitives.hashes", hashes_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives.asymmetric", asym_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives.asymmetric.padding", padding_mod)
+    sys.modules.setdefault("cryptography.hazmat.primitives.serialization", serialization_mod)
     from inanna_ai import main as voice_main
 
     monkeypatch.setattr(voice_main.utils, "setup_logger", lambda: None)
@@ -252,7 +290,7 @@ def test_personality_flag_initializes_layer(monkeypatch):
         created["layer"] = True
         return DummyLayer()
 
-    monkeypatch.setattr(voice_main, "AlbedoPersonalityLayer", make_layer)
+    monkeypatch.setattr(voice_main, "AlbedoPersonality", make_layer)
 
     class DummyOrch:
         def __init__(self, *, albedo_layer=None):

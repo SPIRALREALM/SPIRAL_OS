@@ -71,9 +71,14 @@ def main(argv: list[str] | None = None) -> None:
         help="Download READMEs for repositories listed in github_repos.txt",
     )
 
-    sub.add_parser(
+    upd_p = sub.add_parser(
         "update-github-list",
         help="Update github_repos.txt from INANNA_AI_ME_TRAINING_GUIDE.md",
+    )
+    upd_p.add_argument(
+        "--metadata",
+        action="store_true",
+        help="Also refresh repository metadata JSON",
     )
 
     args = parser.parse_args(argv)
@@ -98,12 +103,18 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "update-github-list":
         from pathlib import Path
         from .learning.training_guide import parse_training_guide, write_repo_list
+        from .learning import github_metadata as gm
 
         guide = Path(__file__).resolve().parent / "learning" / "INANNA_AI_ME_TRAINING_GUIDE.md"
-        dest = Path(__file__).resolve().parents[1] / "learning_sources" / "github_repos.txt"
+        base = Path(__file__).resolve().parents[1]
+        dest = base / "learning_sources" / "github_repos.txt"
         mapping = parse_training_guide(guide)
         write_repo_list(mapping, dest)
         print(f"Saved {dest}")
+        if getattr(args, "metadata", False):
+            meta_path = base / "data" / "github" / "repos_metadata.json"
+            gm.save_metadata(gm.build_metadata(mapping), meta_path)
+            print(f"Saved {meta_path}")
         return
 
     layer_cls = REGISTRY.get(args.personality)

@@ -18,6 +18,11 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     gTTS = None  # type: ignore
 
+try:
+    import openvoice
+except Exception:  # pragma: no cover - optional dependency
+    openvoice = None
+
 try:  # optional playback dependency
     import sounddevice as sd
 except Exception:  # pragma: no cover - optional dependency
@@ -35,6 +40,20 @@ def _sine_placeholder(text: str) -> Tuple[np.ndarray, int]:
     return wave.astype(np.float32), sr
 
 
+def convert_voice(wave: np.ndarray, sr: int, timbre: str) -> np.ndarray:
+    """Apply a basic voice conversion or pitch shift for ``timbre``."""
+    if openvoice is not None:
+        try:  # pragma: no cover - external library
+            converter = openvoice.VoiceConverter(target=timbre)
+            return converter.convert(wave, sr=sr)
+        except Exception as exc:  # pragma: no cover - external call may fail
+            logger.warning("OpenVoice conversion failed: %s", exc)
+    shift = {"soft": -2, "bright": 2}.get(timbre, 0)
+    if shift:
+        wave = librosa.effects.pitch_shift(wave, sr=sr, n_steps=shift)
+    return wave
+
+
 def _apply_style(wave: np.ndarray, sr: int, style: Dict[str, float]) -> np.ndarray:
     """Apply pitch shift and speed change according to ``style``."""
     pitch = style.get("pitch", 0.0)
@@ -50,6 +69,7 @@ def synthesize_speech(
     text: str,
     emotion: str,
     history: Iterable[Dict[str, Any]] | None = None,
+    timbre: str = "neutral",
 ) -> str:
     """Synthesize ``text`` to a WAV file styled by ``emotion``."""
     if history:
@@ -79,6 +99,7 @@ def synthesize_speech(
             wave, sr = _sine_placeholder(f"{archetype} {text}")
 
     wave = _apply_style(wave, sr, style)
+    wave = convert_voice(wave, sr, timbre)
     save_wav(wave, str(out_path), sr=sr)
     return str(out_path)
 
@@ -101,9 +122,10 @@ class SpeakingEngine:
         text: str,
         emotion: str,
         history: Iterable[Dict[str, Any]] | None = None,
+        timbre: str = "neutral",
     ) -> str:
         """Return a path to synthesized speech for ``text``."""
-        return synthesize_speech(text, emotion, history)
+        return synthesize_speech(text, emotion, history, timbre)
 
     def play(self, path: str) -> None:
         """Play an existing WAV file."""
@@ -114,11 +136,32 @@ class SpeakingEngine:
         text: str,
         emotion: str,
         history: Iterable[Dict[str, Any]] | None = None,
+        timbre: str = "neutral",
     ) -> str:
         """Synthesize speech and play it immediately."""
-        path = self.synthesize(text, emotion, history)
+        path = self.synthesize(text, emotion, history, timbre)
         self.play(path)
         return path
 
+    def stream(
+        self,
+        text: str,
+        emotion: str,
+        history: Iterable[Dict[str, Any]] | None = None,
+        timbre: str = "neutral",
+        segment_duration: float = 0.3,
+    ) -> Iterable[Tuple[np.ndarray, int]]:
+        """Yield short audio segments for low-latency playback."""
+        path = self.synthesize(text, emotion, history, timbre)
+        wave, sr = load_audio(path, sr=None, mono=True)
+        step = int(sr * segment_duration)
+        for start in range(0, len(wave), step):
+            yield wave[start : start + step], sr
 
-__all__ = ["synthesize_speech", "play_wav", "SpeakingEngine"]
+
+__all__ = [
+    "synthesize_speech",
+    "play_wav",
+    "convert_voice",
+    "SpeakingEngine",
+]

@@ -11,6 +11,11 @@ from typing import Dict, Generator, Optional, Tuple
 import numpy as np
 import librosa
 
+try:
+    import opensmile
+except Exception:  # pragma: no cover - optional dependency
+    opensmile = None
+
 from . import utils, emotion_analysis
 
 try:
@@ -31,8 +36,22 @@ def _infer_dialect(pitch: float) -> str:
     return "neutral"
 
 
+_SMILE: opensmile.Smile | None = None
+
+
+def _get_smile() -> opensmile.Smile | None:
+    """Return a cached ``opensmile.Smile`` instance if available."""
+    global _SMILE
+    if _SMILE is None and opensmile is not None:
+        _SMILE = opensmile.Smile(
+            feature_set=opensmile.FeatureSet.eGeMAPSv02,
+            feature_level=opensmile.FeatureLevel.Functionals,
+        )
+    return _SMILE
+
+
 def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
-    """Return pitch, tempo, emotion, dialect and classification for ``wave``."""
+    """Return pitch, tempo, emotion and other features for ``wave``."""
     if len(wave) == 0:
         return {
             "emotion": "neutral",
@@ -60,24 +79,47 @@ def _extract_features(wave: np.ndarray, sr: int) -> Dict[str, float]:
 
     amp = float(np.mean(np.abs(wave)))
     emotion = "neutral"
-    if amp > 0.4:
-        emotion = "stress"
-    elif pitch > 400 and amp < 0.1:
-        emotion = "fear"
-    elif pitch > 300 and amp > 0.2:
-        emotion = "joy"
-    elif pitch < 160 and amp < 0.1:
-        emotion = "sad"
-    elif pitch > 180 and tempo > 120:
-        emotion = "excited"
-    elif pitch < 120 and tempo < 90:
-        emotion = "calm"
+    arousal: float | None = None
+    valence: float | None = None
+
+    smile = _get_smile()
+    if smile is not None:
+        feats = smile.process_signal(wave.astype(np.float32), sr).iloc[0]
+        loudness = float(feats.get("loudness_sma3_amean", 0.0))
+        hnr = float(feats.get("HNRdBACF_sma3nz_amean", 0.0))
+        arousal = max(0.0, min(1.0, (loudness + 60.0) / 60.0))
+        valence = max(0.0, min(1.0, (hnr + 20.0) / 40.0))
+
+    if arousal is not None and valence is not None:
+        if arousal > 0.75:
+            emotion = "stress"
+        elif valence < 0.3 and arousal > 0.5:
+            emotion = "fear"
+        elif valence > 0.7 and arousal > 0.5:
+            emotion = "joy"
+        elif valence < 0.4 and arousal < 0.4:
+            emotion = "sad"
+    if emotion == "neutral":
+        if amp > 0.4:
+            emotion = "stress"
+        elif pitch > 400 and amp < 0.1:
+            emotion = "fear"
+        elif pitch > 300 and amp > 0.2:
+            emotion = "joy"
+        elif pitch < 160 and amp < 0.1:
+            emotion = "sad"
+        elif pitch > 180 and tempo > 120:
+            emotion = "excited"
+        elif pitch < 120 and tempo < 90:
+            emotion = "calm"
 
     dialect = _infer_dialect(pitch)
     weight = emotion_analysis.emotion_weight(emotion)
 
     return {
         "emotion": emotion,
+        "arousal": None if arousal is None else round(arousal, 3),
+        "valence": None if valence is None else round(valence, 3),
         "pitch": round(pitch, 2),
         "tempo": round(tempo, 2),
         "classification": classification,
@@ -96,6 +138,10 @@ class ListeningEngine:
         self.chunk_size = int(sr * chunk_duration)
         self._queue: "Queue[np.ndarray]" = Queue()
         self._stream: Optional[sd.InputStream] = None
+        self.state: Dict[str, float] = {
+            "emotion": "neutral",
+            "weight": emotion_analysis.emotion_weight("neutral"),
+        }
 
     def _callback(self, indata: np.ndarray, frames: int, time, status) -> None:  # pragma: no cover - external callback
         if status:
@@ -143,6 +189,7 @@ class ListeningEngine:
                 continue
             frames_read += len(chunk)
             features = _extract_features(chunk, self.sr)
+            self.state = features
             yield chunk, features
             if total_frames is not None and frames_read >= total_frames:
                 break
@@ -150,10 +197,10 @@ class ListeningEngine:
     def record(self, duration: float) -> Tuple[str, Dict[str, float]]:
         """Capture ``duration`` seconds of audio and return file path and last state."""
         chunks = []
-        last_state: Dict[str, float] = {}
         for chunk, state in self.stream_chunks(duration):
             chunks.append(chunk)
-            last_state = state
+            self.state = state
+        last_state = self.state
         wave = np.concatenate(chunks) if chunks else np.array([], dtype=np.float32)
         path = Path(tempfile.gettempdir()) / "inanna_stream.wav"
         utils.save_wav(wave.astype(np.float32), str(path), sr=self.sr)

@@ -25,9 +25,7 @@ class AlbedoPersonality:
 
     def generate_response(self, text: str) -> str:
         """Generate a GLM response for ``text``."""
-        entity = self._persona.recognize_entity(text)
-        triggers = self._persona.detect_triggers(text)
-        self._persona.update_metrics(triggers)
+        entity, triggers = self._persona.detect_state_trigger(text)
         template = state_contexts.CONTEXTS.get(self._persona.state.value, "{text}")
         ctx = {
             "text": text,
@@ -36,6 +34,7 @@ class AlbedoPersonality:
         }
         prompt = template.format(**ctx)
         reply = self._glm.complete(prompt)
+        self._persona.update_metrics(triggers)
         self._persona.advance()
         return reply
 

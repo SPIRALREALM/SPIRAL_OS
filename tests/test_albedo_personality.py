@@ -61,16 +61,26 @@ def test_prompt_formatting_and_glm(monkeypatch):
     monkeypatch.setattr(
         state_contexts,
         "CONTEXTS",
-        {"nigredo": "N-{text}", "albedo": "A-{text}", "rubedo": "R-{text}"},
+        {
+            "nigredo": "N-{entity}-{triggers}-{text}",
+            "albedo": "A-{entity}-{triggers}-{text}",
+            "rubedo": "R-{entity}-{triggers}-{text}",
+        },
     )
 
     layer = AlbedoPersonality()
-    out1 = layer.generate_response("hi")
-    out2 = layer.generate_response("hi")
-    out3 = layer.generate_response("hi")
+    text = "I love Alice"
+    out1 = layer.generate_response(text)
+    out2 = layer.generate_response(text)
+    out3 = layer.generate_response(text)
 
     assert [out1, out2, out3] == ["one", "two", "three"]
-    assert prompts == ["N-hi", "A-hi", "R-hi"]
+    expected = [
+        "N-person-affection-" + text,
+        "A-person-affection-" + text,
+        "R-person-affection-" + text,
+    ]
+    assert prompts == expected
     assert layer.state == "nigredo"
 
 

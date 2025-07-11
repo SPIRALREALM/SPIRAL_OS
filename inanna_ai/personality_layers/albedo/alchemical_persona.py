@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-"""State machine with weighted transitions and shadow tracking."""
+"""State machine tracking alchemical progress and emotional metrics."""
 
 from dataclasses import dataclass, field
 from enum import Enum
 import random
 import re
-from typing import Callable, Dict, Iterable, Set
+from typing import Callable, Dict, Iterable, Set, Tuple
 
 
 class State(Enum):
-    """Possible alchemical states."""
+    """Possible alchemical phases."""
 
     NIGREDO = "nigredo"
     ALBEDO = "albedo"
@@ -22,7 +22,7 @@ TriggerSet = Set[str]
 
 @dataclass
 class AlchemicalPersona:
-    """Track alchemical state and symbolic metrics."""
+    """Track alchemical state, entanglement and shadow balance."""
 
     weights: Dict[State, float] = field(
         default_factory=lambda: {s: 1.0 for s in State}
@@ -32,16 +32,15 @@ class AlchemicalPersona:
     state: State = State.NIGREDO
     rng: Callable[[], float] = random.random
 
-    def recognize_entity(self, text: str) -> str:
-        """Return a naive entity type derived from ``text``."""
+    def detect_state_trigger(self, text: str) -> Tuple[str, TriggerSet]:
+        """Return entity type and emotion triggers found in ``text``."""
         if re.search(r"\b(angel|demon|spirit|god)\b", text, re.I):
-            return "deity"
-        if re.search(r"\b[A-Z][a-z]+\b", text):
-            return "person"
-        return "object"
+            entity = "deity"
+        elif re.search(r"\b[A-Z][a-z]+\b", text):
+            entity = "person"
+        else:
+            entity = "object"
 
-    def detect_triggers(self, text: str) -> TriggerSet:
-        """Return emotional trigger labels found in ``text``."""
         mapping = {
             "love": "affection",
             "joy": "joy",
@@ -50,10 +49,11 @@ class AlchemicalPersona:
             "hate": "anger",
         }
         lower = text.lower()
-        return {label for word, label in mapping.items() if word in lower}
+        triggers = {label for word, label in mapping.items() if word in lower}
+        return entity, triggers
 
     def update_metrics(self, triggers: Iterable[str] | None) -> None:
-        """Adjust entanglement and shadow balance based on ``triggers``."""
+        """Adjust entanglement and shadow balance using ``triggers``."""
         if not triggers:
             return
         self.entanglement += 0.1
@@ -63,7 +63,7 @@ class AlchemicalPersona:
             self.shadow_balance = max(0.0, self.shadow_balance - 0.1)
 
     def advance(self) -> None:
-        """Move to the next state using transition weights."""
+        """Move to the next state using transition ``weights``."""
         w = self.weights.get(self.state, 1.0)
         if self.rng() > w:
             return

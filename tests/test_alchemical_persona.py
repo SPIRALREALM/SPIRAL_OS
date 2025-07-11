@@ -9,7 +9,8 @@ from inanna_ai.personality_layers.albedo import AlchemicalPersona, State
 
 def test_trigger_detection_and_metrics():
     persona = AlchemicalPersona()
-    triggers = persona.detect_triggers("I feel love and joy")
+    entity, triggers = persona.detect_state_trigger("Alice feels love and joy")
+    assert entity == "person"
     assert triggers == {"affection", "joy"}
     persona.update_metrics(triggers)
     assert persona.entanglement > 0

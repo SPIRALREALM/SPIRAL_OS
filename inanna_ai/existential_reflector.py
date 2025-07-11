@@ -21,11 +21,13 @@ ENDPOINT = os.getenv("GLM_API_URL", "https://api.example.com/glm")
 API_KEY = os.getenv("GLM_API_KEY")
 HEADERS = {"Authorization": f"Bearer {API_KEY}"} if API_KEY else None
 
-from . import emotion_analysis, context
+from . import emotion_analysis, context, adaptive_learning
 
 
 class ExistentialReflector:
     """Helper to query the GLM about the system identity."""
+
+    wording_choices: list[str] = ["I am"]
 
     @staticmethod
     def reflect_on_identity() -> str:
@@ -91,6 +93,20 @@ class ExistentialReflector:
         INSIGHTS_FILE.write_text(reflection, encoding="utf-8")
         logger.info("Wrote existential insights to %s", INSIGHTS_FILE)
         return reflection
+
+    @classmethod
+    def apply_feedback(
+        cls,
+        reward: float,
+        wording: list[str] | None = None,
+    ) -> None:
+        """Update learning agent with reflector feedback."""
+        adaptive_learning.update(
+            reflector_reward=reward,
+            reflector_wording=wording,
+        )
+        if wording:
+            cls.wording_choices = wording
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution

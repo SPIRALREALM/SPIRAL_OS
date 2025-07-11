@@ -43,3 +43,23 @@ python download_models.py gemma2
 ```
 
 Repository URLs for training are listed in [`learning_sources/github_repos.txt`](../learning_sources/github_repos.txt).
+
+## Model Selection Rules
+
+The `MoGEOrchestrator` chooses between GLM, DeepSeek and Mistral at runtime.
+The decision uses three signals:
+
+1. **Task profile** from `classify_task()` – `technical`, `instructional`,
+   `emotional` or `philosophical`.
+2. **Emotion weight** from `emotion_analysis`.
+3. **Context memory** – a deque storing recent messages with embeddings.
+
+Routing follows simple heuristics:
+
+- Messages with high emotion weight or when most of the context is
+  classified as emotional use **Mistral**.
+- Explicit how‑to or tutorial requests route to **DeepSeek**.
+- Philosophical prompts also favour **Mistral**.
+- Technical statements default to **GLM**.
+
+The chosen model name is returned in the `model` field of `route()`.

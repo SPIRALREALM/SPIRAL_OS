@@ -9,14 +9,14 @@ from typing import Any, Dict
 import soundfile as sf
 
 from inanna_ai import response_manager, tts_coqui, emotion_analysis
-from inanna_ai.personality_layers import AlbedoPersonalityLayer
+from inanna_ai.personality_layers import AlbedoPersonality
 from SPIRAL_OS import qnl_engine
 
 
 class MoGEOrchestrator:
     """Route text and emotion data to the available models."""
 
-    def __init__(self, *, albedo_layer: AlbedoPersonalityLayer | None = None) -> None:
+    def __init__(self, *, albedo_layer: AlbedoPersonality | None = None) -> None:
         self._responder = response_manager.ResponseManager()
         self._albedo = albedo_layer
 

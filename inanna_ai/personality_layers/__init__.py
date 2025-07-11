@@ -1,5 +1,5 @@
 """Personality layers for INANNA AI."""
 
-from .albedo import AlbedoPersonalityLayer
+from .albedo import AlbedoPersonality
 
-__all__ = ["AlbedoPersonalityLayer"]
+__all__ = ["AlbedoPersonality"]

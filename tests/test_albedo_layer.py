@@ -7,9 +7,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inanna_ai.personality_layers.albedo import (
-    AlbedoPersonalityLayer,
-    glm_integration,
+    AlbedoPersonality,
+    GLMIntegration,
     state_contexts,
+    glm_integration,
 )
 
 
@@ -53,7 +54,7 @@ def _patch_requests_capture(monkeypatch, log):
 def test_state_transitions(monkeypatch):
     prompts = []
     _patch_requests(monkeypatch, prompts)
-    layer = AlbedoPersonalityLayer()
+    layer = AlbedoPersonality()
 
     assert layer.state == "nigredo"
     layer.generate_response("hi")
@@ -68,7 +69,7 @@ def test_prompt_construction(monkeypatch):
     prompts = []
     _patch_requests(monkeypatch, prompts)
     monkeypatch.setattr(state_contexts, "CONTEXTS", {"nigredo": "A {text}"})
-    layer = AlbedoPersonalityLayer()
+    layer = AlbedoPersonality()
     layer.generate_response("hello")
     assert prompts == [("A hello", None)]
 
@@ -84,14 +85,14 @@ def test_glm_header(monkeypatch):
     monkeypatch.setenv("GLM_API_KEY", "tok")
     gi = importlib.reload(glm_integration)
     _patch_requests(monkeypatch, prompts)
-    gi.generate_completion("hello")
+    GLMIntegration(api_key="tok", endpoint=gi.ENDPOINT).complete("hello")
     assert prompts == [("hello", {"Authorization": "Bearer tok"})]
 
 
 def test_state_cycle_wraparound(monkeypatch):
     prompts = []
     _patch_requests(monkeypatch, prompts)
-    layer = AlbedoPersonalityLayer()
+    layer = AlbedoPersonality()
 
     states = []
     for _ in range(4):
@@ -107,7 +108,7 @@ def test_env_vars_honored(monkeypatch):
     monkeypatch.setenv("GLM_API_KEY", "key")
     gi = importlib.reload(glm_integration)
     _patch_requests_capture(monkeypatch, calls)
-    gi.generate_completion("yo")
+    GLMIntegration(endpoint=gi.ENDPOINT, api_key="key").complete("yo")
     assert calls == [("http://bar", "yo", {"Authorization": "Bearer key"})]
 
 
@@ -123,12 +124,13 @@ def test_glm_error_safe_message(monkeypatch):
 
     dummy.post = post
     monkeypatch.setattr(glm_integration, "requests", dummy)
-
-    out = glm_integration.generate_completion("hi")
+    gi = importlib.reload(glm_integration)
+    out = GLMIntegration(endpoint=gi.ENDPOINT).complete("hi")
     assert out == glm_integration.SAFE_ERROR_MESSAGE
 
 
 def test_glm_missing_requests(monkeypatch):
     monkeypatch.setattr(glm_integration, "requests", None)
-    out = glm_integration.generate_completion("hi")
+    gi = importlib.reload(glm_integration)
+    out = GLMIntegration(endpoint=gi.ENDPOINT).complete("hi")
     assert out == glm_integration.SAFE_ERROR_MESSAGE

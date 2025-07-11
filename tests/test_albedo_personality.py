@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inanna_ai.personality_layers.albedo import (
-    AlbedoPersonalityLayer,
-    AlbedoCore,
+    AlbedoPersonality,
+    AlchemicalPersona,
     State,
     glm_integration,
     state_contexts,
@@ -41,7 +41,7 @@ def _patch_requests(monkeypatch, prompts, replies):
 
 
 def test_entity_recognition_and_state_transitions():
-    core = AlbedoCore()
+    core = AlchemicalPersona()
     assert [s.value for s in State] == ["nigredo", "albedo", "rubedo"]
 
     assert core.state is State.NIGREDO
@@ -64,7 +64,7 @@ def test_prompt_formatting_and_glm(monkeypatch):
         {"nigredo": "N-{text}", "albedo": "A-{text}", "rubedo": "R-{text}"},
     )
 
-    layer = AlbedoPersonalityLayer()
+    layer = AlbedoPersonality()
     out1 = layer.generate_response("hi")
     out2 = layer.generate_response("hi")
     out3 = layer.generate_response("hi")

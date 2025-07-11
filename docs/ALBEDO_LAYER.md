@@ -1,15 +1,15 @@
 # Albedo Personality Layer
 
-The **Albedo** layer introduces a small state machine that drives responses through a remote GLM (Generative Language Model). All related modules live under `inanna_ai/personality_layers/albedo`.
+The **Albedo** layer introduces a stateful persona that drives responses through a remote GLM (Generative Language Model). All related modules live under `inanna_ai/personality_layers/albedo`.
 
 ## Project structure
 
-- `__init__.py` – exposes `AlbedoPersonalityLayer` used by the orchestrator.
-- `albedo_core.py` – tracks the current alchemical state (Nigredo → Albedo → Rubedo → Nigredo).
+- `__init__.py` – exposes `AlbedoPersonality` used by the orchestrator.
+- `alchemical_persona.py` – weighted state machine with entity recognition.
 - `state_contexts.py` – prompt templates applied for each state.
-- `glm_integration.py` – wrapper around a GLM‑4.1V‑9B HTTP endpoint.
+- `glm_integration.py` – `GLMIntegration` class for HTTP requests.
 
-`AlbedoPersonalityLayer` formats input text with the template for the active state, calls the GLM endpoint and then advances the state machine.
+`AlbedoPersonality` detects entities and emotional triggers, builds a state specific prompt and updates shadow metrics before advancing the persona.
 
 ## Configuring the GLM endpoint
 
@@ -37,9 +37,9 @@ Each invocation cycles through Nigredo, Albedo and Rubedo states and then wraps 
 
 ```python
 from orchestrator import MoGEOrchestrator
-from inanna_ai.personality_layers import AlbedoPersonalityLayer
+from inanna_ai.personality_layers import AlbedoPersonality
 
-layer = AlbedoPersonalityLayer()
+layer = AlbedoPersonality()
 orchestrator = MoGEOrchestrator(albedo_layer=layer)
 ```
 

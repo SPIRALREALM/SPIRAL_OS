@@ -33,7 +33,7 @@ def _patch_requests(monkeypatch, prompts, replies):
     dummy.RequestException = Exception
 
     def post(url, json, timeout=10, headers=None):
-        prompts.append(json.get("prompt"))
+        prompts.append((json.get("prompt"), json.get("quantum_context")))
         return DummyResponse(replies.pop(0))
 
     dummy.post = post
@@ -62,23 +62,23 @@ def test_prompt_formatting_and_glm(monkeypatch):
         state_contexts,
         "CONTEXTS",
         {
-            "nigredo": "N-{entity}-{triggers}-{text}",
-            "albedo": "A-{entity}-{triggers}-{text}",
-            "rubedo": "R-{entity}-{triggers}-{text}",
+            "nigredo": "N-{entity}-{triggers}-{text}-{qcontext}",
+            "albedo": "A-{entity}-{triggers}-{text}-{qcontext}",
+            "rubedo": "R-{entity}-{triggers}-{text}-{qcontext}",
         },
     )
 
     layer = AlbedoPersonality()
     text = "I love Alice"
-    out1 = layer.generate_response(text)
-    out2 = layer.generate_response(text)
-    out3 = layer.generate_response(text)
+    out1 = layer.generate_response(text, quantum_context="Q1")
+    out2 = layer.generate_response(text, quantum_context="Q2")
+    out3 = layer.generate_response(text, quantum_context="Q3")
 
     assert [out1, out2, out3] == ["one", "two", "three"]
     expected = [
-        "N-person-affection-" + text,
-        "A-person-affection-" + text,
-        "R-person-affection-" + text,
+        ("N-person-affection-" + text + "-Q1", "Q1"),
+        ("A-person-affection-" + text + "-Q2", "Q2"),
+        ("R-person-affection-" + text + "-Q3", "Q3"),
     ]
     assert prompts == expected
     assert layer.state == "nigredo"

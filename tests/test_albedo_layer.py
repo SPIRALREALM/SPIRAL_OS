@@ -31,7 +31,7 @@ def _patch_requests(monkeypatch, prompts):
     dummy.RequestException = Exception
 
     def post(url, json, timeout=10, headers=None):
-        prompts.append((json.get("prompt"), headers))
+        prompts.append((json.get("prompt"), json.get("quantum_context"), headers))
         return DummyResponse("reply")
 
     dummy.post = post
@@ -43,7 +43,7 @@ def _patch_requests_capture(monkeypatch, log):
     dummy.RequestException = Exception
 
     def post(url, json, timeout=10, headers=None):
-        log.append((url, json.get("prompt"), headers))
+        log.append((url, json.get("prompt"), json.get("quantum_context"), headers))
         return DummyResponse("reply")
 
     dummy.post = post
@@ -67,10 +67,10 @@ def test_state_transitions(monkeypatch):
 def test_prompt_construction(monkeypatch):
     prompts = []
     _patch_requests(monkeypatch, prompts)
-    monkeypatch.setattr(state_contexts, "CONTEXTS", {"nigredo": "A {text}"})
+    monkeypatch.setattr(state_contexts, "CONTEXTS", {"nigredo": "A {text} {qcontext}"})
     layer = AlbedoPersonality()
-    layer.generate_response("hello")
-    assert prompts == [("A hello", None)]
+    layer.generate_response("hello", quantum_context="qc")
+    assert prompts == [("A hello qc", "qc", None)]
 
 
 def test_env_overrides_endpoint(monkeypatch):
@@ -84,7 +84,7 @@ def test_glm_header(monkeypatch):
     monkeypatch.setenv("GLM_API_KEY", "tok")
     _patch_requests(monkeypatch, prompts)
     GLMIntegration().complete("hello")
-    assert prompts == [("hello", {"Authorization": "Bearer tok"})]
+    assert prompts == [("hello", None, {"Authorization": "Bearer tok"})]
 
 
 def test_state_cycle_wraparound(monkeypatch):
@@ -106,7 +106,7 @@ def test_env_vars_honored(monkeypatch):
     monkeypatch.setenv("GLM_API_KEY", "key")
     _patch_requests_capture(monkeypatch, calls)
     GLMIntegration().complete("yo")
-    assert calls == [("http://bar", "yo", {"Authorization": "Bearer key"})]
+    assert calls == [("http://bar", "yo", None, {"Authorization": "Bearer key"})]
 
 
 def test_glm_error_safe_message(monkeypatch):

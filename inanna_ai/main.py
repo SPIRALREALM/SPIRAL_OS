@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 from orchestrator import MoGEOrchestrator
-from .personality_layers import AlbedoPersonality
+from .personality_layers import REGISTRY
 from .rfa_7d import RFA7D
 from .gate_orchestrator import GateOrchestrator
 from .love_matrix import LoveMatrix
@@ -40,15 +40,17 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--duration", type=float, default=3.0, help="Recording length in seconds")
     parser.add_argument(
         "--personality",
-        choices=["albedo"],
-        help="Activate optional personality layer",
+        choices=sorted(REGISTRY),
+        help=(
+            "Activate optional personality layer. "
+            f"Available: {', '.join(sorted(REGISTRY))}"
+        ),
     )
     args = parser.parse_args(argv)
 
-    if args.personality == "albedo":
-        orchestrator = MoGEOrchestrator(albedo_layer=AlbedoPersonality())
-    else:
-        orchestrator = MoGEOrchestrator()
+    layer_cls = REGISTRY.get(args.personality)
+    layer = layer_cls() if layer_cls else None
+    orchestrator = MoGEOrchestrator(albedo_layer=layer)
     gate = GateOrchestrator()
     core = RFA7D()
     speaker = speaking_engine.SpeakingEngine()

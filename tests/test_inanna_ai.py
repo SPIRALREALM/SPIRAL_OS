@@ -290,7 +290,7 @@ def test_personality_flag_initializes_layer(monkeypatch):
         created["layer"] = True
         return DummyLayer()
 
-    monkeypatch.setattr(voice_main, "AlbedoPersonality", make_layer)
+    monkeypatch.setattr(voice_main, "REGISTRY", {"albedo": make_layer})
 
     class DummyOrch:
         def __init__(self, *, albedo_layer=None):

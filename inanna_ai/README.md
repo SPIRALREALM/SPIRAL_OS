@@ -76,6 +76,20 @@ environment classification with your transcript. It queries the corpus memory
 for related snippets and returns a reply tagged with one of the four cores
 (Surface, Deep, Umbra, Albedo).
 
+## Advanced voice features
+
+Install the optional packages below to enable higher quality emotion detection
+and real-time voice conversion:
+
+```bash
+pip install opensmile==2.5.1 EmotiVoice==0.2.0 voicefixer==0.1.3
+```
+
+When these libraries are present the listening engine automatically uses
+**openSMILE** and `EmotiVoice` for more accurate emotion labels. The speaking
+engine can apply subtle voice conversion through `voicefixer` when calling
+`convert_voice`.
+
 ## Extending the Codex
 
 The modules in this folder offer a foundation that can be expanded in many directions.  Possible extensions include:
@@ -104,3 +118,25 @@ python -m inanna_ai.main --duration 5
 
 The script reports the transcript, the emotion label and the Jungian archetype
 assigned to that emotion as defined in `emotion_analysis.EMOTION_ARCHETYPES`.
+
+## Real-time emotion-aware voice pipeline
+
+The toolkit can be combined into a streaming pipeline that listens, analyzes the
+speaker's emotion and responds with a converted voice. Use the ``voice`` command
+to start an interactive session:
+
+```bash
+python -m inanna_ai.main voice --duration 5
+```
+
+Each cycle performs the following steps:
+
+1. Capture microphone audio.
+2. Extract acoustic features with **openSMILE** and optionally classify emotion
+   using `EmotiVoice`.
+3. Select a reply via `response_manager.ResponseManager`.
+4. Synthesize speech with `speaking_engine.SpeakingEngine` and apply voice
+   conversion through `voicefixer`.
+
+The resulting WAV file is played back and stored together with the transcript
+and detected emotion.

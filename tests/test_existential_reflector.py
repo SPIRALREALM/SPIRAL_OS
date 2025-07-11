@@ -85,3 +85,31 @@ def test_existential_header(monkeypatch, tmp_path):
 
     er.ExistentialReflector.reflect_on_identity()
     assert hdr["h"] == {"Authorization": "Bearer sek"}
+
+
+def test_reflector_context_included(tmp_path, monkeypatch):
+    ina = tmp_path / "INANNA_AI"
+    qnl = tmp_path / "QNL_LANGUAGE"
+    ina.mkdir()
+    qnl.mkdir()
+    (ina / "a.md").write_text("x", encoding="utf-8")
+
+    import inanna_ai.existential_reflector as er
+    monkeypatch.setattr(er, "INANNA_DIR", ina)
+    monkeypatch.setattr(er, "QNL_DIR", qnl)
+    monkeypatch.setattr(er, "AUDIT_DIR", tmp_path)
+    monkeypatch.setattr(er, "INSIGHTS_FILE", tmp_path / "i.txt")
+
+    captured = {}
+    dummy = ModuleType("requests")
+
+    def post(url, json=None, timeout=10, headers=None):
+        captured["text"] = json["text"]
+        return DummyResponse({"description": "ok"})
+
+    dummy.post = post
+    monkeypatch.setattr(er, "requests", dummy)
+
+    er.ExistentialReflector.reflect_on_identity(recent_context=["extra"])
+    assert "extra" in captured["text"]
+

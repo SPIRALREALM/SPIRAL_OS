@@ -62,12 +62,15 @@ class EthicalValidator:
         with log_file.open("a", encoding="utf-8") as fh:
             fh.write(f"{timestamp} [{criteria}] {text}\n")
 
-    def semantic_check(self, text: str) -> List[str]:
+    def semantic_check(
+        self, text: str, recent_context: List[str] | None = None
+    ) -> List[str]:
         """Return violated categories based on semantic similarity."""
         if self.model is None:
             return []
 
-        emb = np.asarray(self.model.encode(text, convert_to_numpy=True))
+        full = " ".join(recent_context or []) + " " + text if recent_context else text
+        emb = np.asarray(self.model.encode(full, convert_to_numpy=True))
         norm_text = np.linalg.norm(emb) + 1e-8
         violations: List[str] = []
         for cat, embeds in self.embeddings.items():
@@ -76,22 +79,26 @@ class EthicalValidator:
                 violations.append(cat)
         return violations
 
-    def validate_text(self, text: str) -> bool:
+    def validate_text(
+        self, text: str, recent_context: List[str] | None = None
+    ) -> bool:
         """Return ``True`` if ``text`` is acceptable."""
         lowered = text.lower()
         for kw in self.banned:
             if kw in lowered:
                 self._log_rejected(text, f"keyword:{kw}")
                 return False
-        violations = self.semantic_check(text)
+        violations = self.semantic_check(text, recent_context=recent_context)
         if violations:
             self._log_rejected(text, f"semantic:{'|'.join(violations)}")
             return False
         return True
 
-    def validate(self, user: str, prompt: str) -> bool:
+    def validate(
+        self, user: str, prompt: str, recent_context: List[str] | None = None
+    ) -> bool:
         """Validate ``prompt`` and ``user``. Raises on failure."""
-        if not self.validate_text(prompt):
+        if not self.validate_text(prompt, recent_context=recent_context):
             raise ValueError("banned content")
         if user not in self.allowed:
             raise PermissionError("unauthorized")
@@ -99,3 +106,4 @@ class EthicalValidator:
 
 
 __all__ = ["EthicalValidator"]
+

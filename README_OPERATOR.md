@@ -16,6 +16,7 @@ The requirements include common libraries like `numpy` and `scipy` as well as
 ## Script overview
 
 - **`INANNA_AI_AGENT/inanna_ai.py`** – Activation agent that loads source texts and can recite the INANNA birth chant or feed hex data into the QNL engine. Use `--list` to show available texts.
+- **`inanna_ai/main.py`** – Voice loop controller with optional personalities. Includes `fetch-gutenberg` and `fetch-github` subcommands to collect learning data.
 - **`run_song_demo.py`** – Demo runner that analyzes a local MP3/WAV file using `inanna_music_COMPOSER_ai.py`, exports a preview WAV and QNL JSON, and prints the resulting phrases.
 - **`SPIRAL_OS/mix_tracks.py`** – Mixes multiple audio files into a normalized track and optionally exports a short preview clip.
 - **`SPIRAL_OS/seven_dimensional_music.py`** – Creates layered music from a melody, optionally transmuting a hex payload and embedding secret data, then saves the final track and a JSON analysis of the seven planes.
@@ -201,6 +202,18 @@ Example output:
 Transcript: hello
 Response: hi there gate [sig: 0123abcd...]
 Voice path: resp.wav
+```
+
+### Fetch Project Gutenberg texts
+
+```bash
+python -m inanna_ai.main fetch-gutenberg "Frankenstein" --max 2
+```
+
+### Fetch GitHub repositories
+
+```bash
+python -m inanna_ai.main fetch-github
 ```
 
 ## Verify core integrity

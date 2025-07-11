@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-"""Command line interface for recording and responding with INANNA AI."""
+"""Command line interface for INANNA AI.
+
+This tool runs the interactive voice loop and also exposes ingestion helpers to
+fetch external texts.  The ``fetch-gutenberg`` and ``fetch-github`` subcommands
+download materials used for learning while ``voice`` starts the normal Albedo
+conversation flow.
+"""
 
 import argparse
 import numpy as np
@@ -36,7 +42,9 @@ def main(argv: list[str] | None = None) -> None:
     utils.setup_logger()
     db_storage.init_db()
 
-    parser = argparse.ArgumentParser(description="INANNA utilities")
+    parser = argparse.ArgumentParser(
+        description="INANNA utilities: voice loop and data ingestion"
+    )
     sub = parser.add_subparsers(dest="command")
     parser.set_defaults(command="voice")
 
@@ -51,11 +59,17 @@ def main(argv: list[str] | None = None) -> None:
         ),
     )
 
-    gut_p = sub.add_parser("fetch-gutenberg", help="Download texts from Project Gutenberg")
+    gut_p = sub.add_parser(
+        "fetch-gutenberg",
+        help="Download texts from Project Gutenberg",
+    )
     gut_p.add_argument("query")
     gut_p.add_argument("--max", type=int, default=1, dest="max_results")
 
-    sub.add_parser("fetch-github", help="Download listed GitHub repos")
+    sub.add_parser(
+        "fetch-github",
+        help="Download READMEs for repositories listed in github_repos.txt",
+    )
 
     args = parser.parse_args(argv)
 

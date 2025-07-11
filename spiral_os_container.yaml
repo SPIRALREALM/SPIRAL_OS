@@ -8,5 +8,9 @@ copy:
   - requirements.txt
 run:
   - pip install --no-cache-dir -r requirements.txt
-  - mkdir -p INANNA_AI GENESIS IGNITION QNL_LANGUAGE
-cmd: ["bash"]
+  - mkdir -p INANNA_AI GENESIS IGNITION QNL_LANGUAGE data logs
+env-file: secrets.env
+volumes:
+  - ./data:/workspace/data
+  - ./logs:/workspace/logs
+cmd: ["python", "start_spiral_os.py"]

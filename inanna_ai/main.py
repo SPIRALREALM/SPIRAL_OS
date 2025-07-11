@@ -71,6 +71,11 @@ def main(argv: list[str] | None = None) -> None:
         help="Download READMEs for repositories listed in github_repos.txt",
     )
 
+    sub.add_parser(
+        "update-github-list",
+        help="Update github_repos.txt from INANNA_AI_ME_TRAINING_GUIDE.md",
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "fetch-gutenberg":
@@ -88,6 +93,17 @@ def main(argv: list[str] | None = None) -> None:
 
         for path in gs.fetch_all():
             print(path)
+        return
+
+    if args.command == "update-github-list":
+        from pathlib import Path
+        from .learning.training_guide import parse_training_guide, write_repo_list
+
+        guide = Path(__file__).resolve().parent / "learning" / "INANNA_AI_ME_TRAINING_GUIDE.md"
+        dest = Path(__file__).resolve().parents[1] / "learning_sources" / "github_repos.txt"
+        mapping = parse_training_guide(guide)
+        write_repo_list(mapping, dest)
+        print(f"Saved {dest}")
         return
 
     layer_cls = REGISTRY.get(args.personality)

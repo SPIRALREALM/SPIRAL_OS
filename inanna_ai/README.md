@@ -24,7 +24,7 @@ Install the required Python packages from the repository root:
 pip install -r requirements.txt
 ```
 
-Optional test and development packages are listed in `tests/requirements.txt`.
+Optional test and development packages are listed in `dev-requirements.txt`.
 
 ## Docker usage
 

@@ -11,6 +11,6 @@ To run the test suite you need a few Python packages:
 Install them with:
 
 ```bash
-pip install -r tests/requirements.txt
+pip install -r dev-requirements.txt
 ```
 

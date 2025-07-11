@@ -61,6 +61,7 @@ def test_registry_multiple_layers(monkeypatch):
         return DummyLayerB()
 
     monkeypatch.setattr(voice_main, "REGISTRY", {"a": make_a, "b": make_b})
+    monkeypatch.setattr(voice_main, "list_personalities", lambda: ["a", "b"])
 
     class DummyOrch:
         def __init__(self, *, albedo_layer=None):
@@ -78,8 +79,22 @@ def test_registry_multiple_layers(monkeypatch):
 
 
 def test_help_lists_layers(monkeypatch, capsys):
-    monkeypatch.setattr(voice_main, "REGISTRY", {"a": DummyLayerA, "b": DummyLayerB})
+    monkeypatch.setattr(voice_main, "REGISTRY", {"b": DummyLayerB, "a": DummyLayerA})
+    monkeypatch.setattr(voice_main, "list_personalities", lambda: ["a", "b"])
     with pytest.raises(SystemExit):
         voice_main.main(["--help"])
     out = capsys.readouterr().out
     assert "a" in out and "b" in out
+
+
+def test_list_personalities_sorted():
+    from inanna_ai.personality_layers import list_personalities, REGISTRY
+
+    original = REGISTRY.copy()
+    try:
+        REGISTRY.clear()
+        REGISTRY.update({"b": DummyLayerB, "a": DummyLayerA})
+        assert list_personalities() == ["a", "b"]
+    finally:
+        REGISTRY.clear()
+        REGISTRY.update(original)

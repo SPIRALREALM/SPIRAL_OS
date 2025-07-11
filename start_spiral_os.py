@@ -10,6 +10,7 @@ from typing import List, Optional
 from INANNA_AI_AGENT import inanna_ai
 from INANNA_AI import glm_init, glm_analyze
 from inanna_ai import defensive_network_utils as dnu
+from inanna_ai.personality_layers import list_personalities
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser.add_argument("--skip-network", action="store_true", help="Skip network monitoring")
     parser.add_argument(
         "--personality",
-        choices=["albedo"],
+        choices=list_personalities(),
         help="Activate optional personality layer",
     )
     args = parser.parse_args(argv)

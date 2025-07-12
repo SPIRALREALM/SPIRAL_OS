@@ -21,9 +21,10 @@ import numpy as np
 from task_profiling import classify_task
 
 from inanna_ai import response_manager, tts_coqui, emotion_analysis, db_storage
-from inanna_ai.personality_layers import AlbedoPersonality
+from inanna_ai.personality_layers import AlbedoPersonality, REGISTRY as PERSONALITY_REGISTRY
 from inanna_ai import voice_layer_albedo
 from SPIRAL_OS import qnl_engine, symbolic_parser
+import emotion_registry
 import training_guide
 from corpus_memory_logging import log_interaction, load_interactions
 from insight_compiler import update_insights, load_insights
@@ -223,6 +224,15 @@ class MoGEOrchestrator:
         emotion = qnl_data.get("tone", "neutral")
         self._update_mood(emotion)
         dominant = max(self.mood_state, key=self.mood_state.get)
+        emotion_registry.set_last_emotion(dominant)
+        emotion_registry.set_resonance_level(self.mood_state[dominant])
+
+        layer_name = emotion_registry.get_current_layer()
+        if layer_name:
+            layer_cls = PERSONALITY_REGISTRY.get(layer_name)
+            if layer_cls is not None and not isinstance(self._albedo, layer_cls):
+                self._albedo = layer_cls()
+
         emotion_data = {
             "emotion": dominant,
             "archetype": emotion_analysis.emotion_to_archetype(dominant),

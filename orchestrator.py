@@ -5,10 +5,11 @@ from __future__ import annotations
 
 from pathlib import Path
 import tempfile
-from typing import Any, Dict, Deque, List
+from typing import Any, Dict, Deque, List, Callable
 from collections import deque
 import soundfile as sf
 from time import perf_counter
+import threading
 
 try:  # pragma: no cover - optional dependency
     from sentence_transformers import SentenceTransformer
@@ -44,6 +45,12 @@ class MoGEOrchestrator:
         self._model_weights = {"glm": 1.0, "deepseek": 1.0, "mistral": 1.0}
         self._alpha = 0.1
         self._db_path = db_path or db_storage.DB_PATH
+        db_storage.init_db(self._db_path)
+        self._mood_alpha = 0.2
+        self.mood_state: Dict[str, float] = {
+            e: (1.0 if e == "neutral" else 0.0)
+            for e in emotion_analysis.EMOTION_WEIGHT
+        }
 
     @staticmethod
     def _select_plane(weight: float, archetype: str) -> str:
@@ -73,6 +80,12 @@ class MoGEOrchestrator:
         reward = coh + rel - 0.1 * rt
         current = self._model_weights.get(model, 1.0)
         self._model_weights[model] = (1 - self._alpha) * current + self._alpha * reward
+
+    def _update_mood(self, emotion: str) -> None:
+        """Update ``mood_state`` using an exponential moving average."""
+        for key in list(self.mood_state):
+            target = 1.0 if key.lower() == emotion.lower() else 0.0
+            self.mood_state[key] = (1 - self._mood_alpha) * self.mood_state.get(key, 0.0) + self._mood_alpha * target
 
     def _benchmark(self, model: str, prompt: str, output: str, elapsed: float) -> None:
         coh = self._coherence(output)
@@ -174,5 +187,26 @@ class MoGEOrchestrator:
 
         return result
 
+    def handle_input(self, text: str) -> Dict[str, Any]:
+        """Parse ``text`` as QNL, update mood and delegate to :meth:`route`."""
+        qnl_data = qnl_engine.parse_input(text)
+        symbolic_parser.parse_intent(qnl_data)
+        emotion = qnl_data.get("tone", "neutral")
+        self._update_mood(emotion)
+        dominant = max(self.mood_state, key=self.mood_state.get)
+        emotion_data = {
+            "emotion": dominant,
+            "archetype": emotion_analysis.emotion_to_archetype(dominant),
+            "weight": emotion_analysis.emotion_weight(dominant),
+        }
+        return self.route(text, emotion_data, qnl_data=qnl_data)
 
-__all__ = ["MoGEOrchestrator"]
+
+def schedule_action(func: Callable[[], Any], delay: float) -> threading.Timer:
+    """Execute ``func`` after ``delay`` seconds using a timer."""
+    timer = threading.Timer(delay, func)
+    timer.start()
+    return timer
+
+
+__all__ = ["MoGEOrchestrator", "schedule_action"]

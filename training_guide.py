@@ -16,6 +16,9 @@ from datetime import datetime
 import json
 
 from inanna_ai import db_storage
+import auto_retrain
+
+AUTO_RETRAIN_THRESHOLD = 10
 
 
 def evaluate_action(intent: dict, result: dict) -> dict:
@@ -69,6 +72,17 @@ def evaluate_action(intent: dict, result: dict) -> dict:
 FEEDBACK_FILE = Path("data/feedback.json")
 
 
+def _count_new_insights(entries: list[dict]) -> int:
+    """Return number of unique intents not present in the insight matrix."""
+    try:
+        insights = json.loads(auto_retrain.INSIGHT_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        insights = {}
+    known = set(insights)
+    intents = {e.get("intent") for e in entries if e.get("intent")}
+    return len(intents - known)
+
+
 def _load_entries() -> list[dict]:
     if FEEDBACK_FILE.exists():
         try:
@@ -98,4 +112,7 @@ def log_result(
 
     score = 1.0 if success else 0.0
     db_storage.log_feedback(tone or "neutral", score, score, score)
+
+    if _count_new_insights(entries) >= AUTO_RETRAIN_THRESHOLD:
+        auto_retrain.main(["--run"])
 

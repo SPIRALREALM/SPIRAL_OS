@@ -11,7 +11,7 @@ This script performs:
 3. Export of preview WAV and structured QNL JSON output
 
 Usage:
-    python3 inanna_music_COMPOSER_ai.py path/to/song.mp3
+    python -m MUSIC_FOUNDATION.inanna_music_COMPOSER_ai path/to/song.mp3
 
 Dependencies:
     pip install librosa soundfile numpy scipy
@@ -23,7 +23,7 @@ import soundfile as sf
 import os
 import json
 
-from .qnl_utils import chroma_to_qnl, generate_qnl_structure
+from MUSIC_FOUNDATION.qnl_utils import chroma_to_qnl, generate_qnl_structure
 
 # -------------------------------
 # QNL GLYPH & EMOTION MAPPINGS
@@ -89,6 +89,12 @@ class InannaMusicInterpreter:
 # -------------------------------
 
 if __name__ == "__main__":
+    if __package__ is None:
+        from pathlib import Path
+        import sys
+
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
     import argparse
 
     parser = argparse.ArgumentParser(description="INANNA_AI — Sonic Ritual QNL Engine")

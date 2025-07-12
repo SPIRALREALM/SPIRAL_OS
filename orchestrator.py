@@ -205,7 +205,7 @@ class MoGEOrchestrator:
                 isinstance(res, dict)
                 and res.get("status") in {"unhandled", "todo"}
             )
-            training_guide.log_result(intent, success, qnl_data.get("tone"))
+            training_guide.log_result(intent, success, qnl_data.get("tone"), res)
         emotion = qnl_data.get("tone", "neutral")
         self._update_mood(emotion)
         dominant = max(self.mood_state, key=self.mood_state.get)

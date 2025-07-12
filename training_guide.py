@@ -17,6 +17,55 @@ import json
 
 from inanna_ai import db_storage
 
+
+def evaluate_action(intent: dict, result: dict) -> dict:
+    """Return evaluation metrics for the executed ``intent``.
+
+    Parameters
+    ----------
+    intent:
+        Intent dictionary describing the action.
+    result:
+        Dictionary returned by the handler containing at least ``text``.
+
+    Returns
+    -------
+    dict
+        Mapping with ``response_quality`` and ``memory_overlap`` scores.
+    """
+
+    text = str(result.get("text", ""))
+    words = text.split()
+    coherence = len(set(words)) / len(words) if words else 0.0
+
+    intent_words = str(intent.get("intent", "")).split()
+    src = set(intent_words)
+    gen = set(words)
+    relevance = len(src & gen) / len(src | gen) if src and gen else 0.0
+    quality = (coherence + relevance) / 2.0
+
+    overlap = 0.0
+    try:  # pragma: no cover - optional logging file may not exist
+        from corpus_memory_logging import load_interactions
+
+        interactions = load_interactions(limit=5)
+        if interactions and gen:
+            scores = []
+            for entry in interactions:
+                prev = set(str(entry.get("input", "")).split())
+                if not prev:
+                    continue
+                scores.append(len(prev & gen) / len(prev | gen))
+            if scores:
+                overlap = sum(scores) / len(scores)
+    except Exception:
+        overlap = 0.0
+
+    return {
+        "response_quality": round(quality, 3),
+        "memory_overlap": round(overlap, 3),
+    }
+
 FEEDBACK_FILE = Path("data/feedback.json")
 
 
@@ -29,7 +78,9 @@ def _load_entries() -> list[dict]:
     return []
 
 
-def log_result(intent: dict, success: bool, tone: str | None) -> None:
+def log_result(
+    intent: dict, success: bool, tone: str | None, result: dict | None = None
+) -> None:
     """Append ``intent`` outcome to the feedback log."""
     entry = {
         "timestamp": datetime.utcnow().isoformat(),
@@ -38,6 +89,8 @@ def log_result(intent: dict, success: bool, tone: str | None) -> None:
         "tone": tone,
         "success": bool(success),
     }
+    if result is not None:
+        entry.update(evaluate_action(intent, result))
     entries = _load_entries()
     entries.append(entry)
     FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -45,3 +98,4 @@ def log_result(intent: dict, success: bool, tone: str | None) -> None:
 
     score = 1.0 if success else 0.0
     db_storage.log_feedback(tone or "neutral", score, score, score)
+

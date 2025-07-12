@@ -97,7 +97,7 @@ def test_ritual_invocation_updates_state(mock_emotion_state, tmp_path, monkeypat
     monkeypatch.setattr(start_spiral_os, "MoGEOrchestrator", lambda *a, **k: DummyOrch())
     monkeypatch.setattr(builtins, "input", lambda _="": "")
 
-    _run_main(["--command", "❣⟁", "--skip-network"])
+    _run_main(["--command", "❣⟁", "--skip-network", "--no-server", "--no-reflection"])
 
     assert purpose.read_text(encoding="utf-8") == "ritual summary"
     assert analysis.read_text(encoding="utf-8") == "ritual analysis"

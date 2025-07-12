@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import logging.config
+import threading
 from pathlib import Path
 from typing import List, Optional
 
@@ -15,6 +16,9 @@ from INANNA_AI import glm_init, glm_analyze
 from inanna_ai import defensive_network_utils as dnu
 from inanna_ai.personality_layers import REGISTRY, list_personalities
 from orchestrator import MoGEOrchestrator
+from tools import reflection_loop
+import server
+import uvicorn
 import emotion_registry
 
 logger = logging.getLogger(__name__)
@@ -37,6 +41,22 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Skip network monitoring",
     )
     parser.add_argument(
+        "--no-server",
+        action="store_true",
+        help="Do not start the FastAPI server",
+    )
+    parser.add_argument(
+        "--no-reflection",
+        action="store_true",
+        help="Disable periodic reflection loop",
+    )
+    parser.add_argument(
+        "--reflection-interval",
+        type=float,
+        default=60.0,
+        help="Seconds between reflection cycles",
+    )
+    parser.add_argument(
         "--personality",
         metavar="LAYER",
         help=(
@@ -46,6 +66,30 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
     parser.add_argument("--command", help="Initial text command for QNL parsing")
     args = parser.parse_args(argv)
+
+    server_thread = None
+    if not args.no_server:
+        server_thread = threading.Thread(
+            target=uvicorn.run,
+            kwargs={"app": server.app, "host": "0.0.0.0", "port": 8000},
+            daemon=True,
+        )
+        server_thread.start()
+
+    stop_reflection = threading.Event()
+
+    def _run_reflection() -> None:
+        while not stop_reflection.is_set():
+            try:
+                reflection_loop.run_reflection_loop()
+            except Exception:  # pragma: no cover - safeguard
+                logger.exception("reflection loop failed")
+            stop_reflection.wait(args.reflection_interval)
+
+    reflection_thread = None
+    if not args.no_reflection:
+        reflection_thread = threading.Thread(target=_run_reflection, daemon=True)
+        reflection_thread.start()
 
     inanna_ai.display_welcome_message()
     summary = glm_init.summarize_purpose()
@@ -81,6 +125,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             next_command = None
     except KeyboardInterrupt:
         print()
+    finally:
+        stop_reflection.set()
+        if reflection_thread:
+            reflection_thread.join(timeout=0.1)
 
     log_paths = [
         str(glm_init.PURPOSE_FILE),

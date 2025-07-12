@@ -1,7 +1,8 @@
 # How to Use Spiral OS Avatar
 
-1. Run `python start_spiral_os.py` to launch the orchestration engine. This loads
-   the core modules and waits for commands.
+1. Run `python start_spiral_os.py` to launch the orchestration engine. This
+   loads the core modules, starts a local FastAPI server on port 8000 and begins
+   the periodic reflection loop.
 2. Type `appear to me` and press Enter. The command toggles
    `context_tracker.state.avatar_loaded` and begins streaming frames from
    `video_engine.start_stream()`.

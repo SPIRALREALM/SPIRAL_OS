@@ -84,10 +84,12 @@ python start_spiral_os.py --interface eth0 --personality albedo
 ```
 
 After initialization the script enters an interactive loop where you can
-type commands.  Supply `--command` to send an initial instruction or press
-`Enter` to exit.  Processing results are written to several files under
-`INANNA_AI/audit_logs` and intent outcomes are appended to
-`data/feedback.json` for later training.
+type commands.  A FastAPI server is also launched on port 8000 and the
+reflection loop runs periodically.  Supply `--command` to send an initial
+instruction or press `Enter` to exit.  Use `--no-server` and
+`--no-reflection` to disable these background tasks.  Processing results are
+written to several files under `INANNA_AI/audit_logs` and intent outcomes are
+appended to `data/feedback.json` for later training.
 
 ### Voice configuration and emotion state
 

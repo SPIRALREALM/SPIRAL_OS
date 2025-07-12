@@ -55,9 +55,11 @@ python start_spiral_os.py --interface eth0
 python start_spiral_os.py --interface eth0 --personality albedo
 ```
 
-Spiral OS starts an interactive loop. Provide an optional initial command with
-`--command` or simply type commands when prompted. Use `--skip-network` to
-disable traffic monitoring.
+Spiral OS starts an interactive loop and spawns a FastAPI server on port 8000.
+The reflection loop also runs periodically. Provide an optional initial command
+with `--command` or simply type commands when prompted. Use `--skip-network` to
+disable traffic monitoring and `--no-server` or `--no-reflection` to skip the
+background tasks.
 
 ## INANNA_AI DeepSeek-R1 Integration
 

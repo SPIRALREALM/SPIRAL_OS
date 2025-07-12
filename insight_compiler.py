@@ -33,7 +33,15 @@ def update_insights(log_entries: List[dict]) -> None:
         success = bool(entry.get("success"))
         info = insights.setdefault(
             pattern,
-            {"counts": {"total": 0, "success": 0, "tones": {}}},
+            {
+                "counts": {
+                    "total": 0,
+                    "success": 0,
+                    "tones": {},
+                    "emotions": {},
+                    "responded_with": {},
+                }
+            },
         )
         counts = info["counts"]
         counts["total"] += 1
@@ -43,6 +51,28 @@ def update_insights(log_entries: List[dict]) -> None:
         tone_ct["total"] += 1
         if success:
             tone_ct["success"] += 1
+
+        emotion = entry.get("emotion")
+        if emotion:
+            emo_ct = counts["emotions"].setdefault(
+                emotion, {"total": 0, "success": 0}
+            )
+            emo_ct["total"] += 1
+            if success:
+                emo_ct["success"] += 1
+
+        responded = entry.get("responded_with")
+        if responded is None and isinstance(entry.get("result"), dict):
+            responded = [
+                k.replace("_path", "")
+                for k in entry["result"].keys()
+                if k in {"text", "voice_path", "music_path"}
+            ]
+        if isinstance(responded, str):
+            responded = [responded]
+        if responded:
+            for r in responded:
+                counts["responded_with"][r] = counts["responded_with"].get(r, 0) + 1
 
     for pattern, info in insights.items():
         counts = info.get("counts", {})

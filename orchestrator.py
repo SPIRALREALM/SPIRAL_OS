@@ -20,9 +20,13 @@ import numpy as np
 
 from task_profiling import classify_task, ritual_action_sequence
 
-from inanna_ai import response_manager, tts_coqui, emotion_analysis, db_storage
-from inanna_ai.personality_layers import AlbedoPersonality, REGISTRY as PERSONALITY_REGISTRY
+from inanna_ai import response_manager, emotion_analysis, db_storage
+from inanna_ai.personality_layers import (
+    AlbedoPersonality,
+    REGISTRY as PERSONALITY_REGISTRY,
+)
 from inanna_ai import voice_layer_albedo
+from core import task_parser, context_tracker, language_engine
 from SPIRAL_OS import qnl_engine, symbolic_parser
 import invocation_engine
 import emotional_state
@@ -186,7 +190,7 @@ class MoGEOrchestrator:
                     speech_input, tone
                 )
             else:
-                result["voice_path"] = tts_coqui.synthesize_speech(
+                result["voice_path"] = language_engine.synthesize_speech(
                     speech_input, emotion
                 )
 
@@ -223,6 +227,14 @@ class MoGEOrchestrator:
 
     def handle_input(self, text: str) -> Dict[str, Any]:
         """Parse ``text`` as QNL, update mood and delegate to :meth:`route`."""
+        # Detect simple command phrases
+        for intent in task_parser.parse(text):
+            action = intent.get("action")
+            if action == "show_avatar":
+                context_tracker.state.avatar_loaded = True
+            if action == "start_call":
+                context_tracker.state.in_call = True
+
         qnl_data = qnl_engine.parse_input(text)
         results = symbolic_parser.parse_intent(qnl_data)
         gathered = symbolic_parser._gather_text(qnl_data).lower()

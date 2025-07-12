@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 from . import config
+from SPIRAL_OS import qnl_utils
+import vector_memory
+import corpus_memory_logging
 
 import numpy as np
 try:
@@ -142,24 +145,72 @@ def search_corpus(
     return results
 
 
+def add_entry(text: str, tone: str | None, *, metadata: dict | None = None) -> dict:
+    """Embed ``text`` and store it in :data:`CHROMA_DIR`."""
+    emb = qnl_utils.quantum_embed(text)
+    meta = {"text": text}
+    if tone is not None:
+        meta["tone"] = tone
+    if metadata:
+        meta.update(metadata)
+    vector_memory.add_vector(emb.tolist(), CHROMA_DIR, meta)
+    corpus_memory_logging.log_interaction(text, {"tone": tone}, meta, "stored")
+    return meta
+
+
+def search(
+    query: str,
+    *,
+    emotion: str | None = None,
+    similarity_threshold: float = 0.85,
+ ) -> List[dict]:
+    """Search stored entries and return matching metadata."""
+    qvec = qnl_utils.quantum_embed(query)
+    entries = vector_memory.load_vectors(CHROMA_DIR)
+    results: List[dict] = []
+    for vec, meta in entries:
+        if not vec.size:
+            continue
+        sim = float(vec @ qvec / ((np.linalg.norm(vec) * np.linalg.norm(qvec)) + 1e-8))
+        if sim < similarity_threshold:
+            continue
+        if emotion is not None and meta.get("tone") != emotion:
+            continue
+        item = meta.copy()
+        item["similarity"] = sim
+        results.append(item)
+    results.sort(key=lambda m: m["similarity"], reverse=True)
+    return results
+
+
+def prioritize_by_tone(results: List[dict], tone: str) -> List[dict]:
+    """Return ``results`` sorted so entries with ``tone`` appear first."""
+    return sorted(results, key=lambda r: r.get("tone") == tone, reverse=True)
+
+
 def main(argv: List[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Search corpus memory")
     parser.add_argument("--search", help="Query string")
+    parser.add_argument("--add", help="Text to store in memory")
+    parser.add_argument("--tone", help="Tone for --add or --search filter")
     parser.add_argument("--top", type=int, default=3, help="Number of matches")
     parser.add_argument("--reindex", action="store_true", help="Rebuild index")
     args = parser.parse_args(argv)
 
     if args.reindex:
         reindex_corpus()
-        if not args.search:
-            return
 
-    if not args.search:
-        parser.error("--search is required unless --reindex is used")
+    if args.add:
+        add_entry(args.add, args.tone)
 
-    results = search_corpus(args.search, top_k=args.top)
-    for path, snippet in results:
-        print(f"{path}: {snippet}")
+    if args.search:
+        res = search(args.search, emotion=args.tone, similarity_threshold=0.0)
+        for item in res[: args.top]:
+            tone = item.get("tone", "")
+            text = item.get("text", "")
+            print(f"[{tone}] {text}")
+    elif not args.reindex and not args.add:
+        parser.error("--search or --add required unless --reindex is used")
 
 
 if __name__ == "__main__":
@@ -171,6 +222,9 @@ __all__ = [
     "add_embeddings",
     "reindex_corpus",
     "search_corpus",
+    "add_entry",
+    "search",
+    "prioritize_by_tone",
     "main",
     "MEMORY_DIRS",
     "CHROMA_DIR",

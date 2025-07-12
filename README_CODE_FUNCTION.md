@@ -12,6 +12,9 @@ For an overview of the Albedo personality layer see [docs/ALBEDO_LAYER.md](docs/
 - **`SPIRAL_OS/qnl_engine.py`** – Converts a hex string to QNL phrases and a waveform. Saves a WAV file and a metadata JSON summary.
 - **`download_model.py`** – Downloads the DeepSeek-R1 model from Hugging Face into `INANNA_AI/models/`. This script lives at the repository root and reads `HF_TOKEN` from `secrets.env`.
 - **`download_models.py`** – Menu driven loader that can fetch DeepSeek‑R1 or Gemma2 into `INANNA_AI/models/`.
+- **`inanna_ai/voice_layer_albedo.py`** – Provides tone presets for
+  `voice_evolution` and wraps `speaking_engine.synthesize_speech` to
+  produce modulated output.
 
 ## MUSIC_FOUNDATION modules
 

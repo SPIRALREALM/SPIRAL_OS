@@ -37,7 +37,9 @@ pip install -r dev-requirements.txt
 
 1. Copy `secrets.env.example` to `secrets.env` and provide values for
    environment variables such as `HF_TOKEN`, `GITHUB_TOKEN`,
-   `OPENAI_API_KEY`, `GLM_API_URL`, `GLM_API_KEY` and `CORPUS_PATH`.
+   `OPENAI_API_KEY`, `GLM_API_URL`, `GLM_API_KEY`, `CORPUS_PATH` and
+   `QNL_EMBED_MODEL` (name of the SentenceTransformer used for QNL
+   embeddings).
 2. Download the required model weights before first launch:
 
    ```bash
@@ -53,11 +55,26 @@ pip install -r dev-requirements.txt
 
    The script loads `secrets.env`, checks for models and launches
    `INANNA_AI_AGENT/inanna_ai.py chat`.
+
 4. Run the initialization sequence with:
 
    ```bash
    python start_spiral_os.py
    ```
+
+## QNL Engine
+
+The QNL engine converts hexadecimal strings into symbolic soundscapes.
+It writes a WAV file and a JSON summary describing the glyphs and
+tones. Example commands:
+
+```bash
+python SPIRAL_OS/qnl_engine.py "48656c6c6f" --wav song.wav --json song.json
+python SPIRAL_OS/qnl_engine.py payload.txt --duration 0.05
+```
+
+See [SPIRAL_OS/README_QNL_OS.md](SPIRAL_OS/README_QNL_OS.md) for more
+details.
 
 ## Docker Usage
 
@@ -110,7 +127,10 @@ This installs the requirements and creates empty folders for the CORPUS MEMORY c
 
 ## Kubernetes Deployment
 
-The `k8s` directory contains manifests for running Spiral OS on a cluster. Deploy them with:
+The [`k8s`](k8s) directory contains manifests for running Spiral OS on a cluster.
+Key files are [`spiral_os_deployment.yaml`](k8s/spiral_os_deployment.yaml),
+[`spiral_os_service.yaml`](k8s/spiral_os_service.yaml) and
+[`spiral_os_hpa.yaml`](k8s/spiral_os_hpa.yaml). Deploy them with:
 
 ```bash
 kubectl apply -f k8s/spiral_os_deployment.yaml

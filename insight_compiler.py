@@ -9,6 +9,20 @@ from typing import Dict, List, Any
 
 INSIGHT_FILE = Path(__file__).resolve().parent / "insight_matrix.json"
 
+# Map ritual glyphs to intents
+_INTENT_FILE = Path(__file__).resolve().parent / "intent_matrix.json"
+try:
+    _INTENT_MAP: Dict[str, Dict[str, Any]] = json.loads(
+        _INTENT_FILE.read_text(encoding="utf-8")
+    )
+except Exception:  # pragma: no cover - file may be missing
+    _INTENT_MAP = {}
+
+_GLYPHS: Dict[str, set[str]] = {}
+for _name, _info in _INTENT_MAP.items():
+    for _g in _info.get("glyphs", []):
+        _GLYPHS.setdefault(_name, set()).add(_g)
+
 
 def load_insights() -> Dict[str, Any]:
     """Return the current insight matrix as a dictionary."""
@@ -40,7 +54,8 @@ def update_insights(log_entries: List[dict]) -> None:
                     "tones": {},
                     "emotions": {},
                     "responded_with": {},
-                }
+                },
+                "resonance_index": {},
             },
         )
         counts = info["counts"]
@@ -73,6 +88,15 @@ def update_insights(log_entries: List[dict]) -> None:
         if responded:
             for r in responded:
                 counts["responded_with"][r] = counts["responded_with"].get(r, 0) + 1
+
+        # Detect ritual glyphs for resonance tracking
+        if emotion:
+            glyphs = _GLYPHS.get(pattern, set())
+            if glyphs:
+                serialized = json.dumps(entry, ensure_ascii=False)
+                if any(g in serialized for g in glyphs):
+                    res_idx = info.setdefault("resonance_index", {})
+                    res_idx[emotion] = res_idx.get(emotion, 0) + 1
 
     for pattern, info in insights.items():
         counts = info.get("counts", {})

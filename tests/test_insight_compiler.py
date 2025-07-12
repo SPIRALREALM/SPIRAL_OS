@@ -57,3 +57,24 @@ def test_update_aggregates(tmp_path, monkeypatch):
     assert data["open portal"]["counts"]["responded_with"]["music"] == 1
     assert data["open portal"]["best_tone"] == "calm"
     assert abs(data["open portal"]["action_success_rate"] - 2 / 3) < 0.001
+
+
+def test_resonance_index_increases(tmp_path, monkeypatch):
+    insight_file = tmp_path / "insights.json"
+    monkeypatch.setattr(ic, "INSIGHT_FILE", insight_file)
+
+    log = {
+        "intent": "conjure fire",
+        "tone": "joy",
+        "emotion": "joy",
+        "text": "ignite \U0001F702",
+        "success": True,
+    }
+
+    ic.update_insights([log])
+    data = json.loads(insight_file.read_text())
+    assert data["conjure fire"]["resonance_index"]["joy"] == 1
+
+    ic.update_insights([log])
+    data = json.loads(insight_file.read_text())
+    assert data["conjure fire"]["resonance_index"]["joy"] == 2

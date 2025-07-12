@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import tempfile
 from typing import List, Tuple, Optional
 import json
 
@@ -182,9 +183,10 @@ def generate_quantum_music(
     return out_path
 
 
-def play_sequence(sequence: str, emotion: str, *, output_dir: str | Path = ".") -> Path:
-    """Play a short musical sequence via :func:`generate_quantum_music`."""
-    return generate_quantum_music(sequence, emotion, output_dir=output_dir)
+def play_sequence(name: str, mood: str) -> str:
+    """Generate a short clip using ``name`` and ``mood``."""
+    out = generate_quantum_music(name, mood, output_dir=tempfile.gettempdir())
+    return str(out)
 
 
 def reactive_music_loop(

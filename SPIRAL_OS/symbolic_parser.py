@@ -79,7 +79,7 @@ def _action_memory_recall(data: dict) -> Any:
 def _action_voice_play(data: dict) -> Any:
     text = _gather_text(data)
     emotion = data.get("tone", "neutral")
-    return voice_layer_albedo.modulate_voice(text, emotion)
+    return voice_layer_albedo.speak(text, emotion)
 
 
 def _action_generate_music(data: dict) -> Any:

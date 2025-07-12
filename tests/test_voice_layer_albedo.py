@@ -40,3 +40,21 @@ def test_modulate_voice_unknown_tone(monkeypatch):
     voice_evolution._evolver.styles = before
 
 
+def test_speak_uses_modulate_and_play(monkeypatch):
+    events = {}
+
+    def fake_modulate(text: str, tone: str) -> str:
+        events['mod'] = (text, tone)
+        return 'v.wav'
+
+    def fake_play(path: str) -> None:
+        events['play'] = path
+
+    monkeypatch.setattr(voice_layer_albedo, 'modulate_voice', fake_modulate)
+    monkeypatch.setattr(voice_layer_albedo.speaking_engine, 'play_wav', fake_play)
+    out = voice_layer_albedo.speak('hi', 'calm')
+    assert out == 'v.wav'
+    assert events['mod'] == ('hi', 'calm')
+    assert events['play'] == 'v.wav'
+
+

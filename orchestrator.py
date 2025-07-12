@@ -25,6 +25,9 @@ from inanna_ai.personality_layers import AlbedoPersonality
 from inanna_ai import voice_layer_albedo
 from SPIRAL_OS import qnl_engine, symbolic_parser
 import training_guide
+from corpus_memory_logging import log_interaction, load_interactions
+from insight_compiler import update_insights, load_insights
+import learning_mutator
 
 
 class MoGEOrchestrator:
@@ -52,6 +55,7 @@ class MoGEOrchestrator:
             e: (1.0 if e == "neutral" else 0.0)
             for e in emotion_analysis.EMOTION_WEIGHT
         }
+        self._interaction_count = 0
 
     @staticmethod
     def _select_plane(weight: float, archetype: str) -> str:
@@ -185,6 +189,16 @@ class MoGEOrchestrator:
         elapsed = perf_counter() - start
         if text_modality and "text" in result:
             self._benchmark(model, text, result["text"], elapsed)
+
+        self._interaction_count += 1
+        log_interaction(text, {"intents": intents or []}, result, "ok")
+
+        if self._interaction_count % 20 == 0:
+            entries = load_interactions()
+            update_insights(entries)
+            suggestions = learning_mutator.propose_mutations(load_insights())
+            for s in suggestions:
+                print(s)
 
         return result
 

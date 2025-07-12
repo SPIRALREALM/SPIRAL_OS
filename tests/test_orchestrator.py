@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+import orchestrator
 from orchestrator import MoGEOrchestrator
 
 
@@ -92,3 +93,40 @@ def test_context_model_selection(monkeypatch):
     # Second neutral technical message still routes to Mistral due to context
     res2 = orch.route("import os", {"emotion": "neutral"})
     assert res2["model"] == "mistral"
+
+
+def test_handle_input_parses_and_routes(monkeypatch):
+    events = {}
+
+    def fake_parse(text):
+        events["parse"] = text
+        return {"tone": "joy"}
+
+    def fake_intent(data):
+        events["intent"] = data
+        return ["ok"]
+
+    def fake_route(self, text, emotion_data, *, qnl_data=None, **kwargs):
+        events["route"] = qnl_data
+        return {"result": True}
+
+    monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", fake_parse)
+    monkeypatch.setattr(orchestrator.symbolic_parser, "parse_intent", fake_intent)
+    monkeypatch.setattr(MoGEOrchestrator, "route", fake_route)
+
+    orch = MoGEOrchestrator()
+    out = orch.handle_input("hello")
+
+    assert events["parse"] == "hello"
+    assert events["intent"] == {"tone": "joy"}
+    assert events["route"] == {"tone": "joy"}
+    assert out == {"result": True}
+
+
+def test_schedule_action_executes(monkeypatch):
+    called = []
+
+    timer = orchestrator.schedule_action(lambda: called.append(True), 0.01)
+    timer.join(0.1)
+
+    assert called == [True]

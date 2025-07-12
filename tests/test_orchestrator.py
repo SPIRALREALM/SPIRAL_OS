@@ -143,6 +143,7 @@ def test_handle_input_parses_and_routes(monkeypatch):
     monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", fake_parse)
     monkeypatch.setattr(orchestrator.symbolic_parser, "parse_intent", fake_intent)
     monkeypatch.setattr(MoGEOrchestrator, "route", fake_route)
+    monkeypatch.setattr(orchestrator.reflection_loop, "run_reflection_loop", lambda *a, **k: None)
 
     orch = MoGEOrchestrator()
     out = orch.handle_input("hello")

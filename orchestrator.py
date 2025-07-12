@@ -10,6 +10,7 @@ from collections import deque
 import soundfile as sf
 from time import perf_counter
 import threading
+import logging
 
 try:  # pragma: no cover - optional dependency
     from sentence_transformers import SentenceTransformer
@@ -34,6 +35,9 @@ import training_guide
 from corpus_memory_logging import log_interaction, load_interactions
 from insight_compiler import update_insights, load_insights
 import learning_mutator
+from tools import reflection_loop
+
+logger = logging.getLogger(__name__)
 
 
 class MoGEOrchestrator:
@@ -273,6 +277,11 @@ class MoGEOrchestrator:
         result = self.route(text, emotion_data, qnl_data=qnl_data)
         if self._active_layer_name:
             emotional_state.set_current_layer(self._active_layer_name)
+        if context_tracker.state.avatar_loaded:
+            try:
+                reflection_loop.run_reflection_loop(iterations=1)
+            except Exception:  # pragma: no cover - safeguard
+                logger.exception("reflection loop failed")
         return result
 
 

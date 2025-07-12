@@ -47,6 +47,7 @@ def test_avatar_and_call_sequence(monkeypatch):
     monkeypatch.setattr(orchestrator.learning_mutator, "propose_mutations", lambda d: [])
     monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", lambda t: {"tone": "neutral"})
     monkeypatch.setattr(orchestrator.symbolic_parser, "parse_intent", lambda d: [])
+    monkeypatch.setattr(orchestrator.reflection_loop, "run_reflection_loop", lambda *a, **k: None)
 
     orch = MoGEOrchestrator()
 

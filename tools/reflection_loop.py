@@ -58,9 +58,17 @@ def run_reflection_loop(iterations: int = 10) -> None:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         detected = detect_expression(frame)
         intended = emotional_state.get_last_emotion() or "neutral"
+        logger.debug("reflection detected=%s intended=%s", detected, intended)
         if detected != intended:
             tol = thresholds.get(intended, thresholds.get("default", 0.0))
+            logger.info(
+                "mismatch detected: %s vs %s (tol %.3f)",
+                detected,
+                intended,
+                tol,
+            )
             self_correction_engine.adjust(detected, intended, tol)
+            logger.info("correction issued from %s to %s", detected, intended)
 
 
 __all__ = ["run_reflection_loop", "detect_expression", "load_thresholds"]

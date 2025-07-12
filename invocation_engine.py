@@ -2,11 +2,13 @@ from __future__ import annotations
 
 """Pattern-based invocation engine."""
 
-from typing import Callable, Dict, Tuple, Any, List
+from typing import Callable, Dict, Tuple, Any, List, TYPE_CHECKING
 import re
 
 import vector_memory
-from orchestrator import MoGEOrchestrator
+
+if TYPE_CHECKING:  # pragma: no cover - avoid circular import at runtime
+    from orchestrator import MoGEOrchestrator
 
 
 # Map of (symbols, emotion) -> callback

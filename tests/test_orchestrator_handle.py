@@ -8,9 +8,34 @@ sys.path.insert(0, str(ROOT))
 # Stub heavy optional dependencies before importing the module
 sys.modules.setdefault("librosa", types.ModuleType("librosa"))
 sys.modules.setdefault("opensmile", types.ModuleType("opensmile"))
+sys.modules.setdefault("soundfile", types.ModuleType("soundfile"))
+yaml_mod = types.ModuleType("yaml")
+yaml_mod.safe_load = lambda *a, **k: {}
+sys.modules.setdefault("yaml", yaml_mod)
+sf_mod = sys.modules["soundfile"]
+setattr(sf_mod, "write", lambda path, data, sr, subtype=None: Path(path).touch())
+scipy_mod = types.ModuleType("scipy")
+scipy_io = types.ModuleType("scipy.io")
+wavfile_mod = types.ModuleType("scipy.io.wavfile")
+wavfile_mod.write = lambda *a, **k: None
+scipy_io.wavfile = wavfile_mod
+signal_mod = types.ModuleType("scipy.signal")
+signal_mod.butter = lambda *a, **k: (None, None)
+signal_mod.lfilter = lambda *a, **k: []
+scipy_mod.signal = signal_mod
+scipy_mod.io = scipy_io
+sys.modules.setdefault("scipy", scipy_mod)
+sys.modules.setdefault("scipy.io", scipy_io)
+sys.modules.setdefault("scipy.signal", signal_mod)
+sys.modules.setdefault("scipy.io.wavfile", wavfile_mod)
+
 
 import orchestrator
 from orchestrator import MoGEOrchestrator
+
+# Disable invocation engine side effects
+orchestrator.invocation_engine.invoke = lambda *a, **k: []
+orchestrator.invocation_engine._extract_symbols = lambda text: ""
 
 
 def test_handle_input_updates_mood(monkeypatch):
@@ -104,3 +129,23 @@ def test_dynamic_layer_selection(monkeypatch):
 
     assert result["text"] == "layer:hello"
     assert recorded.get("layer") == "dummy"
+
+
+def test_invocation_task_sequence(monkeypatch):
+    actions = []
+
+    monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", lambda t: {"tone": "joy"})
+    def fake_parse_intent(d):
+        if "text" in d:
+            actions.append(d["text"])
+        return "ok"
+    monkeypatch.setattr(orchestrator.symbolic_parser, "parse_intent", fake_parse_intent)
+    monkeypatch.setattr(MoGEOrchestrator, "route", lambda self, text, emotion_data, **k: {})
+    monkeypatch.setattr(orchestrator, "ritual_action_sequence", lambda sym, emo: ["open portal"])
+    monkeypatch.setattr(orchestrator.invocation_engine, "invoke", lambda t, o: [["weave sound"]])
+    monkeypatch.setattr(orchestrator.invocation_engine, "_extract_symbols", lambda t: "☉")
+
+    orch = MoGEOrchestrator()
+    orch.handle_input("∴")
+
+    assert actions == ["open portal", "weave sound"]

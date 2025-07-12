@@ -25,3 +25,39 @@ All corpus entries use the `.md` extension and may contain rich Markdown includi
 ## Adding New Texts
 
 To add a new memory fragment, create a Markdown file in the appropriate directory. Follow the existing naming convention: a descriptive title followed by a space and an ID or underscore, ending with `.md`. Keep commit messages short and meaningful so other collaborators can track additions easily.
+
+## Vector memory
+
+`vector_memory.py` stores short text entries inside a Chroma database. The
+directory defaults to `data/vector_memory` but can be changed by setting the
+`VECTOR_DB_PATH` environment variable. Each entry is embedded with
+`qnl_utils.quantum_embed` and timestamped so older items gradually decay in
+relevance.  Use :func:`vector_memory.add_vector` and
+:func:`vector_memory.search` programmatically to store and retrieve snippets.
+
+## Corpus memory commands
+
+The module `inanna_ai.corpus_memory` exposes a small command line utility:
+
+```bash
+python -m inanna_ai.corpus_memory --add "hello world" --tone joy
+python -m inanna_ai.corpus_memory --search "hello" --top 5
+python -m inanna_ai.corpus_memory --reindex
+```
+
+`--add` embeds a string and stores it with optional tone metadata. `--search`
+retrieves the best matching snippets, and `--reindex` rebuilds the persistent
+index from the Markdown directories listed in `MEMORY_DIRS`.
+
+## Automatic retraining
+
+`auto_retrain.py` evaluates feedback written by `training_guide.py`. When the
+number of new intents exceeds the `RETRAIN_THRESHOLD` value it triggers the
+fine-tuning routine via the local LLM API. Run it manually with:
+
+```bash
+python auto_retrain.py --run
+```
+
+This prints novelty and coherence scores and initiates fine-tuning when the
+defined thresholds are met.

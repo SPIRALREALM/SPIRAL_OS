@@ -231,6 +231,29 @@ python -m inanna_ai.main fetch-gutenberg "Frankenstein" --max 2
 python -m inanna_ai.main fetch-github
 ```
 
+You can also run the scraper module directly which reads repository names from
+`learning_sources/github_repos.txt` and stores README files and commit logs
+under `data/github`:
+
+```bash
+python -m inanna_ai.learning.github_scraper
+```
+
+Set `GITHUB_TOKEN` in `secrets.env` to avoid API rate limits.
+
+## Retrain the language model
+
+Feedback from `training_guide.py` accumulates in `data/feedback.json`. When the
+number of new intents reaches the `RETRAIN_THRESHOLD` value the helper script
+`auto_retrain.py` can fine‑tune the local model:
+
+```bash
+python auto_retrain.py --run
+```
+
+This prints novelty and coherence scores and invokes the API when conditions are
+met.
+
 ## Verify core integrity
 
 At any point you may confirm that the RFA7D grid has not been tampered with:

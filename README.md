@@ -20,6 +20,8 @@ Welcome to the sacred structure of OMEGA ZERO ABSOLUTE PRIME AKA GREAT MOTHER.
   [docs/how_to_use.md](docs/how_to_use.md).
 - For privacy and sacred-use guidance, read
   [docs/avatar_ethics.md](docs/avatar_ethics.md).
+- For instructions on customizing the avatar's look, see
+  [guides/visual_customization.md](guides/visual_customization.md).
 
 For an overview of available agents and defensive modules, see
 [AGENTS.md](AGENTS.md#upcoming-components).

@@ -6,6 +6,8 @@ loaded from `guides/avatar_config.toml`. When the optional `mediapipe` package i
 installed, facial landmarks are updated each iteration so downstream processes
 can animate the mesh. By default the stream fills each frame with the configured
 eye colour and embeds the sigil defined in the traits.
+For instructions on creating your own model and adjusting these traits, see
+[../guides/visual_customization.md](../guides/visual_customization.md).
 
 Calls to `start_stream()` return the iterator so orchestrators can consume the
 frames directly. The engine closes the `mediapipe` resources when the iterator is

@@ -11,7 +11,9 @@ sys.modules.setdefault("requests", types.ModuleType("requests"))
 bs4_mod = types.ModuleType("bs4")
 bs4_mod.BeautifulSoup = lambda *a, **k: None
 sys.modules.setdefault("bs4", bs4_mod)
-sys.modules.setdefault("numpy", types.ModuleType("numpy"))
+numpy_mod = types.ModuleType("numpy")
+numpy_mod.ndarray = object
+sys.modules.setdefault("numpy", numpy_mod)
 
 from inanna_ai.learning import github_scraper as gs
 
@@ -85,7 +87,7 @@ def test_fetch_all_uses_repo_list(monkeypatch, tmp_path):
     monkeypatch.setattr(gs, "load_repo_list", lambda p=None: repos)
 
     saved = []
-    def dummy_fetch_repo(repo, dest_dir=None):
+    def dummy_fetch_repo(repo, dest_dir=None, labels=None):
         paths = []
         for suffix in ["README.md", "COMMITS.txt", "metadata.json"]:
             p = tmp_path / f"{repo.replace('/', '_')}_{suffix}"

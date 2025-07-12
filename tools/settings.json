@@ -1,0 +1,7 @@
+{
+  "backend": "webrtc",
+  "webrtc_server": "wss://example.com/signaling",
+  "discord_token": "YOUR_DISCORD_TOKEN",
+  "telegram_token": "YOUR_TELEGRAM_TOKEN",
+  "latency": 0.1
+}

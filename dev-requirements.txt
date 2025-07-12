@@ -1,8 +1,8 @@
 numpy
 scipy
-soundfile
-librosa
-pytest
+soundfile  # audio I/O
+librosa  # audio analysis
+pytest  # test runner
 markdown
 sentence-transformers  # required for semantic validator tests
 transformers>=4.38
@@ -11,7 +11,7 @@ pyopenssl
 streamlit
 stable-baselines3
 python-json-logger
-httpx
+httpx  # HTTP client for tests
 
 # Development tools
 black

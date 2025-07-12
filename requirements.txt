@@ -1,9 +1,9 @@
-openai-whisper
-TTS
+openai-whisper  # speech recognition
+TTS  # text-to-speech
 numpy
 scipy
 pandas
-librosa
+librosa  # audio analysis
 huggingface-hub
 torch>=2.1
 transformers>=4.38
@@ -11,10 +11,10 @@ sentencepiece
 accelerate
 einops
 scapy
-soundfile
-opensmile==2.5.1
-EmotiVoice==0.2.0
-voicefixer==0.1.3
+soundfile  # audio I/O
+opensmile==2.5.1  # emotion recognition
+EmotiVoice==0.2.0  # voice emotion features
+voicefixer==0.1.3  # speech cleanup
 requests
 beautifulsoup4
 streamlit
@@ -22,6 +22,6 @@ fastapi
 uvicorn
 sentence-transformers  # optional, for semantic validation
 stable-baselines3
-chromadb
-mlflow
+chromadb  # vector memory store
+mlflow  # experiment tracking
 python-json-logger

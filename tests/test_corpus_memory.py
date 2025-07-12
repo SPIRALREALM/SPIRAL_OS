@@ -69,6 +69,12 @@ def test_cli_search(tmp_path, monkeypatch, capsys):
 
     corpus_memory.reindex_corpus()
 
+    monkeypatch.setattr(
+        corpus_memory.vector_memory,
+        "search",
+        lambda q, filter=None, k=10: [{"text": "A magical unicorn appears.", "tone": ""}],
+    )
+
     argv_backup = sys.argv.copy()
     sys.argv = ["corpus_memory", "--search", "unicorn", "--top", "1"]
     try:
@@ -77,7 +83,7 @@ def test_cli_search(tmp_path, monkeypatch, capsys):
         sys.argv = argv_backup
 
     out = capsys.readouterr().out.lower()
-    assert "found.md" in out
+    assert "magical unicorn" in out
 
 
 def test_cli_reindex_runs(monkeypatch):
@@ -105,7 +111,12 @@ def test_cli_reindex_with_search(monkeypatch):
     monkeypatch.setattr(
         corpus_memory,
         "search_corpus",
-        lambda *a, **k: called.__setitem__("search", True) or [("p", "s")],
+        lambda *a, **k: called.__setitem__("search_corpus", True) or [("p", "s")],
+    )
+    monkeypatch.setattr(
+        corpus_memory,
+        "search",
+        lambda *a, **k: called.__setitem__("search", True) or [{"text": "x", "tone": ""}],
     )
 
     argv_backup = sys.argv.copy()

@@ -147,13 +147,12 @@ def search_corpus(
 
 def add_entry(text: str, tone: str | None, *, metadata: dict | None = None) -> dict:
     """Embed ``text`` and store it in :data:`CHROMA_DIR`."""
-    emb = qnl_utils.quantum_embed(text)
     meta = {"text": text}
     if tone is not None:
         meta["tone"] = tone
     if metadata:
         meta.update(metadata)
-    vector_memory.add_vector(emb.tolist(), CHROMA_DIR, meta)
+    vector_memory.add_vector(text, meta)
     corpus_memory_logging.log_interaction(text, {"tone": tone}, meta, "stored")
     return meta
 
@@ -162,24 +161,12 @@ def search(
     query: str,
     *,
     emotion: str | None = None,
-    similarity_threshold: float = 0.85,
- ) -> List[dict]:
+    similarity_threshold: float = 0.85,  # unused - kept for API compatibility
+) -> List[dict]:
     """Search stored entries and return matching metadata."""
-    qvec = qnl_utils.quantum_embed(query)
-    entries = vector_memory.load_vectors(CHROMA_DIR)
-    results: List[dict] = []
-    for vec, meta in entries:
-        if not vec.size:
-            continue
-        sim = float(vec @ qvec / ((np.linalg.norm(vec) * np.linalg.norm(qvec)) + 1e-8))
-        if sim < similarity_threshold:
-            continue
-        if emotion is not None and meta.get("tone") != emotion:
-            continue
-        item = meta.copy()
-        item["similarity"] = sim
-        results.append(item)
-    results.sort(key=lambda m: m["similarity"], reverse=True)
+
+    filt = {"tone": emotion} if emotion is not None else None
+    results = vector_memory.search(query, filter=filt, k=10)
     return results
 
 

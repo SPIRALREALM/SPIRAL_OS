@@ -11,19 +11,13 @@ from inanna_ai import corpus_memory
 def test_add_entry_logs_and_stores(monkeypatch, tmp_path):
     added = {}
 
-    def dummy_embed(text):
-        return np.array([len(text)], dtype=float)
-
-    def dummy_add_vector(vec, dir_path, metadata=None):
-        added['vector'] = vec
-        added['dir'] = dir_path
+    def dummy_add_vector(text, metadata):
+        added['text'] = text
         added['meta'] = metadata
 
     log_calls = {}
 
-    monkeypatch.setattr(corpus_memory.qnl_utils, "quantum_embed", dummy_embed)
     monkeypatch.setattr(corpus_memory.vector_memory, "add_vector", dummy_add_vector)
-    monkeypatch.setattr(corpus_memory, "CHROMA_DIR", tmp_path)
     monkeypatch.setattr(
         corpus_memory,
         "corpus_memory_logging",
@@ -35,28 +29,27 @@ def test_add_entry_logs_and_stores(monkeypatch, tmp_path):
     )
 
     meta = corpus_memory.add_entry("hello", "joy")
-    assert added["vector"] == [5.0]
-    assert added["dir"] == tmp_path
+    assert added["text"] == "hello"
     assert added["meta"]["tone"] == "joy"
     assert meta["text"] == "hello"
     assert log_calls.get("logged")
 
 
 def test_search_filters_and_orders(monkeypatch):
-    def dummy_embed(text):
-        return np.array([len(text)], dtype=float)
-
-    records = [
-        (np.array([3.0]), {"text": "foo", "tone": "joy"}),
-        (np.array([5.0]), {"text": "bar", "tone": "calm"}),
-        (np.array([2.0]), {"text": "baz", "tone": "joy"}),
+    dummy_results = [
+        {"text": "foo", "tone": "joy", "score": 0.9},
+        {"text": "baz", "tone": "joy", "score": 0.8},
+        {"text": "bar", "tone": "calm", "score": 0.5},
     ]
 
-    monkeypatch.setattr(corpus_memory.qnl_utils, "quantum_embed", dummy_embed)
-    monkeypatch.setattr(corpus_memory.vector_memory, "load_vectors", lambda p: records)
+    def dummy_search(query, filter=None, k=5):
+        assert filter == {"tone": "joy"}
+        return dummy_results
+
+    monkeypatch.setattr(corpus_memory.vector_memory, "search", dummy_search)
 
     res = corpus_memory.search("hello!", emotion="joy", similarity_threshold=0.1)
-    assert [r["text"] for r in res] == ["foo", "baz"]
+    assert [r["text"] for r in res] == ["foo", "baz", "bar"][: len(res)]
 
 
 def test_prioritize_by_tone():

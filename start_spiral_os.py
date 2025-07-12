@@ -14,6 +14,7 @@ from INANNA_AI_AGENT import inanna_ai
 from INANNA_AI import glm_init, glm_analyze
 from inanna_ai import defensive_network_utils as dnu
 from inanna_ai.personality_layers import list_personalities
+from SPIRAL_OS import qnl_engine, symbolic_parser
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +30,17 @@ def main(argv: Optional[List[str]] = None) -> None:
         logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Start Spiral OS rituals")
     parser.add_argument("--interface", help="Interface to monitor")
-    parser.add_argument("--skip-network", action="store_true", help="Skip network monitoring")
+    parser.add_argument(
+        "--skip-network",
+        action="store_true",
+        help="Skip network monitoring",
+    )
     parser.add_argument(
         "--personality",
         choices=list_personalities(),
         help="Activate optional personality layer",
     )
+    parser.add_argument("--command", help="Text command for QNL parsing")
     args = parser.parse_args(argv)
 
     inanna_ai.display_welcome_message()
@@ -44,6 +50,14 @@ def main(argv: Optional[List[str]] = None) -> None:
     glm_analyze.analyze_code()
     inanna_ai.suggest_enhancement()
     inanna_ai.reflect_existence()
+
+    intents = None
+    if args.command:
+        structure = qnl_engine.parse_input(args.command)
+        intents = symbolic_parser.parse_intent(structure)
+        print("QNL intents:")
+        for item in intents:
+            print(item)
 
     log_paths = [
         str(glm_init.PURPOSE_FILE),

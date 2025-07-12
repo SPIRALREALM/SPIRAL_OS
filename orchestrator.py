@@ -21,7 +21,8 @@ from task_profiling import classify_task
 
 from inanna_ai import response_manager, tts_coqui, emotion_analysis, db_storage
 from inanna_ai.personality_layers import AlbedoPersonality
-from SPIRAL_OS import qnl_engine
+from inanna_ai import voice_layer_albedo
+from SPIRAL_OS import qnl_engine, symbolic_parser
 
 
 class MoGEOrchestrator:
@@ -102,6 +103,7 @@ class MoGEOrchestrator:
         text: str,
         emotion_data: Dict[str, Any],
         *,
+        qnl_data: Dict[str, Any] | None = None,
         text_modality: bool = True,
         voice_modality: bool = False,
         music_modality: bool = False,
@@ -114,6 +116,12 @@ class MoGEOrchestrator:
             weight = emotion_analysis.emotion_weight(emotion)
         plane = self._select_plane(weight, archetype)
 
+        tone = None
+        intents = None
+        if qnl_data is not None:
+            tone = qnl_data.get("tone")
+            intents = symbolic_parser.parse_intent(qnl_data)
+
         task = classify_task(text)
         history_tasks = [c["task"] for c in self._context]
         model = self._choose_model(task, weight, history_tasks)
@@ -125,6 +133,8 @@ class MoGEOrchestrator:
             "weight": weight,
             "model": model,
         }
+        if intents is not None:
+            result["qnl_intents"] = intents
 
         if text_modality:
             if self._albedo is not None:
@@ -134,7 +144,14 @@ class MoGEOrchestrator:
 
         if voice_modality:
             speech_input = result.get("text", text)
-            result["voice_path"] = tts_coqui.synthesize_speech(speech_input, emotion)
+            if tone is not None:
+                result["voice_path"] = voice_layer_albedo.modulate_voice(
+                    speech_input, tone
+                )
+            else:
+                result["voice_path"] = tts_coqui.synthesize_speech(
+                    speech_input, emotion
+                )
 
         if music_modality:
             hex_input = text.encode("utf-8").hex()

@@ -55,3 +55,27 @@ def test_sequence_skip_network(monkeypatch):
 
     assert events == ["welcome", "summary", "analyze", "suggest", "reflect"]
 
+
+def test_command_parsing(monkeypatch):
+    events = []
+    monkeypatch.setattr(start_spiral_os.inanna_ai, "display_welcome_message", lambda: None)
+    monkeypatch.setattr(start_spiral_os.glm_init, "summarize_purpose", lambda: None)
+    monkeypatch.setattr(start_spiral_os.glm_analyze, "analyze_code", lambda: None)
+    monkeypatch.setattr(start_spiral_os.inanna_ai, "suggest_enhancement", lambda: None)
+    monkeypatch.setattr(start_spiral_os.inanna_ai, "reflect_existence", lambda: None)
+
+    def fake_parse(cmd):
+        events.append("parse")
+        return {"tone": "albedo"}
+
+    def fake_intent(struct):
+        events.append("intent")
+        return ["ok"]
+
+    monkeypatch.setattr(start_spiral_os.qnl_engine, "parse_input", fake_parse)
+    monkeypatch.setattr(start_spiral_os.symbolic_parser, "parse_intent", fake_intent)
+
+    _run_main(["--command", "hello world"])
+
+    assert events == ["parse", "intent"]
+

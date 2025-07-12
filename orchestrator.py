@@ -24,7 +24,7 @@ from inanna_ai import response_manager, tts_coqui, emotion_analysis, db_storage
 from inanna_ai.personality_layers import AlbedoPersonality, REGISTRY as PERSONALITY_REGISTRY
 from inanna_ai import voice_layer_albedo
 from SPIRAL_OS import qnl_engine, symbolic_parser
-import emotion_registry
+import emotional_state
 import training_guide
 from corpus_memory_logging import log_interaction, load_interactions
 from insight_compiler import update_insights, load_insights
@@ -142,7 +142,7 @@ class MoGEOrchestrator:
             tone = qnl_data.get("tone")
             intents = symbolic_parser.parse_intent(qnl_data)
 
-        layer_name = emotion_registry.get_current_layer()
+        layer_name = emotional_state.get_current_layer()
         if layer_name:
             layer_cls = PERSONALITY_REGISTRY.get(layer_name)
             if layer_cls is not None and not isinstance(self._albedo, layer_cls):
@@ -240,8 +240,8 @@ class MoGEOrchestrator:
         emotion = qnl_data.get("tone", "neutral")
         self._update_mood(emotion)
         dominant = max(self.mood_state, key=self.mood_state.get)
-        emotion_registry.set_last_emotion(dominant)
-        emotion_registry.set_resonance_level(self.mood_state[dominant])
+        emotional_state.set_last_emotion(dominant)
+        emotional_state.set_resonance_level(self.mood_state[dominant])
 
         emotion_data = {
             "emotion": dominant,
@@ -250,7 +250,7 @@ class MoGEOrchestrator:
         }
         result = self.route(text, emotion_data, qnl_data=qnl_data)
         if self._active_layer_name:
-            emotion_registry.set_current_layer(self._active_layer_name)
+            emotional_state.set_current_layer(self._active_layer_name)
         return result
 
 

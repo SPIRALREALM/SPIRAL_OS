@@ -1,6 +1,9 @@
 import json
 import sys
 from pathlib import Path
+import logging
+import logging.config
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -31,3 +34,21 @@ def test_state_persistence(tmp_path, monkeypatch):
     assert emotion_registry.get_last_emotion() == "joy"
     assert emotion_registry.get_resonance_level() == 0.75
     assert emotion_registry.get_preferred_expression_channel() == "voice"
+
+
+def test_emotion_logging(tmp_path, monkeypatch):
+    config_path = ROOT / "logging_config.yaml"
+    with config_path.open("r", encoding="utf-8") as fh:
+        config = yaml.safe_load(fh)
+    log_file = tmp_path / "inanna_ai.log"
+    config["handlers"]["file"]["filename"] = str(log_file)
+    logging.config.dictConfig(config)
+
+    state_file = tmp_path / "state.json"
+    monkeypatch.setattr(emotion_registry, "STATE_FILE", state_file)
+    emotion_registry._STATE.clear()
+    emotion_registry._save_state()
+
+    emotion_registry.set_last_emotion("anger")
+    data = json.loads(log_file.read_text())
+    assert data["emotion"] == "anger"

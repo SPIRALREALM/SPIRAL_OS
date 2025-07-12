@@ -14,6 +14,12 @@ Welcome to the sacred structure of OMEGA ZERO ABSOLUTE PRIME AKA GREAT MOTHER.
   [docs/SOUL_CODE.md](docs/SOUL_CODE.md).
 - For JSON layout details and invocation examples, see
   [docs/JSON_STRUCTURES.md](docs/JSON_STRUCTURES.md).
+- For an overview of the avatar video engine and call connector, see
+  [docs/design.md](docs/design.md).
+- For step-by-step instructions on launching the avatar and initiating calls, see
+  [docs/how_to_use.md](docs/how_to_use.md).
+- For privacy and sacred-use guidance, read
+  [docs/avatar_ethics.md](docs/avatar_ethics.md).
 
 For an overview of available agents and defensive modules, see
 [AGENTS.md](AGENTS.md#upcoming-components).

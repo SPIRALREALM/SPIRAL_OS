@@ -35,11 +35,11 @@ def test_parse_intent_memory(monkeypatch):
 def test_parse_intent_voice(monkeypatch):
     calls = {}
 
-    def fake_speak(text: str, emotion: str):
-        calls['args'] = (text, emotion)
+    def fake_modulate(text: str, tone: str):
+        calls['args'] = (text, tone)
         return 'v.wav'
 
-    monkeypatch.setattr(symbolic_parser.speaking_engine, 'synthesize_speech', fake_speak)
+    monkeypatch.setattr(symbolic_parser.voice_layer_albedo, 'modulate_voice', fake_modulate)
     result = symbolic_parser.parse_intent({'text': 'weave sound', 'tone': 'joy'})
     assert result == ['v.wav']
     assert calls['args'] == ('weave sound', 'joy')
@@ -56,3 +56,59 @@ def test_parse_intent_placeholder(monkeypatch):
     result = symbolic_parser.parse_intent({'text': 'open portal'})
     assert result == ['ok']
     assert called['data']['text'] == 'open portal'
+
+
+def test_route_intent_memory(monkeypatch):
+    called = {}
+
+    def dummy_search(query, top_k=3):
+        called['query'] = query
+        return ['hit']
+
+    monkeypatch.setattr(symbolic_parser.corpus_memory, 'search_corpus', dummy_search)
+    intent = {'intent': 'invoke remembrance', 'action': 'memory.recall', 'text': 'alpha'}
+    result = symbolic_parser.route_intent(intent)
+    assert result == ['hit']
+    assert called['query'] == 'alpha'
+
+
+def test_route_intent_voice(monkeypatch):
+    calls = {}
+
+    def fake_modulate(text: str, tone: str):
+        calls['args'] = (text, tone)
+        return 'p.wav'
+
+    monkeypatch.setattr(symbolic_parser.voice_layer_albedo, 'modulate_voice', fake_modulate)
+    intent = {'intent': 'play', 'action': 'voice_layer.play', 'text': 'beta', 'tone': 'joy'}
+    result = symbolic_parser.route_intent(intent)
+    assert result == 'p.wav'
+    assert calls['args'] == ('beta', 'joy')
+
+
+def test_route_intent_music(monkeypatch):
+    calls = {}
+
+    def fake_play(seq: str, emo: str):
+        calls['args'] = (seq, emo)
+        return Path('x.wav')
+
+    monkeypatch.setattr(symbolic_parser.seven_dimensional_music, 'play_sequence', fake_play)
+    intent = {'intent': 'play', 'action': 'music.play_sequence', 'text': 'notes', 'tone': 'calm'}
+    result = symbolic_parser.route_intent(intent)
+    assert result == Path('x.wav')
+    assert calls['args'] == ('notes', 'calm')
+
+
+def test_route_intent_ritual(monkeypatch):
+    called = {}
+
+    def fake_vault(data):
+        called['data'] = data
+        return 'ok'
+
+    monkeypatch.setattr(symbolic_parser.ritual, 'vault_open', fake_vault)
+    intent = {'intent': 'open vault', 'action': 'ritual.vault_open', 'text': 'secret'}
+    result = symbolic_parser.route_intent(intent)
+    assert result == 'ok'
+    assert called['data']['text'] == 'secret'

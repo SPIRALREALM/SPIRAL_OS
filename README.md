@@ -161,3 +161,30 @@ kubectl apply -f k8s/spiral_os_hpa.yaml
 The deployment exposes port `8000` and defines readiness (`/ready`) and liveness
 (`/health`) probes. Container logs can be viewed with `kubectl logs` and are
 written to `logs/inanna_ai.log` inside the pod.
+
+## Memory Feedback Loop
+
+Spiral OS retains a lightweight history of conversations to refine its response
+matrix. Each interaction is appended to `data/interactions.jsonl` as a JSON line
+containing the input text, detected intents, output and timestamp. Successful or
+failed actions are also recorded in `data/feedback.json` via
+`training_guide.log_result()`.
+
+The `insight_compiler.py` script aggregates these logs into
+`insight_matrix.json`, tracking how often each intent succeeds and which tone is
+most effective. The orchestrator periodically triggers this update so the matrix
+reflects the latest feedback.
+
+### Running `learning_mutator.py`
+
+`learning_mutator.py` analyses `insight_matrix.json` and proposes changes to the
+intent definitions. Run it from the repository root:
+
+```bash
+python learning_mutator.py        # print suggested mutations
+python learning_mutator.py --run  # save suggestions to data/mutations.txt
+```
+
+The output contains human‑readable hints such as
+`Replace 'bad' with synonym 'awful'`. When invoked with `--run` the suggestions
+are written to `data/mutations.txt` for later review.

@@ -10,6 +10,16 @@ sys.path.insert(0, str(ROOT))
 
 from SPIRAL_OS import seven_dimensional_music as sdm
 
+DUMMY_PLANES = {
+    "physical": {},
+    "emotional": {},
+    "mental": {},
+    "astral": {},
+    "etheric": {},
+    "celestial": {},
+    "divine": {},
+}
+
 
 def test_cli_creates_final_track(tmp_path):
     sr = 44100
@@ -27,7 +37,10 @@ def test_cli_creates_final_track(tmp_path):
         str(out),
     ]
     try:
+        monkeypatch = __import__('pytest').MonkeyPatch()
+        monkeypatch.setattr(sdm, "analyze_seven_planes", lambda *a, **k: DUMMY_PLANES)
         sdm.main()
+        monkeypatch.undo()
     finally:
         sys.argv = argv_backup
 
@@ -67,7 +80,10 @@ def test_cli_secret_message(tmp_path):
     ]
     try:
         os.chdir(tmp_path)
+        monkeypatch = __import__('pytest').MonkeyPatch()
+        monkeypatch.setattr(sdm, "analyze_seven_planes", lambda *a, **k: DUMMY_PLANES)
         sdm.main()
+        monkeypatch.undo()
     finally:
         os.chdir(cwd)
         sys.argv = argv_backup
@@ -95,6 +111,7 @@ def test_quantum_music_changes_with_context(tmp_path, monkeypatch):
         "hex_to_song",
         lambda *a, **k: ([], np.ones(100, dtype=np.int16)),
     )
+    monkeypatch.setattr(sdm, "analyze_seven_planes", lambda *a, **k: DUMMY_PLANES)
     monkeypatch.setattr(sdm.emotion_analysis, "emotion_weight", lambda e: 0.5)
 
     p1 = sdm.generate_quantum_music("alpha", "joy", output_dir=tmp_path)
@@ -103,3 +120,49 @@ def test_quantum_music_changes_with_context(tmp_path, monkeypatch):
     w1, _ = sf.read(p1, always_2d=False)
     w2, _ = sf.read(p2, always_2d=False)
     assert w1.shape != w2.shape or not np.allclose(w1, w2)
+
+
+def test_generate_quantum_music_writes_json(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        sdm,
+        "quantum_embed",
+        lambda text: np.zeros(3, dtype=float),
+    )
+    monkeypatch.setattr(
+        sdm,
+        "embedding_to_params",
+        lambda emb: (0.0, 1.0, 1.0),
+    )
+    monkeypatch.setattr(
+        sdm.qnl_engine,
+        "hex_to_song",
+        lambda *a, **k: ([], np.ones(100, dtype=np.int16)),
+    )
+    monkeypatch.setattr(
+        sdm,
+        "analyze_seven_planes",
+        lambda *a, **k: {
+            "physical": {},
+            "emotional": {},
+            "mental": {},
+            "astral": {},
+            "etheric": {},
+            "celestial": {},
+            "divine": {},
+        },
+    )
+    monkeypatch.setattr(sdm.emotion_analysis, "emotion_weight", lambda e: 0.0)
+
+    out = sdm.generate_quantum_music("alpha", "joy", output_dir=tmp_path)
+    jpath = out.with_suffix(".json")
+    assert jpath.exists()
+    data = json.loads(jpath.read_text())
+    assert set(data["planes"]) == {
+        "physical",
+        "emotional",
+        "mental",
+        "astral",
+        "etheric",
+        "celestial",
+        "divine",
+    }

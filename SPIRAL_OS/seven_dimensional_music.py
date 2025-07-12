@@ -14,6 +14,7 @@ from pathlib import Path
 import tempfile
 from typing import List, Tuple, Optional
 import json
+import yaml
 
 import numpy as np
 import soundfile as sf
@@ -30,6 +31,18 @@ from MUSIC_FOUNDATION.synthetic_stego import embed_data, extract_data
 from MUSIC_FOUNDATION.seven_plane_analyzer import analyze_seven_planes
 from MUSIC_FOUNDATION.qnl_utils import quantum_embed
 from inanna_ai import emotion_analysis
+
+
+QNL_LAYER_MAP_PATH = Path(__file__).resolve().parents[1] / "qnl_to_music_layer_map.yaml"
+
+
+def load_qnl_layer_map(path: Path = QNL_LAYER_MAP_PATH) -> dict:
+    """Return mapping of QNL emotions to layer parameters."""
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        return {k.lower(): v for k, v in data.items() if isinstance(v, dict)}
+    return {}
 
 
 def midi_to_wave(midi_path: str, sample_rate: int = 44100) -> Tuple[np.ndarray, int]:
@@ -121,6 +134,55 @@ def build_synthetic_layer(
     return out * mod
 
 
+def build_melody_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+) -> np.ndarray:
+    """Return melody layer with standard adjustments."""
+    return apply_audio_params(wave, sr, pitch, tempo, cutoff)
+
+
+def build_rhythm_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+) -> np.ndarray:
+    """Return rhythmic pulses modulated by ``tempo``."""
+    out = apply_audio_params(wave, sr, pitch, tempo, cutoff)
+    t = np.arange(out.size) / sr
+    mod = 0.5 * (1.0 + np.sign(np.sin(2 * np.pi * tempo * t)))
+    return out * mod
+
+
+def build_harmonics_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+) -> np.ndarray:
+    """Return harmonic component of ``wave``."""
+    harm = librosa.effects.harmonic(wave)
+    return apply_audio_params(harm, sr, pitch, tempo, cutoff)
+
+
+def build_ambient_layer(
+    wave: np.ndarray,
+    sr: int,
+    pitch: float = 0.0,
+    tempo: float = 1.0,
+    cutoff: float = 1.0,
+) -> np.ndarray:
+    """Return a soft, lowpass ambient layer."""
+    out = apply_audio_params(wave, sr, pitch, tempo, cutoff)
+    return librosa.effects.preemphasis(out, coef=-0.97)
+
+
 def build_payload_layer(payload: str, sr: int) -> Tuple[np.ndarray, list[dict]]:
     """Transform a hex payload via ``qnl_engine`` into audio and return phrases."""
     phrases, data = qnl_engine.hex_to_song(payload)
@@ -163,8 +225,21 @@ def generate_quantum_music(
     wave = raw.astype(np.float32) / 32767.0
     sr = 44100
 
-    human = build_human_layer(wave, sr, pitch, tempo, cutoff)
-    crystal = build_crystal_layer(wave, sr, pitch, tempo, cutoff)
+    layer_map = load_qnl_layer_map()
+    cfg = layer_map.get(emotion.lower(), layer_map.get("neutral", {}))
+
+    def params(layer: str) -> tuple[float, float, float]:
+        info = cfg.get(layer, {})
+        p = pitch + float(info.get("pitch", 0.0))
+        t = tempo * float(info.get("tempo", 1.0))
+        c = cutoff * float(info.get("cutoff", 1.0))
+        return p, t, c
+
+    melody = build_melody_layer(wave, sr, *params("melody"))
+    rhythm = build_rhythm_layer(wave, sr, *params("rhythm"))
+    harmonics = build_harmonics_layer(wave, sr, *params("harmonics"))
+    ambient = build_ambient_layer(wave, sr, *params("ambient"))
+
     synthetic = build_synthetic_layer(
         wave,
         sr,
@@ -174,12 +249,21 @@ def generate_quantum_music(
         weight=weight,
     )
 
-    final = mix_layers([human, crystal, synthetic])
+    crystal = build_crystal_layer(wave, sr, pitch, tempo, cutoff)
+    human = build_human_layer(wave, sr, pitch, tempo, cutoff)
+
+    final = mix_layers([melody, rhythm, harmonics, ambient, human, crystal, synthetic])
 
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"quantum_{abs(hash(context+emotion))}.wav"
     sf.write(out_path, final, sr)
+
+    planes = analyze_seven_planes(final, sr)
+    json_path = out_path.with_suffix(".json")
+    with open(json_path, "w", encoding="utf-8") as fh:
+        json.dump({"planes": planes}, fh, indent=2, ensure_ascii=False)
+
     return out_path
 
 

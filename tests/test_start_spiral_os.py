@@ -2,6 +2,7 @@ import sys
 import importlib.util
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+import builtins
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -36,9 +37,26 @@ def test_sequence_with_network(monkeypatch):
         calls["iface"] = interface
     monkeypatch.setattr(start_spiral_os.dnu, "monitor_traffic", fake_monitor)
 
+    class DummyOrch:
+        def handle_input(self, text):
+            events.append(text)
+
+    monkeypatch.setattr(start_spiral_os, "MoGEOrchestrator", lambda *a, **k: DummyOrch())
+
+    inputs = iter(["hi", ""])
+    monkeypatch.setattr(builtins, "input", lambda _="": next(inputs))
+
     _run_main(["--interface", "eth0"])
 
-    assert events == ["welcome", "summary", "analyze", "suggest", "reflect", "network"]
+    assert events == [
+        "welcome",
+        "summary",
+        "analyze",
+        "suggest",
+        "reflect",
+        "hi",
+        "network",
+    ]
     assert calls["iface"] == "eth0"
 
 
@@ -50,6 +68,15 @@ def test_sequence_skip_network(monkeypatch):
     monkeypatch.setattr(start_spiral_os.inanna_ai, "suggest_enhancement", lambda: events.append("suggest") or [])
     monkeypatch.setattr(start_spiral_os.inanna_ai, "reflect_existence", lambda: events.append("reflect") or "id")
     monkeypatch.setattr(start_spiral_os.dnu, "monitor_traffic", lambda interface, packet_count=5: events.append("network"))
+
+    class DummyOrch:
+        def handle_input(self, text):
+            events.append(text)
+
+    monkeypatch.setattr(start_spiral_os, "MoGEOrchestrator", lambda *a, **k: DummyOrch())
+
+    inputs = iter(["",])
+    monkeypatch.setattr(builtins, "input", lambda _="": next(inputs))
 
     _run_main(["--skip-network", "--interface", "eth0"])
 
@@ -64,18 +91,14 @@ def test_command_parsing(monkeypatch):
     monkeypatch.setattr(start_spiral_os.inanna_ai, "suggest_enhancement", lambda: None)
     monkeypatch.setattr(start_spiral_os.inanna_ai, "reflect_existence", lambda: None)
 
-    def fake_parse(cmd):
-        events.append("parse")
-        return {"tone": "albedo"}
+    class DummyOrch:
+        def handle_input(self, text):
+            events.append(text)
 
-    def fake_intent(struct):
-        events.append("intent")
-        return ["ok"]
-
-    monkeypatch.setattr(start_spiral_os.qnl_engine, "parse_input", fake_parse)
-    monkeypatch.setattr(start_spiral_os.symbolic_parser, "parse_intent", fake_intent)
+    monkeypatch.setattr(start_spiral_os, "MoGEOrchestrator", lambda *a, **k: DummyOrch())
+    monkeypatch.setattr(builtins, "input", lambda _="": "")
 
     _run_main(["--command", "hello world"])
 
-    assert events == ["parse", "intent"]
+    assert events == ["hello world"]
 

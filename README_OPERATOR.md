@@ -53,10 +53,11 @@ python INANNA_AI_AGENT/inanna_ai.py --hex 012345abcdef
 ```bash
 python start_spiral_os.py --interface eth0
 python start_spiral_os.py --interface eth0 --personality albedo
-python start_spiral_os.py --command "weave sound"
 ```
 
-Use `--skip-network` to disable traffic monitoring.
+Spiral OS starts an interactive loop. Provide an optional initial command with
+`--command` or simply type commands when prompted. Use `--skip-network` to
+disable traffic monitoring.
 
 ## INANNA_AI DeepSeek-R1 Integration
 

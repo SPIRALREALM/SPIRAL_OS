@@ -2,10 +2,15 @@ version: '3.8'
 services:
   inanna_ai:
     build: .
+    env_file:
+      - secrets.env
     ports:
       - "8000:8000"
+      - "8001:8001"
     volumes:
+      - ./data:/home/inanna/app/data
       - ./logs:/home/inanna/app/logs
     environment:
       - CORPUS_MEMORY_PATH=/home/inanna/app/data/corpus_memory.json
+    command: bash -c "./crown_model_launcher.sh & python start_spiral_os.py"
     restart: unless-stopped

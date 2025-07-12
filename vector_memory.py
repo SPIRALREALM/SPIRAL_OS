@@ -1,43 +1,98 @@
 from __future__ import annotations
 
-"""Minimal on-disk vector storage used by corpus memory."""
+"""Lightweight text vector memory built on ChromaDB."""
 
+from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List, Tuple
-import json
+from typing import Any, Dict, List, Optional
+import uuid
+import math
 
 import numpy as np
 
+try:  # pragma: no cover - optional dependency
+    import chromadb
+    from chromadb.api import Collection
+except Exception:  # pragma: no cover - optional dependency
+    chromadb = None  # type: ignore
+    Collection = object  # type: ignore
 
-_FILE_NAME = "vectors.jsonl"
-
-
-def add_vector(vector: Iterable[float], dir_path: Path, metadata: dict | None = None) -> None:
-    """Append ``vector`` with ``metadata`` to a JSONL file under ``dir_path``."""
-    dir_path.mkdir(parents=True, exist_ok=True)
-    record = {"vector": list(vector), "metadata": metadata or {}}
-    path = dir_path / _FILE_NAME
-    with path.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(record, ensure_ascii=False))
-        fh.write("\n")
+from SPIRAL_OS import qnl_utils
 
 
-def load_vectors(dir_path: Path) -> List[Tuple[np.ndarray, dict]]:
-    """Return stored vectors and metadata from ``dir_path``."""
-    path = dir_path / _FILE_NAME
-    if not path.exists():
-        return []
-    entries: List[Tuple[np.ndarray, dict]] = []
-    with path.open("r", encoding="utf-8") as fh:
-        for line in fh:
-            try:
-                obj = json.loads(line)
-            except Exception:
+_DIR = Path(__file__).resolve().parent / "data" / "vector_memory"
+_COLLECTION_NAME = "memory"
+_DECAY_SECONDS = 86_400.0  # one day
+
+_COLLECTION: Collection | None = None
+
+
+def _get_collection() -> Collection:
+    """Return a persistent Chroma collection."""
+    if chromadb is None:  # pragma: no cover - optional dependency
+        raise RuntimeError("chromadb library not installed")
+    global _COLLECTION
+    if _COLLECTION is None:
+        _DIR.mkdir(parents=True, exist_ok=True)
+        client = chromadb.PersistentClient(path=str(_DIR))
+        _COLLECTION = client.get_or_create_collection(_COLLECTION_NAME)
+    return _COLLECTION
+
+
+def add_vector(text: str, metadata: Dict[str, Any]) -> None:
+    """Embed ``text`` and store it with ``metadata``."""
+    emb = qnl_utils.quantum_embed(text)
+    meta = dict(metadata)
+    meta.setdefault("text", text)
+    meta.setdefault("timestamp", datetime.utcnow().isoformat())
+    col = _get_collection()
+    col.add(
+        ids=[uuid.uuid4().hex],
+        embeddings=[emb.tolist()],
+        metadatas=[meta],
+    )
+
+
+def _decay(ts: str) -> float:
+    try:
+        t = datetime.fromisoformat(ts)
+    except Exception:  # pragma: no cover - invalid timestamp
+        return 1.0
+    age = (datetime.utcnow() - t).total_seconds()
+    return math.exp(-age / _DECAY_SECONDS)
+
+
+def search(query: str, filter: Optional[Dict[str, Any]] = None, *, k: int = 5) -> List[Dict[str, Any]]:
+    """Return ``k`` fuzzy matches for ``query`` ordered by decayed similarity."""
+
+    qvec = qnl_utils.quantum_embed(query)
+    col = _get_collection()
+    res = col.query(query_embeddings=[qvec.tolist()], n_results=max(k * 5, k))
+    metas = res.get("metadatas", [[]])[0]
+    embs = [np.asarray(e, dtype=float) for e in res.get("embeddings", [[]])[0]]
+
+    results: List[Dict[str, Any]] = []
+    for emb, meta in zip(embs, metas):
+        if filter is not None:
+            skip = False
+            for key, val in filter.items():
+                if meta.get(key) != val:
+                    skip = True
+                    break
+            if skip:
                 continue
-            vec = np.asarray(obj.get("vector", []), dtype=float)
-            meta = obj.get("metadata", {})
-            entries.append((vec, meta))
-    return entries
+        if not emb.size:
+            continue
+        sim = float(emb @ qvec / ((np.linalg.norm(emb) * np.linalg.norm(qvec)) + 1e-8))
+        weight = _decay(meta.get("timestamp", ""))
+        score = sim * weight
+        out = dict(meta)
+        out["score"] = score
+        results.append(out)
+
+    results.sort(key=lambda m: m.get("score", 0.0), reverse=True)
+    return results[:k]
 
 
-__all__ = ["add_vector", "load_vectors"]
+__all__ = ["add_vector", "search"]
+

@@ -1,0 +1,10 @@
+{
+  "☉": {
+    "joy": ["open portal", "weave sound"],
+    "sadness": ["invoke remembrance"]
+  },
+  "☾": {
+    "calm": ["merge forms"],
+    "anger": ["conjure fire"]
+  }
+}

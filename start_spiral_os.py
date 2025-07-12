@@ -13,8 +13,8 @@ import yaml
 from INANNA_AI_AGENT import inanna_ai
 from INANNA_AI import glm_init, glm_analyze
 from inanna_ai import defensive_network_utils as dnu
-from inanna_ai.personality_layers import list_personalities
-from SPIRAL_OS import qnl_engine, symbolic_parser
+from inanna_ai.personality_layers import REGISTRY, list_personalities
+from orchestrator import MoGEOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         choices=list_personalities(),
         help="Activate optional personality layer",
     )
-    parser.add_argument("--command", help="Text command for QNL parsing")
+    parser.add_argument("--command", help="Initial text command for QNL parsing")
     args = parser.parse_args(argv)
 
     inanna_ai.display_welcome_message()
@@ -51,13 +51,24 @@ def main(argv: Optional[List[str]] = None) -> None:
     inanna_ai.suggest_enhancement()
     inanna_ai.reflect_existence()
 
-    intents = None
-    if args.command:
-        structure = qnl_engine.parse_input(args.command)
-        intents = symbolic_parser.parse_intent(structure)
-        print("QNL intents:")
-        for item in intents:
-            print(item)
+
+    layer_cls = REGISTRY.get(args.personality)
+    layer = layer_cls() if layer_cls else None
+    orch = MoGEOrchestrator(albedo_layer=layer)
+
+    print("Enter commands (blank to exit).")
+    next_command = args.command
+    try:
+        while True:
+            if next_command is None:
+                next_command = input("> ")
+            if not next_command:
+                break
+            result = orch.handle_input(next_command)
+            print(result)
+            next_command = None
+    except KeyboardInterrupt:
+        print()
 
     log_paths = [
         str(glm_init.PURPOSE_FILE),

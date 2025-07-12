@@ -43,3 +43,30 @@ def test_handle_input_updates_mood(monkeypatch):
     assert result == {'handled': True}
     assert orch.mood_state['joy'] > joy_before
     assert orch.mood_state['neutral'] < neutral_before
+
+
+def test_route_logs_interaction(monkeypatch):
+    logged = {}
+
+    def fake_log(text, intent, result, outcome):
+        logged['args'] = (text, intent, result, outcome)
+
+    monkeypatch.setattr(orchestrator, 'log_interaction', fake_log)
+
+    orch = MoGEOrchestrator()
+
+    monkeypatch.setattr(orchestrator, 'load_interactions', lambda: [])
+    monkeypatch.setattr(orchestrator, 'update_insights', lambda logs: None)
+    monkeypatch.setattr(orchestrator, 'load_insights', lambda: {})
+    monkeypatch.setattr(orchestrator.learning_mutator, 'propose_mutations', lambda d: [])
+    monkeypatch.setattr(
+        'inanna_ai.corpus_memory.search_corpus',
+        lambda *a, **k: [("p", "snippet")],
+    )
+
+    res = orch.route('hi', {'emotion': 'joy'})
+
+    assert logged['args'][0] == 'hi'
+    assert isinstance(logged['args'][1], dict)
+    assert logged['args'][2] == res
+    assert logged['args'][3] == 'ok'

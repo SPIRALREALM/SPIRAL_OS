@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
+import emotion_registry
+
 INSIGHT_FILE = Path(__file__).resolve().parent / "insight_matrix.json"
 INTENT_FILE = Path(__file__).resolve().parent / "intent_matrix.json"
 MUTATION_FILE = Path("data") / "mutations.txt"
@@ -55,20 +57,47 @@ def propose_mutations(insight_matrix: dict) -> List[str]:
             proposals.append(
                 f"Merge '{pattern}' with high performer '{best}'"
             )
+
+    # Inspect emotional state for potential personality layer changes
+    current = emotion_registry.get_current_layer()
+    emotion = emotion_registry.get_last_emotion() or "neutral"
+    resonance = emotion_registry.get_resonance_level()
+    avg_rate = sum(r for r, _ in rates.values()) / len(rates) if rates else 1.0
+
+    if resonance >= 0.8:
+        if emotion.lower() in {"anger", "fear", "sadness"}:
+            if current != "nigredo_layer":
+                proposals.append("Switch to nigredo_layer for shadow work")
+        elif emotion.lower() in {"joy", "love"}:
+            if current != "rubedo_layer":
+                proposals.append("Switch to rubedo_layer for celebratory tone")
+
+    if avg_rate < 0.3 and current:
+        proposals.append(f"Fuse {current} with citrinitas_layer for clarity")
+
     return proposals
 
 
-def main() -> None:
+def main(argv: List[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Suggest intent mutations")
     parser.add_argument(
         "--run",
         action="store_true",
         help="Write suggestions to data/mutations.txt",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--activate",
+        metavar="LAYER",
+        help="Activate personality layer",
+    )
+    args = parser.parse_args(argv)
 
     insights = load_insights()
     suggestions = propose_mutations(insights)
+    if args.activate:
+        emotion_registry.set_current_layer(args.activate)
+        print(f"Activated {args.activate}")
+        return
     if args.run:
         MUTATION_FILE.parent.mkdir(parents=True, exist_ok=True)
         MUTATION_FILE.write_text("\n".join(suggestions), encoding="utf-8")

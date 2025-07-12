@@ -60,6 +60,7 @@ def test_handle_input_updates_mood(monkeypatch):
     monkeypatch.setattr(orchestrator.qnl_engine, 'parse_input', fake_parse)
     monkeypatch.setattr(orchestrator.symbolic_parser, 'parse_intent', fake_intent)
     monkeypatch.setattr(MoGEOrchestrator, 'route', fake_route)
+    monkeypatch.setattr(orchestrator.reflection_loop, 'run_reflection_loop', lambda *a, **k: None)
 
     orch = MoGEOrchestrator()
     joy_before = orch.mood_state.get('joy', 0.0)
@@ -127,6 +128,7 @@ def test_dynamic_layer_selection(monkeypatch):
     monkeypatch.setattr(orchestrator, "update_insights", lambda logs: None)
     monkeypatch.setattr(orchestrator, "load_insights", lambda: {})
     monkeypatch.setattr(orchestrator.learning_mutator, "propose_mutations", lambda d: [])
+    monkeypatch.setattr(orchestrator.reflection_loop, "run_reflection_loop", lambda *a, **k: None)
 
     orch = MoGEOrchestrator()
     result = orch.handle_input("hello")
@@ -148,6 +150,7 @@ def test_invocation_task_sequence(monkeypatch):
     monkeypatch.setattr(orchestrator, "ritual_action_sequence", lambda sym, emo: ["open portal"])
     monkeypatch.setattr(orchestrator.invocation_engine, "invoke", lambda t, o: [["weave sound"]])
     monkeypatch.setattr(orchestrator.invocation_engine, "_extract_symbols", lambda t: "☉")
+    monkeypatch.setattr(orchestrator.reflection_loop, "run_reflection_loop", lambda *a, **k: None)
 
     orch = MoGEOrchestrator()
     orch.handle_input("∴")
@@ -182,6 +185,7 @@ def test_invocation_logging(monkeypatch, glyph_input, tmp_path):
 
     monkeypatch.setattr(orchestrator.invocation_engine, "invoke", fake_invoke)
     monkeypatch.setattr(orchestrator.invocation_engine, "_extract_symbols", lambda t: "☉")
+    monkeypatch.setattr(orchestrator.reflection_loop, "run_reflection_loop", lambda *a, **k: None)
 
     records = {}
 

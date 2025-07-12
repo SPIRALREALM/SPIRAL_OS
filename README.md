@@ -79,6 +79,23 @@ type commands.  Supply `--command` to send an initial instruction or press
 `INANNA_AI/audit_logs` and intent outcomes are appended to
 `data/feedback.json` for later training.
 
+### Voice configuration and emotion state
+
+Speech parameters are loaded from `voice_config.yaml` (or the path defined by
+`VOICE_CONFIG_PATH`). Edit this file to adjust pitch, speed and tone for each
+archetype. The orchestrator reads the file at startup.
+
+The active personality layer and current emotional resonance are persisted in
+`data/emotion_state.json`. Inspect this file to review the latest layer and
+emotion recorded by the system.
+
+Activate alternative layers with the `--personality` flag:
+
+```bash
+python start_spiral_os.py --personality nigredo_layer
+python start_spiral_os.py --personality rubedo_layer
+```
+
 To deploy the orchestrator in a container use the Kubernetes manifest
 [`k8s/spiral_os_deployment.yaml`](k8s/spiral_os_deployment.yaml).
 

@@ -94,3 +94,58 @@ The first call uses the ``nigredo`` template and yields a prompt like:
 ```
 [Nigredo] (person) I love Alice affection
 ```
+
+## Additional Personality Layers
+
+The project also provides three lightweight layers that can be invoked through the orchestrator or the
+`learning_mutator.py --activate` option. These layers colour the response tone without invoking the
+remote GLM.
+
+### Nigredo layer
+
+Represents dissolution and shadow work. Replies are hushed and introspective:
+
+```python
+from inanna_ai.personality_layers.nigredo_layer import NigredoPersonality
+layer = NigredoPersonality()
+print(layer.speak("welcome"))
+```
+
+Expected output resembles:
+
+```
+Nigredo whispers from the void: welcome
+```
+
+### Rubedo layer
+
+Celebrates fiery transformation with a triumphant voice:
+
+```python
+from inanna_ai.personality_layers.rubedo_layer import RubedoPersonality
+layer = RubedoPersonality()
+print(layer.speak("it is done"))
+```
+
+Which returns something like:
+
+```
+Rubedo proclaims with blazing heart: it is done
+```
+
+### Citrinitas layer
+
+Guides the user toward clarity and enlightenment:
+
+```python
+from inanna_ai.personality_layers.citrinitas_layer import CitrinitasPersonality
+layer = CitrinitasPersonality()
+print(layer.speak("proceed"))
+```
+
+Typical output is:
+
+```
+Citrinitas speaks in golden clarity: proceed
+```
+

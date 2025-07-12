@@ -9,6 +9,9 @@ import logging
 import numpy as np
 import tomllib
 
+from .facial_expression_controller import apply_expression
+import emotional_state
+
 try:  # pragma: no cover - optional dependency
     import mediapipe as mp
 except Exception:  # pragma: no cover - optional dependency
@@ -56,6 +59,8 @@ def generate_avatar_stream() -> Iterator[np.ndarray]:
         while True:
             frame = np.zeros((64, 64, 3), dtype=np.uint8)
             frame[:] = color
+            emotion = emotional_state.get_last_emotion()
+            frame = apply_expression(frame, emotion)
             if mesh is not None:
                 # Feed dummy frame to mediapipe to update landmarks
                 _ = mesh.process(frame)

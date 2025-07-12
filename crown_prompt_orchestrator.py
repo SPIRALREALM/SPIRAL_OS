@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Any, Dict
 import asyncio
 
+from state_transition_engine import StateTransitionEngine
+
 from inanna_ai.glm_integration import GLMIntegration
 from inanna_ai import emotion_analysis
 from corpus_memory_logging import load_interactions
@@ -14,6 +16,9 @@ import servant_model_manager as smm
 _EMOTION_KEYS = list(emotion_analysis.EMOTION_ARCHETYPES.keys())
 _INSTRUCTION_TRIGGERS = {"how", "explain", "tutorial"}
 _PHILOSOPHY_TRIGGERS = {"why", "meaning", "purpose"}
+
+
+_STATE_ENGINE = StateTransitionEngine()
 
 
 def _detect_emotion(text: str) -> str:
@@ -47,8 +52,10 @@ def crown_prompt_orchestrator(message: str, glm: GLMIntegration) -> Dict[str, An
     emotion = _detect_emotion(message)
     archetype = emotion_analysis.emotion_to_archetype(emotion)
     weight = emotion_analysis.emotion_weight(emotion)
+    state = _STATE_ENGINE.update_state(message)
     context = _build_context()
-    prompt = f"{context}\n{message}" if context else message
+    prompt_body = f"{context}\n{message}" if context else message
+    prompt = f"[{state}]\n{prompt_body}"
 
     async def _process() -> tuple[str, str]:
         try:
@@ -65,6 +72,7 @@ def crown_prompt_orchestrator(message: str, glm: GLMIntegration) -> Dict[str, An
         "emotion": emotion,
         "archetype": archetype,
         "weight": weight,
+        "state": state,
         "context_used": context,
     }
 

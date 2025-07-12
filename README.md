@@ -161,12 +161,13 @@ Start the service with [docker-compose](docker-compose.yml):
 docker-compose up --build
 ```
 
-This exposes port `8000` and mounts the `logs` directory on the host. Stop the
-stack with `docker-compose down`.
+This exposes ports `8000` and `8001`, mounts the `data` and `logs` directories
+on the host, and loads environment variables from `secrets.env`. Stop the stack
+with `docker-compose down`.
 
 ## Codex GPU Deployment
 
-A container spec `spiral_os_container.yaml` is provided for running the tools with CUDA support. Build and launch it with:
+A container spec `spiral_os_container.yaml` is provided for running the tools with CUDA support. It loads environment variables from `secrets.env`, exposes ports `8000` and `8001`, and mounts `data` and `logs`. Build and launch it with:
 
 ```bash
 codex run spiral_os_container.yaml

@@ -1,6 +1,10 @@
 import sys
 import types
+import io
+import json
+import logging
 from pathlib import Path
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -149,3 +153,56 @@ def test_invocation_task_sequence(monkeypatch):
     orch.handle_input("∴")
 
     assert actions == ["open portal", "weave sound"]
+
+
+@pytest.fixture
+def glyph_input() -> str:
+    return "invoke ☉ #joy"
+
+
+def test_invocation_logging(monkeypatch, glyph_input, tmp_path):
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    orchestrator.emotional_state.logger.handlers = [handler]
+    orchestrator.emotional_state.logger.setLevel(logging.INFO)
+
+    called = {}
+
+    def fake_parse(_text):
+        return {"tone": "joy"}
+
+    monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", fake_parse)
+    monkeypatch.setattr(orchestrator.symbolic_parser, "parse_intent", lambda d: [])
+    monkeypatch.setattr(orchestrator.symbolic_parser, "_gather_text", lambda d: "")
+    monkeypatch.setattr(orchestrator.symbolic_parser, "_INTENTS", {})
+
+    def fake_invoke(text, orch):
+        called["invoke"] = (text, orch)
+        return [["weave sound"]]
+
+    monkeypatch.setattr(orchestrator.invocation_engine, "invoke", fake_invoke)
+    monkeypatch.setattr(orchestrator.invocation_engine, "_extract_symbols", lambda t: "☉")
+
+    records = {}
+
+    def fake_log(text, intent, result, outcome):
+        records["outcome"] = outcome
+        orchestrator.emotional_state.logger.info("logged", extra={"outcome": outcome})
+
+    monkeypatch.setattr(orchestrator, "log_interaction", fake_log)
+
+    def fake_route(self, text, emotion_data, **k):
+        fake_log(text, {}, {}, "ok")
+        return {}
+
+    monkeypatch.setattr(MoGEOrchestrator, "route", fake_route)
+
+    orch = MoGEOrchestrator()
+    orch.handle_input(glyph_input)
+
+    assert called["invoke"] == ("☉ [neutral]", orch)
+    assert records["outcome"] == "ok"
+
+    logs = stream.getvalue()
+    assert "last_emotion set to neutral" in logs
+    assert "logged" in logs

@@ -14,10 +14,19 @@ TONE_PRESETS: Dict[str, Dict[str, float]] = {
     "lunar": {"speed": 0.95, "pitch": -0.4},
 }
 
+# Merge presets defined in ``voice_config.yaml``
+for info in voice_evolution.VOICE_CONFIG.values():
+    tone = info.get("tone")
+    if tone:
+        TONE_PRESETS.setdefault(
+            tone.lower(),
+            {"speed": float(info.get("speed", 1.0)), "pitch": float(info.get("pitch", 0.0))},
+        )
 
-def _ensure_preset(tone: str) -> None:
+
+def _ensure_preset(tone: str, preset: Dict[str, float] | None = None) -> None:
     """Inject preset ``tone`` into the voice evolution styles."""
-    preset = TONE_PRESETS.get(tone)
+    preset = preset or TONE_PRESETS.get(tone)
     if not preset:
         return
     voice_evolution.DEFAULT_VOICE_STYLES.setdefault(tone, preset)
@@ -26,9 +35,19 @@ def _ensure_preset(tone: str) -> None:
 
 def modulate_voice(text: str, tone: str) -> str:
     """Synthesize ``text`` using the style defined by ``tone``."""
-    tone = tone.lower()
-    _ensure_preset(tone)
-    return speaking_engine.synthesize_speech(text, tone)
+    tone_key = tone.lower()
+    cfg = voice_evolution.VOICE_CONFIG.get(tone_key)
+    if cfg:
+        style = {
+            "speed": float(cfg.get("speed", 1.0)),
+            "pitch": float(cfg.get("pitch", 0.0)),
+        }
+        style_name = cfg.get("tone", tone_key).lower()
+        _ensure_preset(style_name, style)
+        return speaking_engine.synthesize_speech(text, style_name)
+
+    _ensure_preset(tone_key)
+    return speaking_engine.synthesize_speech(text, tone_key)
 
 
 def speak(text: str, tone: str) -> str:

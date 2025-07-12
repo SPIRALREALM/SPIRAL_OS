@@ -13,12 +13,26 @@ import os
 from typing import Iterable, List
 
 from scipy.signal import butter, lfilter
+from pathlib import Path
+import yaml
 
 import librosa
 import numpy as np
 import soundfile as sf
 
 from MUSIC_FOUNDATION.qnl_utils import quantum_embed
+
+
+CONFIG_PATH = Path(__file__).resolve().parents[1] / "voice_config.yaml"
+
+
+def load_voice_config(path: Path = CONFIG_PATH) -> dict:
+    """Return voice settings loaded from ``path`` if available."""
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        return {k.lower(): v for k, v in data.items() if isinstance(v, dict)}
+    return {}
 
 
 def load_audio(path: str, sample_rate: int = 44100) -> np.ndarray:
@@ -111,6 +125,7 @@ def main(argv: List[str] | None = None) -> None:
         "--qnl-text",
         help="Text to analyse with quantum embedding for live mixing",
     )
+    parser.add_argument("--tone", help="Personality tone from voice_config")
     args = parser.parse_args(argv)
 
     waves = [load_audio(f) for f in args.files]
@@ -120,6 +135,17 @@ def main(argv: List[str] | None = None) -> None:
         emb = quantum_embed(args.qnl_text)
         pitch, tempo, cutoff = embedding_to_params(emb)
         mixed = apply_audio_params(mixed, 44100, pitch, tempo, cutoff)
+
+    if args.tone:
+        cfg = load_voice_config().get(args.tone.lower())
+        if cfg:
+            mixed = apply_audio_params(
+                mixed,
+                44100,
+                float(cfg.get("pitch", 0.0)),
+                float(cfg.get("speed", 1.0)),
+                1.0,
+            )
 
     export_wav(mixed, args.output)
 

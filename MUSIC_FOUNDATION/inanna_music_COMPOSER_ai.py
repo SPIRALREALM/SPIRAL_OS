@@ -17,11 +17,54 @@ Dependencies:
     pip install librosa soundfile numpy scipy
 """
 
+import os
+import json
+from pathlib import Path
+
+import yaml
 import librosa
 import numpy as np
 import soundfile as sf
-import os
-import json
+
+import emotional_state
+from . import layer_generators
+
+CONFIG_PATH = Path(__file__).resolve().parents[1] / "emotion_music_map.yaml"
+
+# Simple note sequences used for emotional scales
+SCALE_MELODIES = {
+    "C_major": ["C4", "E4", "G4", "C5"],
+    "A_minor": ["A3", "C4", "E4", "A4"],
+    "D_minor": ["D3", "F3", "A3", "D4"],
+}
+
+
+def load_emotion_music_map(path: Path = CONFIG_PATH) -> dict:
+    """Return emotion-to-music mapping loaded from ``path`` if available."""
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        return {k.lower(): v for k, v in data.items() if isinstance(v, dict)}
+    return {}
+
+
+def select_music_params(emotion: str | None, mapping: dict, base_tempo: float) -> tuple[float, str, list[str], str]:
+    """Return tempo, scale, melody and rhythm for ``emotion``."""
+    key = str(emotion).lower() if emotion else "neutral"
+    info = mapping.get(key, mapping.get("neutral", {}))
+    tempo = float(info.get("tempo", base_tempo))
+    scale = info.get("scale", "C_major")
+    rhythm = info.get("rhythm", "steady")
+    melody = SCALE_MELODIES.get(scale, SCALE_MELODIES["C_major"])
+    return tempo, scale, melody, rhythm
+
+
+def get_emotion_music_params(default_tempo: float, mapping: dict | None = None) -> tuple[float, str, list[str], str]:
+    """Load emotion state and return selected music parameters."""
+    if mapping is None:
+        mapping = load_emotion_music_map()
+    emotion = emotional_state.get_last_emotion()
+    return select_music_params(emotion, mapping, default_tempo)
 
 from MUSIC_FOUNDATION.qnl_utils import chroma_to_qnl, generate_qnl_structure
 
@@ -107,6 +150,16 @@ if __name__ == "__main__":
     chroma_vector = engine.analyze()
     engine.export_preview("output/preview.wav")
 
-    # Step 2: Convert to QNL
-    qnl_data = generate_qnl_structure(chroma_vector, engine.tempo, metadata={"source": args.mp3_file})
+    # Step 2: Adjust based on emotion
+    mapping = load_emotion_music_map()
+    tempo, scale, melody, rhythm = get_emotion_music_params(engine.tempo, mapping)
+    layer_generators.compose_human_layer(tempo, melody, wav_path="output/melody.wav")
+
+    # Step 3: Convert to QNL
+    qnl_data = generate_qnl_structure(
+        chroma_vector,
+        tempo,
+        metadata={"source": args.mp3_file, "emotion": emotional_state.get_last_emotion(), "scale": scale, "rhythm": rhythm},
+    )
     export_qnl(qnl_data, "output/qnl_song.json")
+

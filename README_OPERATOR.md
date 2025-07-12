@@ -62,8 +62,9 @@ Use `--skip-network` to disable traffic monitoring.
 
 1. Copy `secrets.env.example` to `secrets.env` at the project root and fill in
    values like `HF_TOKEN`, `GITHUB_TOKEN`, `OPENAI_API_KEY`, `GLM_API_URL`,
-   `GLM_API_KEY` and `CORPUS_PATH`. The `run_inanna.sh` helper script reads this
-   file when starting the chat agent.
+   `GLM_API_KEY`, `CORPUS_PATH`, `QNL_MODEL_PATH` and `VOICE_TONE_PATH`.
+   The `run_inanna.sh` helper script reads this file when starting the chat
+   agent.
 2. Run `python download_models.py deepseek` to fetch the DeepSeek-R1 model.
 3. Start chat via `python INANNA_AI_AGENT/inanna_ai.py chat` or `./run_inanna.sh`.
    To load a different model directory pass `--model-dir <path>` to either command,

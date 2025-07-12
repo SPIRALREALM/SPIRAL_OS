@@ -37,8 +37,9 @@ pip install -r dev-requirements.txt
 
 1. Copy `secrets.env.example` to `secrets.env` and provide values for
    environment variables such as `HF_TOKEN`, `GITHUB_TOKEN`,
-   `OPENAI_API_KEY`, `GLM_API_URL`, `GLM_API_KEY`, `CORPUS_PATH` and
-   `QNL_EMBED_MODEL` (name of the SentenceTransformer used for QNL
+   `OPENAI_API_KEY`, `GLM_API_URL`, `GLM_API_KEY`, `CORPUS_PATH`,
+   `QNL_EMBED_MODEL`, `QNL_MODEL_PATH` and `VOICE_TONE_PATH`
+   (`QNL_EMBED_MODEL` is the SentenceTransformer used for QNL
    embeddings).
 2. Download the required model weights before first launch:
 

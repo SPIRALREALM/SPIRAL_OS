@@ -219,6 +219,23 @@ Response: hi there gate [sig: 0123abcd...]
 Voice path: resp.wav
 ```
 
+### Voice configuration and personality layers
+
+Adjust pitch and speed for each archetype in `voice_config.yaml` or set
+`VOICE_CONFIG_PATH` to point to a custom file. The file maps a persona name to
+`pitch`, `speed` and a `tone` preset.
+
+Activate Nigredo, Rubedo or Citrinitas via the CLI to modulate responses:
+
+```bash
+python -m inanna_ai.main --personality nigredo_layer
+python -m inanna_ai.main --personality rubedo_layer
+learning_mutator.py --activate citrinitas_layer
+```
+
+The selected layer and recent emotional analysis are stored in
+`data/emotion_state.json` for review.
+
 ### Fetch Project Gutenberg texts
 
 ```bash

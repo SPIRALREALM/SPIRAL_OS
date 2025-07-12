@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable
 from pathlib import Path
+import yaml
 
 from . import db_storage
 
@@ -13,6 +14,35 @@ DEFAULT_VOICE_STYLES: Dict[str, Dict[str, float]] = {
     "calm": {"speed": 0.9, "pitch": -1.0},
     "excited": {"speed": 1.1, "pitch": 1.0},
 }
+
+CONFIG_PATH = Path(__file__).resolve().parents[1] / "voice_config.yaml"
+
+
+def load_voice_config(path: Path = CONFIG_PATH) -> Dict[str, Dict[str, Any]]:
+    """Return archetype settings loaded from ``path`` if it exists."""
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        out: Dict[str, Dict[str, Any]] = {}
+        for key, info in data.items():
+            if isinstance(info, dict):
+                out[key.lower()] = info
+        return out
+    return {}
+
+
+VOICE_CONFIG: Dict[str, Dict[str, Any]] = load_voice_config()
+
+for info in VOICE_CONFIG.values():
+    name = info.get("tone")
+    if name:
+        DEFAULT_VOICE_STYLES.setdefault(
+            name.lower(),
+            {
+                "speed": float(info.get("speed", 1.0)),
+                "pitch": float(info.get("pitch", 0.0)),
+            },
+        )
 
 
 class VoiceEvolution:
@@ -98,4 +128,6 @@ __all__ = [
     "load_profiles",
     "store_profiles",
     "DEFAULT_VOICE_STYLES",
+    "VOICE_CONFIG",
+    "load_voice_config",
 ]

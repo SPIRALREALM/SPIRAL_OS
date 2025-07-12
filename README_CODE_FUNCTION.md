@@ -16,6 +16,13 @@ For an overview of the Albedo personality layer see [docs/ALBEDO_LAYER.md](docs/
   `voice_evolution` and wraps `speaking_engine.synthesize_speech` to
   produce modulated output.
 
+- **Tone presets** – The module defines four preset voices used when
+  generating speech:
+  - `albedo` – speed 1.05, pitch +0.2
+  - `nigredo` – speed 0.9, pitch -0.3
+  - `rubedo` – speed 1.1, pitch +0.5
+  - `lunar` – speed 0.95, pitch -0.4
+
 ## MUSIC_FOUNDATION modules
 
 - **`inanna_music_COMPOSER_ai.py`** – Stand‑alone converter that loads an MP3, analyzes tempo and chroma, and outputs QNL phrases and a preview WAV.

@@ -63,6 +63,25 @@ pip install -r dev-requirements.txt
    python start_spiral_os.py
    ```
 
+## Orchestration Engine
+
+`start_spiral_os.py` launches the **MoGEOrchestrator** which routes text
+commands to the available models.  Start it with an optional network
+interface to capture packets and an optional personality layer:
+
+```bash
+python start_spiral_os.py --interface eth0 --personality albedo
+```
+
+After initialization the script enters an interactive loop where you can
+type commands.  Supply `--command` to send an initial instruction or press
+`Enter` to exit.  Processing results are written to several files under
+`INANNA_AI/audit_logs` and intent outcomes are appended to
+`data/feedback.json` for later training.
+
+To deploy the orchestrator in a container use the Kubernetes manifest
+[`k8s/spiral_os_deployment.yaml`](k8s/spiral_os_deployment.yaml).
+
 ## QNL Engine
 
 The QNL engine converts hexadecimal strings into symbolic soundscapes.

@@ -11,7 +11,7 @@ from .albedo import AlbedoPersonality
 REGISTRY: Dict[str, Type] = {"albedo": AlbedoPersonality}
 
 for mod in iter_modules(__path__):
-    if not mod.ispkg or mod.name == "albedo":
+    if mod.name == "albedo":
         continue
     module = import_module(f"{__name__}.{mod.name}")
     cls = None

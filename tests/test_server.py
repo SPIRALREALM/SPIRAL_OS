@@ -27,3 +27,21 @@ def test_health_and_ready_return_200():
     status_health, status_ready = asyncio.run(run_requests())
     assert status_health == 200
     assert status_ready == 200
+
+
+def test_glm_command_endpoint(monkeypatch):
+    """POST /glm-command should return GLM output."""
+
+    async def run_request() -> tuple[int, dict[str, str]]:
+        with TestClient(server.app) as test_client:
+            transport = httpx.ASGITransport(app=test_client.app)
+            async with httpx.AsyncClient(
+                transport=transport, base_url="http://testserver"
+            ) as client:
+                resp = await client.post("/glm-command", json={"command": "ls"})
+        return resp.status_code, resp.json()
+
+    monkeypatch.setattr(server, "send_command", lambda cmd: f"ran {cmd}")
+    status, data = asyncio.run(run_request())
+    assert status == 200
+    assert data == {"result": "ran ls"}

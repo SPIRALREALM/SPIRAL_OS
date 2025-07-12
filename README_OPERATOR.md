@@ -305,3 +305,16 @@ python console_interface.py
 ```
 
 The prompt `crown>` accepts natural language and `/exit` quits the session.
+
+## HTTP Interface
+
+`server.py` exposes a small FastAPI application with a `/glm-command` endpoint.
+Start the server and invoke it with `curl`:
+
+```bash
+curl -X POST http://localhost:8000/glm-command \
+     -H 'Content-Type: application/json' \
+     -d '{"command": "ls"}'
+```
+
+The JSON response contains the GLM result under `result`.

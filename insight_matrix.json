@@ -1,1 +1,14 @@
-{}
+{
+  "_schema": {
+    "counts": {
+      "total": 0,
+      "success": 0,
+      "tones": {},
+      "emotions": {},
+      "responded_with": {}
+    },
+    "best_tone": "",
+    "action_success_rate": 0.0,
+    "last_updated": ""
+  }
+}

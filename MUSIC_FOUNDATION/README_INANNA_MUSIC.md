@@ -71,7 +71,7 @@ Receives musical features and transforms them into:
 ✨ Unified agent that performs full ritual:
 
 ```bash
-python3 inanna_music_COMPOSER_ai.py song.mp3
+python -m MUSIC_FOUNDATION.inanna_music_COMPOSER_ai song.mp3
 ```
 
 Produces:

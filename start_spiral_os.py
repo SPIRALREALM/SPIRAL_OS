@@ -15,6 +15,7 @@ from INANNA_AI import glm_init, glm_analyze
 from inanna_ai import defensive_network_utils as dnu
 from inanna_ai.personality_layers import REGISTRY, list_personalities
 from orchestrator import MoGEOrchestrator
+import emotion_registry
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +38,11 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
     parser.add_argument(
         "--personality",
-        choices=list_personalities(),
-        help="Activate optional personality layer",
+        metavar="LAYER",
+        help=(
+            "Activate optional personality layer. "
+            f"Available: {', '.join(list_personalities())}"
+        ),
     )
     parser.add_argument("--command", help="Initial text command for QNL parsing")
     args = parser.parse_args(argv)
@@ -52,8 +56,16 @@ def main(argv: Optional[List[str]] = None) -> None:
     inanna_ai.reflect_existence()
 
 
-    layer_cls = REGISTRY.get(args.personality)
+    layer_name = args.personality
+    if layer_name and layer_name not in REGISTRY:
+        alt = f"{layer_name}_layer"
+        if alt in REGISTRY:
+            layer_name = alt
+
+    layer_cls = REGISTRY.get(layer_name)
     layer = layer_cls() if layer_cls else None
+    if layer_name:
+        emotion_registry.set_current_layer(layer_name)
     orch = MoGEOrchestrator(albedo_layer=layer)
 
     print("Enter commands (blank to exit).")

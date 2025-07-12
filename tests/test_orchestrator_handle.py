@@ -70,3 +70,37 @@ def test_route_logs_interaction(monkeypatch):
     assert isinstance(logged['args'][1], dict)
     assert logged['args'][2] == res
     assert logged['args'][3] == 'ok'
+
+
+def test_dynamic_layer_selection(monkeypatch):
+    class DummyLayer:
+        def __init__(self):
+            self.called = []
+
+        def generate_response(self, text: str) -> str:
+            self.called.append(text)
+            return f"layer:{text}"
+
+    # Patch registry and emotion state
+    monkeypatch.setattr(orchestrator, "PERSONALITY_REGISTRY", {"dummy": DummyLayer})
+    monkeypatch.setattr(orchestrator.emotion_registry, "get_current_layer", lambda: "dummy")
+    recorded = {}
+    monkeypatch.setattr(orchestrator.emotion_registry, "set_current_layer", lambda name: recorded.setdefault("layer", name))
+
+    # Stub heavy components
+    monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", lambda t: {"tone": "neutral"})
+    monkeypatch.setattr(orchestrator.symbolic_parser, "parse_intent", lambda d: [])
+    monkeypatch.setattr(orchestrator.symbolic_parser, "_gather_text", lambda d: "")
+    monkeypatch.setattr(orchestrator.symbolic_parser, "_INTENTS", {})
+    monkeypatch.setattr(orchestrator.response_manager, "ResponseManager", lambda: type("R", (), {"generate_reply": lambda self, t, i: f"resp:{t}"})())
+    monkeypatch.setattr(orchestrator, "log_interaction", lambda *a, **k: None)
+    monkeypatch.setattr(orchestrator, "load_interactions", lambda: [])
+    monkeypatch.setattr(orchestrator, "update_insights", lambda logs: None)
+    monkeypatch.setattr(orchestrator, "load_insights", lambda: {})
+    monkeypatch.setattr(orchestrator.learning_mutator, "propose_mutations", lambda d: [])
+
+    orch = MoGEOrchestrator()
+    result = orch.handle_input("hello")
+
+    assert result["text"] == "layer:hello"
+    assert recorded.get("layer") == "dummy"

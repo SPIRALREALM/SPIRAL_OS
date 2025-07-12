@@ -42,6 +42,7 @@ class MoGEOrchestrator:
     ) -> None:
         self._responder = response_manager.ResponseManager()
         self._albedo = albedo_layer
+        self._active_layer_name: str | None = None
         self._context: Deque[Dict[str, Any]] = deque(maxlen=5)
         if SentenceTransformer is not None:
             self._embedder = SentenceTransformer("all-MiniLM-L6-v2")
@@ -141,6 +142,21 @@ class MoGEOrchestrator:
             tone = qnl_data.get("tone")
             intents = symbolic_parser.parse_intent(qnl_data)
 
+        layer_name = emotion_registry.get_current_layer()
+        if layer_name:
+            layer_cls = PERSONALITY_REGISTRY.get(layer_name)
+            if layer_cls is not None and not isinstance(self._albedo, layer_cls):
+                self._albedo = layer_cls()
+            self._active_layer_name = layer_name
+        else:
+            # derive currently active layer from the instance if present
+            self._active_layer_name = None
+            if self._albedo is not None:
+                for name, cls in PERSONALITY_REGISTRY.items():
+                    if isinstance(self._albedo, cls):
+                        self._active_layer_name = name
+                        break
+
         task = classify_task(text)
         history_tasks = [c["task"] for c in self._context]
         model = self._choose_model(task, weight, history_tasks)
@@ -227,18 +243,15 @@ class MoGEOrchestrator:
         emotion_registry.set_last_emotion(dominant)
         emotion_registry.set_resonance_level(self.mood_state[dominant])
 
-        layer_name = emotion_registry.get_current_layer()
-        if layer_name:
-            layer_cls = PERSONALITY_REGISTRY.get(layer_name)
-            if layer_cls is not None and not isinstance(self._albedo, layer_cls):
-                self._albedo = layer_cls()
-
         emotion_data = {
             "emotion": dominant,
             "archetype": emotion_analysis.emotion_to_archetype(dominant),
             "weight": emotion_analysis.emotion_weight(dominant),
         }
-        return self.route(text, emotion_data, qnl_data=qnl_data)
+        result = self.route(text, emotion_data, qnl_data=qnl_data)
+        if self._active_layer_name:
+            emotion_registry.set_current_layer(self._active_layer_name)
+        return result
 
 
 def schedule_action(func: Callable[[], Any], delay: float) -> threading.Timer:

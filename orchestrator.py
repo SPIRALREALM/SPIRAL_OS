@@ -24,6 +24,7 @@ from inanna_ai import response_manager, tts_coqui, emotion_analysis, db_storage
 from inanna_ai.personality_layers import AlbedoPersonality
 from inanna_ai import voice_layer_albedo
 from SPIRAL_OS import qnl_engine, symbolic_parser
+import training_guide
 
 
 class MoGEOrchestrator:
@@ -190,7 +191,21 @@ class MoGEOrchestrator:
     def handle_input(self, text: str) -> Dict[str, Any]:
         """Parse ``text`` as QNL, update mood and delegate to :meth:`route`."""
         qnl_data = qnl_engine.parse_input(text)
-        symbolic_parser.parse_intent(qnl_data)
+        results = symbolic_parser.parse_intent(qnl_data)
+        gathered = symbolic_parser._gather_text(qnl_data).lower()
+        intents: List[Dict[str, Any]] = []
+        for name, info in symbolic_parser._INTENTS.items():
+            triggers = [name] + info.get("synonyms", []) + info.get("glyphs", [])
+            if any(t.lower() in gathered for t in triggers):
+                intent = {"intent": name, "action": info.get("action")}
+                intent.update(qnl_data)
+                intents.append(intent)
+        for intent, res in zip(intents, results):
+            success = not (
+                isinstance(res, dict)
+                and res.get("status") in {"unhandled", "todo"}
+            )
+            training_guide.log_result(intent, success, qnl_data.get("tone"))
         emotion = qnl_data.get("tone", "neutral")
         self._update_mood(emotion)
         dominant = max(self.mood_state, key=self.mood_state.get)

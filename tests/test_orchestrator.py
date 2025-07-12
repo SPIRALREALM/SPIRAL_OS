@@ -36,6 +36,33 @@ def test_route_music(tmp_path):
     assert result["qnl_phrases"]
 
 
+def test_route_qnl_voice(monkeypatch):
+    orch = MoGEOrchestrator()
+    info = {"emotion": "neutral"}
+    qnl = {"tone": "rubedo"}
+
+    monkeypatch.setattr(
+        "inanna_ai.voice_layer_albedo.modulate_voice",
+        lambda text, tone: f"{tone}.wav",
+    )
+    monkeypatch.setattr(
+        "SPIRAL_OS.symbolic_parser.parse_intent",
+        lambda d: ["ok"],
+    )
+
+    result = orch.route(
+        "hi",
+        info,
+        qnl_data=qnl,
+        text_modality=False,
+        voice_modality=True,
+        music_modality=False,
+    )
+
+    assert result["voice_path"] == "rubedo.wav"
+    assert result["qnl_intents"] == ["ok"]
+
+
 def test_route_with_albedo_layer(monkeypatch):
     class DummyLayer:
         def __init__(self):

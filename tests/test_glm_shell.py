@@ -22,6 +22,7 @@ def test_send_command(monkeypatch):
     mod = ModuleType("init_crown_agent")
     mod.initialize_crown = lambda: dummy
     monkeypatch.setitem(sys.modules, "init_crown_agent", mod)
+    sys.modules.pop("glm_shell", None)
     glm_shell = importlib.import_module("glm_shell")
     out = glm_shell.send_command("ls -la")
     assert out == "response"

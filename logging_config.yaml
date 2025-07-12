@@ -8,6 +8,11 @@ handlers:
     formatter: json
     filename: logs/inanna_ai.log
     encoding: utf-8
+    filters: [emotion]
+filters:
+  emotion:
+    '()': logging_filters.EmotionFilter
 root:
   level: INFO
   handlers: [file]
+disable_existing_loggers: False

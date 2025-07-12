@@ -3,6 +3,7 @@ from __future__ import annotations
 """Persist and retrieve emotional state parameters."""
 
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict
 
@@ -14,6 +15,8 @@ _DEFAULT_STATE = {
     "preferred_expression_channel": "text",
 }
 _STATE: Dict[str, Any] = {}
+
+logger = logging.getLogger(__name__)
 
 
 def _load_state() -> None:
@@ -46,6 +49,7 @@ def set_current_layer(layer: str | None) -> None:
     """Set ``layer`` as the active personality layer."""
     _STATE["current_layer"] = layer
     _save_state()
+    logger.info("current_layer set to %s", layer)
 
 
 def get_last_emotion() -> str | None:
@@ -57,6 +61,7 @@ def set_last_emotion(emotion: str | None) -> None:
     """Record ``emotion`` as the last observed emotion."""
     _STATE["last_emotion"] = emotion
     _save_state()
+    logger.info("last_emotion set to %s", emotion)
 
 
 def get_resonance_level() -> float:
@@ -68,6 +73,7 @@ def set_resonance_level(level: float) -> None:
     """Set the emotional resonance ``level``."""
     _STATE["resonance_level"] = float(level)
     _save_state()
+    logger.info("resonance_level set to %.3f", level)
 
 
 def get_preferred_expression_channel() -> str:
@@ -79,6 +85,7 @@ def set_preferred_expression_channel(channel: str) -> None:
     """Persist the preferred expression ``channel``."""
     _STATE["preferred_expression_channel"] = channel
     _save_state()
+    logger.info("preferred_channel set to %s", channel)
 
 
 __all__ = [

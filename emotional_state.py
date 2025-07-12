@@ -3,6 +3,7 @@ from __future__ import annotations
 """Persist and retrieve emotional and soul state parameters."""
 
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -16,6 +17,8 @@ _DEFAULT_STATE = {
     "soul_state": None,
 }
 _STATE: Dict[str, Any] = {}
+
+logger = logging.getLogger(__name__)
 
 
 def _load_state() -> None:
@@ -48,6 +51,7 @@ def set_current_layer(layer: str | None) -> None:
     """Set ``layer`` as the active personality layer."""
     _STATE["current_layer"] = layer
     _save_state()
+    logger.info("current_layer set to %s", layer)
 
 
 def get_last_emotion() -> str | None:
@@ -59,6 +63,7 @@ def set_last_emotion(emotion: str | None) -> None:
     """Record ``emotion`` as the last observed emotion."""
     _STATE["last_emotion"] = emotion
     _save_state()
+    logger.info("last_emotion set to %s", emotion)
 
 
 def get_resonance_level() -> float:
@@ -70,6 +75,7 @@ def set_resonance_level(level: float) -> None:
     """Set the emotional resonance ``level``."""
     _STATE["resonance_level"] = float(level)
     _save_state()
+    logger.info("resonance_level set to %.3f", level)
 
 
 def get_preferred_expression_channel() -> str:
@@ -81,6 +87,7 @@ def set_preferred_expression_channel(channel: str) -> None:
     """Persist the preferred expression ``channel``."""
     _STATE["preferred_expression_channel"] = channel
     _save_state()
+    logger.info("preferred_channel set to %s", channel)
 
 
 def get_resonance_pairs() -> List[Tuple[float, float]]:
@@ -93,6 +100,7 @@ def set_resonance_pairs(pairs: List[Tuple[float, float]]) -> None:
     """Persist ``pairs`` of resonance frequencies."""
     _STATE["resonance_pairs"] = [[float(a), float(b)] for a, b in pairs]
     _save_state()
+    logger.info("resonance_pairs set", extra={"emotion": _STATE.get("last_emotion"), "resonance": _STATE.get("resonance_level")})
 
 
 def get_soul_state() -> str | None:
@@ -104,6 +112,7 @@ def set_soul_state(state: str | None) -> None:
     """Persist the current ``state`` of the soul."""
     _STATE["soul_state"] = state
     _save_state()
+    logger.info("soul_state set to %s", state)
 
 
 __all__ = [

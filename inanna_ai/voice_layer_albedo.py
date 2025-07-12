@@ -31,4 +31,11 @@ def modulate_voice(text: str, tone: str) -> str:
     return speaking_engine.synthesize_speech(text, tone)
 
 
-__all__ = ["modulate_voice", "TONE_PRESETS"]
+def speak(text: str, tone: str) -> str:
+    """Synthesize and immediately play ``text`` with ``tone``."""
+    path = modulate_voice(text, tone)
+    speaking_engine.play_wav(path)
+    return path
+
+
+__all__ = ["modulate_voice", "speak", "TONE_PRESETS"]

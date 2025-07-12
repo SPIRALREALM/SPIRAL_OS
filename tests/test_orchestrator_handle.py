@@ -83,9 +83,9 @@ def test_dynamic_layer_selection(monkeypatch):
 
     # Patch registry and emotion state
     monkeypatch.setattr(orchestrator, "PERSONALITY_REGISTRY", {"dummy": DummyLayer})
-    monkeypatch.setattr(orchestrator.emotion_registry, "get_current_layer", lambda: "dummy")
+    monkeypatch.setattr(orchestrator.emotional_state, "get_current_layer", lambda: "dummy")
     recorded = {}
-    monkeypatch.setattr(orchestrator.emotion_registry, "set_current_layer", lambda name: recorded.setdefault("layer", name))
+    monkeypatch.setattr(orchestrator.emotional_state, "set_current_layer", lambda name: recorded.setdefault("layer", name))
 
     # Stub heavy components
     monkeypatch.setattr(orchestrator.qnl_engine, "parse_input", lambda t: {"tone": "neutral"})

@@ -73,3 +73,25 @@ weight for each model using these scores. Faster and more relevant replies
 increase a model's weight while slower or incoherent ones reduce it. Model
 choice multiplies the heuristic score by the current weight, allowing the system
 to favour consistently strong performers over time.
+
+## Configuration
+
+The Crown agent loads settings from `config/INANNA_CORE.yaml`. Each option can
+be overridden with environment variables:
+
+- `GLM_API_URL` – URL of the GLM service used by `GLMIntegration`.
+- `GLM_API_KEY` – API key for that service.
+- `MODEL_PATH` – local path to the GLM‑4.1V‑9B weights.
+- `MEMORY_DIR` – directory holding `vector_memory/` and `chroma/`.
+- `DEEPSEEK_URL` – optional endpoint for the DeepSeek servant model.
+- `MISTRAL_URL` – optional endpoint for the Mistral servant model.
+
+Example overrides:
+
+```bash
+export GLM_API_URL=http://localhost:8001
+export MEMORY_DIR=/data/spiral_memory
+```
+
+Running `./crown_model_launcher.sh` reads `secrets.env` and starts a compatible
+GLM service if the weights are present.

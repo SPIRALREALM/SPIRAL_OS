@@ -286,3 +286,22 @@ EOF
 
 `verify_integrity()` recomputes the SHA3‑256 hash and compares it to the stored
 value, ensuring the grid and its signature still match.
+
+## Crown Agent Console
+
+Launch the main GLM service and interactive console using the helper script
+`crown_model_launcher.sh`. The script loads `secrets.env`, ensures the
+GLM‑4.1V‑9B weights are present and starts a local API compatible with the
+`GLMIntegration` class.
+
+```bash
+./crown_model_launcher.sh
+```
+
+Once the service is running you can start the REPL:
+
+```bash
+python console_interface.py
+```
+
+The prompt `crown>` accepts natural language and `/exit` quits the session.

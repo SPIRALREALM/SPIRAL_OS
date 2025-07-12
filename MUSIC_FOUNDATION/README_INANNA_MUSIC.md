@@ -130,6 +130,17 @@ This generates `output/preview.wav` and two JSON files:
 `output/qnl_song.json` and `output/qnl_7plane.json`. The terminal displays the
 QNL phrases so you can verify the full pipeline.
 
+### Quick Ritual Playback
+
+`play_ritual_music.py` composes a short melody based on an emotion and ritual
+symbol. The optional `--stego` flag hides the ritual phrase inside the WAV.
+
+```bash
+python3 play_ritual_music.py --emotion joy --ritual "\u2609" --stego
+```
+
+This writes `ritual.wav` in the current directory and plays it back.
+
 ---
 
 ## 🌌 Vision

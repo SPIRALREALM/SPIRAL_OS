@@ -18,12 +18,13 @@ except Exception:  # pragma: no cover - optional dependency
 
 import numpy as np
 
-from task_profiling import classify_task
+from task_profiling import classify_task, ritual_action_sequence
 
 from inanna_ai import response_manager, tts_coqui, emotion_analysis, db_storage
 from inanna_ai.personality_layers import AlbedoPersonality, REGISTRY as PERSONALITY_REGISTRY
 from inanna_ai import voice_layer_albedo
 from SPIRAL_OS import qnl_engine, symbolic_parser
+import invocation_engine
 import emotional_state
 import training_guide
 from corpus_memory_logging import log_interaction, load_interactions
@@ -58,6 +59,7 @@ class MoGEOrchestrator:
             for e in emotion_analysis.EMOTION_WEIGHT
         }
         self._interaction_count = 0
+        self._invocation_engine = invocation_engine
 
     @staticmethod
     def _select_plane(weight: float, archetype: str) -> str:
@@ -242,6 +244,14 @@ class MoGEOrchestrator:
         dominant = max(self.mood_state, key=self.mood_state.get)
         emotional_state.set_last_emotion(dominant)
         emotional_state.set_resonance_level(self.mood_state[dominant])
+
+        symbols = self._invocation_engine._extract_symbols(text)
+        tasks = ritual_action_sequence(symbols, dominant)
+        for res in self._invocation_engine.invoke(f"{symbols} [{dominant}]", self):
+            if isinstance(res, list):
+                tasks.extend(res)
+        for act in tasks:
+            symbolic_parser.parse_intent({"text": act, "tone": dominant})
 
         emotion_data = {
             "emotion": dominant,

@@ -1,11 +1,41 @@
 import sys
 from pathlib import Path
+import types
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+# Stub optional dependencies before importing the module
+sys.modules.setdefault("soundfile", types.ModuleType("soundfile"))
+sys.modules.setdefault("librosa", types.ModuleType("librosa"))
+yaml_mod = types.ModuleType("yaml")
+yaml_mod.safe_load = lambda *a, **k: {}
+sys.modules.setdefault("yaml", yaml_mod)
+sys.modules.setdefault("opensmile", types.ModuleType("opensmile"))
+sf_mod = sys.modules["soundfile"]
+setattr(sf_mod, "write", lambda path, data, sr, subtype=None: Path(path).touch())
+
+scipy_mod = types.ModuleType("scipy")
+scipy_io = types.ModuleType("scipy.io")
+wavfile_mod = types.ModuleType("scipy.io.wavfile")
+wavfile_mod.write = lambda *a, **k: None
+scipy_io.wavfile = wavfile_mod
+signal_mod = types.ModuleType("scipy.signal")
+signal_mod.butter = lambda *a, **k: (None, None)
+signal_mod.lfilter = lambda *a, **k: []
+scipy_mod.signal = signal_mod
+scipy_mod.io = scipy_io
+sys.modules.setdefault("scipy", scipy_mod)
+sys.modules.setdefault("scipy.io", scipy_io)
+sys.modules.setdefault("scipy.signal", signal_mod)
+sys.modules.setdefault("scipy.io.wavfile", wavfile_mod)
+
 import orchestrator
 from orchestrator import MoGEOrchestrator
+
+# Disable invocation engine side effects for tests
+orchestrator.invocation_engine.invoke = lambda *a, **k: []
+orchestrator.invocation_engine._extract_symbols = lambda text: ""
 
 
 def test_route_text_only(tmp_path, monkeypatch):

@@ -11,6 +11,7 @@ import tomllib
 
 from .facial_expression_controller import apply_expression
 import emotional_state
+from . import context_tracker
 
 try:  # pragma: no cover - optional dependency
     import mediapipe as mp
@@ -47,7 +48,9 @@ def _load_traits() -> AvatarTraits:
 def _get_face_mesh() -> Optional[object]:  # pragma: no cover - optional
     if mp is None:
         return None
-    return mp.solutions.face_mesh.FaceMesh(static_image_mode=False, refine_landmarks=True)
+    return mp.solutions.face_mesh.FaceMesh(
+        static_image_mode=False, refine_landmarks=True
+    )
 
 
 def generate_avatar_stream() -> Iterator[np.ndarray]:
@@ -59,11 +62,12 @@ def generate_avatar_stream() -> Iterator[np.ndarray]:
         while True:
             frame = np.zeros((64, 64, 3), dtype=np.uint8)
             frame[:] = color
-            emotion = emotional_state.get_last_emotion()
-            frame = apply_expression(frame, emotion)
-            if mesh is not None:
-                # Feed dummy frame to mediapipe to update landmarks
-                _ = mesh.process(frame)
+            if context_tracker.state.avatar_loaded:
+                emotion = emotional_state.get_last_emotion()
+                frame = apply_expression(frame, emotion)
+                if mesh is not None:
+                    # Feed dummy frame to mediapipe to update landmarks
+                    _ = mesh.process(frame)
             yield frame
     finally:
         if mesh is not None:

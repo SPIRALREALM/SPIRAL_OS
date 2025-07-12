@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-"""Lightweight text vector memory built on ChromaDB."""
+"""Lightweight text vector memory built on ChromaDB.
+
+The database location defaults to ``data/vector_memory`` next to this file but
+can be overridden by setting the ``VECTOR_DB_PATH`` environment variable.  Each
+stored entry is timestamped so query results decay in relevance over time.
+"""
 
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import os
 import uuid
 import math
 
@@ -20,7 +26,8 @@ except Exception:  # pragma: no cover - optional dependency
 from SPIRAL_OS import qnl_utils
 
 
-_DIR = Path(__file__).resolve().parent / "data" / "vector_memory"
+_DEFAULT_PATH = Path(__file__).resolve().parent / "data" / "vector_memory"
+_DIR = Path(os.getenv("VECTOR_DB_PATH", str(_DEFAULT_PATH)))
 _COLLECTION_NAME = "memory"
 _DECAY_SECONDS = 86_400.0  # one day
 

@@ -30,6 +30,7 @@ def test_basic_flow(monkeypatch):
     assert result["text"].startswith("glm:")
     assert result["model"] == "glm"
     assert "hi" in glm.seen
+    assert result["state"] == "dormant"
 
 
 def test_servant_invocation(monkeypatch):
@@ -38,4 +39,14 @@ def test_servant_invocation(monkeypatch):
     result = crown_prompt_orchestrator("how do things work?", glm)
     assert result["text"] == "ds:how do things work?"
     assert result["model"] == "deepseek"
+
+
+def test_state_engine_integration(monkeypatch):
+    glm = DummyGLM()
+    monkeypatch.setattr(
+        "crown_prompt_orchestrator.load_interactions",
+        lambda limit=3: [],
+    )
+    result = crown_prompt_orchestrator("begin the ritual", glm)
+    assert result["state"] == "ritual"
 
